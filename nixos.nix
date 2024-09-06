@@ -1,9 +1,9 @@
 { config, lib, ... }:
 {
-	options.veronica = {
-		enable = lib.mkEnableOption "Whether to enable Veronica, an AI assistance server.";
+	options.victoria = {
+		enable = lib.mkEnableOption "Whether to enable Victoria, an AI assistance server.";
 	};
 
-	config = lib.mkIf config.options.services.veronica.enable {
+	config = lib.mkIf config.options.services.victoria.enable {
 	};
 }

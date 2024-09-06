@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "veronica"
+name = "victoria"
 version = "0.1.0"
 description = ""
 authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
@@ -15,4 +15,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-veronica = "veronica.backend:main"
+victoria = "victoria.backend:main"

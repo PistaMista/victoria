@@ -10,7 +10,7 @@
 		flake-utils.lib.eachDefaultSystem (system:
 			let
 				pkgs = nixpkgs.legacyPackages.${system};
-				packageName = "veronica";
+				packageName = "victoria";
 				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication;
 				app = mkPoetryApplication {
 					projectDir = ./.;
@@ -25,6 +25,6 @@
 				};
 			}
 		) // {
-			nixosModules.veronica.imports = [ ./nixos.nix ];
+			nixosModules.victoria.imports = [ ./nixos.nix ];
 		};
 }
