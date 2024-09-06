@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "veronica"
+version = "0.1.0"
+description = "An all-purpose AI assistant."
+authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain = "^0.2.16"
+chromadb = "^0.5.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

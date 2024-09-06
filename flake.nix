@@ -1,5 +1,5 @@
 {
-	description = "My testing Python app with Flakes";
+	description = "An all-purpose AI assistance Ollama proxy.";
 	inputs = {
 		nixpkgs.url =  "github:NixOS/nixpkgs/release-24.05";
 		poetry2nix.url = "github:nix-community/poetry2nix";
