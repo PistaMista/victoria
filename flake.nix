@@ -11,9 +11,18 @@
 			let
 				pkgs = nixpkgs.legacyPackages.${system};
 				packageName = "victoria";
-				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication;
+				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
+
 				app = mkPoetryApplication {
 					projectDir = ./.;
+					overrides = defaultPoetryOverrides.extend
+						(final: prev: {
+							langchain-ollama = prev.langchain-ollama.overridePythonAttrs (
+								old: {
+									buildInputs = (old.buildInputs or [ ]) ++ [ prev.poetry ];
+								}
+							);
+						});
 				};
 			in
 			{
