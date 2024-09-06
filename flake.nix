@@ -24,5 +24,7 @@
 					inputsFrom = builtins.attrValues self.packages.${system};
 				};
 			}
-		);
+		) // {
+			nixosModules.veronica.imports = [ ./nixos.nix ];
+		};
 }
