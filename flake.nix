@@ -22,6 +22,11 @@
 									buildInputs = (old.buildInputs or [ ]) ++ [ prev.poetry ];
 								}
 							);
+							argparse = prev.argparse.overridePythonAttrs (
+								old: {
+									buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
+								}
+							);
 						});
 				};
 			in
