@@ -27,5 +27,6 @@ in pkgs.mkShell {
 		pkgs.poetry
 		pkgs.nodejs_22
 		vscode
+		(pkgs.python3.withPackages (ps: [ps.flask ps.waitress ps.langchain]))
 	];
 }
