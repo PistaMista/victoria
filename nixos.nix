@@ -26,7 +26,7 @@ in
 			description = "An all-purpose AI assistant server.";
 			wantedBy = [ "multi-user.target" ];
 			serviceConfig = {
-				ExecStart = "${victoria}/bin/victoria-backend -a ${cfg.listenAddress} -p ${cfg.listenPort}";
+				ExecStart = "${victoria}/bin/victoria-backend -a ${toString cfg.listenAddress} -p ${toString cfg.listenPort}";
 			};
 		};
 	};
