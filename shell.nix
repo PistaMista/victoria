@@ -3,5 +3,6 @@ pkgs = import (fetchTarball "https://nixos.org/channels/nixos-unstable/nixexprs.
 in pkgs.mkShell {
 	packages = [
 		pkgs.poetry
+		pkgs.nodejs_22
 	];
 }
