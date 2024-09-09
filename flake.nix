@@ -30,13 +30,40 @@
 						});
 
 
-				app = mkPoetryApplication {
+				backend = mkPoetryApplication {
 					projectDir = ./victoria-backend;
 					overrides = poetryOverrides;
 				};
+
+				frontend = pkgs.buildNpmPackage {
+					name = frontendName;
+					src = ./victoria-frontend;
+					npmDepsHash = "sha256-CdkK6E8OpP0S2jqPLECwNKrcxxZWcB333PLagl6Pwrw=";
+
+					buildInputs = with pkgs; [
+						nodejs_22
+					];
+
+					npmBuild = "npm run build";
+
+					installPhase = ''
+						cp -r build $out;
+					'';
+				};
+
+				wrapper = pkgs.writeShellApplication {
+					name = backendName;
+
+					runtimeInputs = [ ];
+
+					text = ''
+						export FRONTEND_PATH="${frontend}";
+						${backend}/bin/victoria-backend "$@";
+					'';
+				};
 			in
 			{
-				packages.${backendName} = app;
+				packages.${backendName} = wrapper;
 				defaultPackage = self.packages.${system}.${backendName};
 				devShell = pkgs.mkShell {
 					buildInputs = with pkgs; [ poetry ];

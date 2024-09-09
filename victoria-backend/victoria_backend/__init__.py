@@ -3,8 +3,9 @@ from langchain_core.messages import AIMessage
 from flask import Flask, send_from_directory
 from argparse import ArgumentParser
 from waitress import serve
+from os import environ
 
-app = Flask(__name__, static_folder='../../victoria-frontend/build')
+app = Flask(__name__, static_folder=environ['FRONTEND_PATH'] or '../../victoria-frontend/build')
 parser = ArgumentParser(
             prog='Victoria',
             description='An all-purpose AI assistant')
