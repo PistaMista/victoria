@@ -10,11 +10,12 @@
 		flake-utils.lib.eachDefaultSystem (system:
 			let
 				pkgs = nixpkgs.legacyPackages.${system};
-				packageName = "victoria";
-				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
 
+				backendName = "victoria-backend";
+
+				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
 				app = mkPoetryApplication {
-					projectDir = ./.;
+					projectDir = ./victoria-backend;
 					overrides = defaultPoetryOverrides.extend
 						(final: prev: {
 							langchain-ollama = prev.langchain-ollama.overridePythonAttrs (
@@ -31,8 +32,8 @@
 				};
 			in
 			{
-				packages.${packageName} = app;
-				defaultPackage = self.packages.${system}.${packageName};
+				packages.${backendName} = app;
+				defaultPackage = self.packages.${system}.${backendName};
 				devShell = pkgs.mkShell {
 					buildInputs = with pkgs; [ poetry ];
 					inputsFrom = builtins.attrValues self.packages.${system};
