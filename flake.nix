@@ -9,14 +9,13 @@
 	outputs = {self, nixpkgs, poetry2nix, flake-utils }: 
 		flake-utils.lib.eachDefaultSystem (system:
 			let
+				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
+				backendName = "victoria-backend";
+				frontendName = "victoria-frontend";
+
 				pkgs = nixpkgs.legacyPackages.${system};
 
-				backendName = "victoria-backend";
-
-				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
-				app = mkPoetryApplication {
-					projectDir = ./victoria-backend;
-					overrides = defaultPoetryOverrides.extend
+				poetryOverrides = defaultPoetryOverrides.extend
 						(final: prev: {
 							langchain-ollama = prev.langchain-ollama.overridePythonAttrs (
 								old: {
@@ -29,6 +28,11 @@
 								}
 							);
 						});
+
+
+				app = mkPoetryApplication {
+					projectDir = ./victoria-backend;
+					overrides = poetryOverrides;
 				};
 			in
 			{

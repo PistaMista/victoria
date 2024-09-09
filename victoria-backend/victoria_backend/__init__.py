@@ -4,7 +4,7 @@ from flask import Flask, send_from_directory
 from argparse import ArgumentParser
 from waitress import serve
 
-app = Flask(__name__, static_folder='../frontend/build')
+app = Flask(__name__, static_folder='../../victoria-frontend/build')
 parser = ArgumentParser(
             prog='Victoria',
             description='An all-purpose AI assistant')
