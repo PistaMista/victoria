@@ -71,6 +71,9 @@
 				};
 			}
 		) // {
-			nixosModules.victoria.imports = [ ./nixos.nix ];
+			nixosModules.victoria = {config, lib, pkgs, ... }: import ./nixos.nix { 
+				inherit config lib; 
+				victoria = (self.packages.${pkgs.system}.victoria-backend);
+			}; 
 		};
 }
