@@ -9,13 +9,13 @@
 	outputs = {self, nixpkgs, poetry2nix, flake-utils }: 
 		flake-utils.lib.eachDefaultSystem (system:
 			let
-				pkgs = nixpkgs.legacyPackages.${system};
-				packageName = "victoria";
 				inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
+				backendName = "victoria-backend";
+				frontendName = "victoria-frontend";
 
-				app = mkPoetryApplication {
-					projectDir = ./.;
-					overrides = defaultPoetryOverrides.extend
+				pkgs = nixpkgs.legacyPackages.${system};
+
+				poetryOverrides = defaultPoetryOverrides.extend
 						(final: prev: {
 							langchain-ollama = prev.langchain-ollama.overridePythonAttrs (
 								old: {
@@ -28,17 +28,52 @@
 								}
 							);
 						});
+
+
+				backend = mkPoetryApplication {
+					projectDir = ./victoria-backend;
+					overrides = poetryOverrides;
+				};
+
+				frontend = pkgs.buildNpmPackage {
+					name = frontendName;
+					src = ./victoria-frontend;
+					npmDepsHash = "sha256-CdkK6E8OpP0S2jqPLECwNKrcxxZWcB333PLagl6Pwrw=";
+
+					buildInputs = with pkgs; [
+						nodejs_22
+					];
+
+					npmBuild = "npm run build";
+
+					installPhase = ''
+						cp -r build $out;
+					'';
+				};
+
+				wrapper = pkgs.writeShellApplication {
+					name = backendName;
+
+					runtimeInputs = [ ];
+
+					text = ''
+						export FRONTEND_PATH="${frontend}";
+						${backend}/bin/victoria-backend "$@";
+					'';
 				};
 			in
 			{
-				packages.${packageName} = app;
-				defaultPackage = self.packages.${system}.${packageName};
+				packages.${backendName} = wrapper;
+				defaultPackage = self.packages.${system}.${backendName};
 				devShell = pkgs.mkShell {
 					buildInputs = with pkgs; [ poetry ];
 					inputsFrom = builtins.attrValues self.packages.${system};
 				};
 			}
 		) // {
-			nixosModules.victoria.imports = [ ./nixos.nix ];
+			nixosModules.victoria = {config, lib, pkgs, ... }: import ./nixos.nix { 
+				inherit config lib; 
+				victoria = (self.packages.${pkgs.system}.victoria-backend);
+			}; 
 		};
 }

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "victoria"
+name = "victoria-backend"
 version = "0.1.0"
 description = ""
 authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
@@ -13,9 +13,10 @@ langchain = "^0.2.16"
 langchain-ollama = "^0.1.3"
 flask = "^3.0.3"
 argparse = "^1.4.0"
+waitress = "^3.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-victoria = "victoria.backend:main"
+victoria-backend = "victoria_backend:main"
