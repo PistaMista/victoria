@@ -18,8 +18,10 @@ def index():
 
 @app.route("/<path:path>")
 def static_files(path):
-    if os.path.exists(app.static_folder + '/' + path):
+    if os.path.isfile(app.static_folder + '/' + path):
         return send_from_directory(app.static_folder, path)   
+    elif os.path.isdir(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path + '/index.html')
     else:
         return index()
 
