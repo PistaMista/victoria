@@ -1,6 +1,7 @@
 <script lang="ts">
+    import PromptBox from '$lib/PromptBox.svelte';
+    import ChatWindow from '$lib/ChatWindow.svelte';
     import { onMount } from 'svelte';
-    import { Datepicker } from 'flowbite-svelte';
 
     let data = {
         data: "Loading..."
@@ -22,6 +23,8 @@
     });
 </script>
 
-<div class="p-8">
-    <Datepicker />
+
+<div>
+    <ChatWindow/>
+    <PromptBox/>
 </div>
