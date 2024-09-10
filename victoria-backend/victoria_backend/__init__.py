@@ -25,6 +25,10 @@ def static_files(path):
     else:
         return index()
 
+@app.route("/api/test")
+def test():
+    return { 'data': 'lolec'}
+
 def main():
     args = parser.parse_args()
     serve(app, host=args.host_address or "127.0.0.1", port=args.port or 5001)
