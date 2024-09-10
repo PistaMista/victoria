@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Alert } from 'flowbite-svelte';
+    import { Datepicker } from 'flowbite-svelte';
 
     let data = {
         data: "Loading..."
@@ -23,8 +23,5 @@
 </script>
 
 <div class="p-8">
-    <Alert>
-        <span class="font-bold">Info alert!</span>
-        {data.data}
-    </Alert>
+    <Datepicker />
 </div>
