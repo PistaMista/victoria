@@ -5,7 +5,8 @@
     let prompt = "";
     
     function on_submit() {
-        console.log(`Submitted prompt: ${prompt}!`)
+        console.log(`Submitted prompt: "${prompt}"`);
+        prompt = "";
     }
 </script>
 

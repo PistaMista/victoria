@@ -7,10 +7,12 @@
 </script>
 
 <div class="m-2 p-2">
-    <ButtonGroup class="w-full">
-        <Input placeholder="Type..." bind:value={prompt} type="text"/>
-        <Button color="primary" disabled={prompt.length == 0} on:click={on_submit}>
-            <PaperPlaneOutline/>
-        </Button>
-    </ButtonGroup>
+    <form on:submit={on_submit}>
+        <ButtonGroup class="w-full">
+            <Input placeholder="Type..." type="text" bind:value={prompt}/>
+            <Button color="primary" disabled={prompt.length == 0} type="submit">
+                <PaperPlaneOutline/>
+            </Button>
+        </ButtonGroup>
+    </form>
 </div>
