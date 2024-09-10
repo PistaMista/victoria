@@ -24,7 +24,11 @@
 </script>
 
 
-<div>
-    <ChatWindow/>
-    <PromptBox/>
+<div class="flex flex-col absolute inset-0">
+    <div class="grow">
+        <ChatWindow/>
+    </div>
+    <div class="justify-end">
+        <PromptBox/>
+    </div>
 </div>

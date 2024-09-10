@@ -1,3 +1,5 @@
-<div class="m-2 p-2 text-center bg-red-500">
-    Chat Window
+<div class="p-2 w-full h-full">
+    <div class="p-2 w-full h-full text-center bg-red-500">
+        Chat Window
+    </div>
 </div>
