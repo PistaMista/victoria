@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { Alert } from 'flowbite-svelte';
 
     let data = {
         data: "Loading..."
@@ -21,6 +22,9 @@
     });
 </script>
 
-<h1>Welcome to SvelteKit!!!</h1>
-<p>Visit <a href="https://kit.svelte.dev">KIT.SVELTE.DEV</a> to read the documentation</p>
-<p>{data.data}</p>
+<div class="p-8">
+    <Alert>
+        <span class="font-bold">Info alert!</span>
+        {data.data}
+    </Alert>
+</div>
