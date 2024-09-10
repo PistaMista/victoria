@@ -1,26 +1,12 @@
 <script lang="ts">
     import PromptBox from '$lib/PromptBox.svelte';
     import ChatWindow from '$lib/ChatWindow.svelte';
-    import { onMount } from 'svelte';
 
-    let data = {
-        data: "Loading..."
-    };
-    let error = null;
-
-    onMount(async () => {
-        try {
-            const res = await fetch('/api/test');
-
-            if (!res.ok) {
-                throw new Error("API error");
-            }
-
-            data = await res.json();
-        } catch (err: any) {
-            error = err.message;
-        }
-    });
+    let prompt = "";
+    
+    function on_submit() {
+        console.log(`Submitted prompt: ${prompt}!`)
+    }
 </script>
 
 
@@ -29,6 +15,6 @@
         <ChatWindow/>
     </div>
     <div class="justify-end">
-        <PromptBox/>
+        <PromptBox bind:prompt {on_submit}/>
     </div>
 </div>
