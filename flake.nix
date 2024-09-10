@@ -38,7 +38,7 @@
 				frontend = pkgs.buildNpmPackage {
 					name = frontendName;
 					src = ./victoria-frontend;
-					npmDepsHash = "sha256-CdkK6E8OpP0S2jqPLECwNKrcxxZWcB333PLagl6Pwrw=";
+					npmDepsHash = "sha256-BYzh58wBOxS/rfsxUscJCEG8nKJkBJI41XwP9QlKYmg=";
 
 					buildInputs = with pkgs; [
 						nodejs_22
