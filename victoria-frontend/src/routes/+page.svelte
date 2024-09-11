@@ -16,6 +16,6 @@
         <ChatWindow/>
     </div>
     <div class="justify-end">
-        <PromptBox bind:prompt {on_submit}/>
+        <PromptBox bind:prompt {on_submit} autofocus/>
     </div>
 </div>
