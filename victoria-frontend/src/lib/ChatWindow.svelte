@@ -10,9 +10,9 @@
         <div class="p-2 h-full overflow-y-auto">
             {#each messages as message}
                 {#if message.type == 'user'}
-                    <UserMessage/>
+                    <UserMessage> {message.content} </UserMessage>
                 {:else}
-                    <AssistantMessage/>
+                    <AssistantMessage> {message.content} </AssistantMessage>
                 {/if}
             {/each}
         </div>
