@@ -6,20 +6,15 @@
 </script>
 
 <div class="p-2 w-full h-full">
-    <div 
-        class="
-            p-2 w-full h-full 
-            overflow-y-scroll 
-            bg-gray-200 border border-slate-600 
-            focus:border-primary-900
-            shadow-inner rounded-lg"
-    >
-        {#each messages as message}
-            {#if message.type == 'user'}
-                <UserMessage/>
-            {:else}
-                <AssistantMessage/>
-            {/if}
-        {/each}
+    <div class="p-2 h-full bg-gray-200 border border-slate-600 focus:border-primary-900 shadow-inner rounded-lg">
+        <div class="p-2 h-full overflow-y-auto">
+            {#each messages as message}
+                {#if message.type == 'user'}
+                    <UserMessage/>
+                {:else}
+                    <AssistantMessage/>
+                {/if}
+            {/each}
+        </div>
     </div>
 </div>

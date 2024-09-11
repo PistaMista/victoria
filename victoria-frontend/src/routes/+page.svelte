@@ -3,6 +3,35 @@
     import ChatWindow from '$lib/ChatWindow.svelte';
 
     let prompt = "";
+    let messages: Array<any> = [
+        {type: 'user'},
+        {type: 'assistant'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'assistant'},
+        {type: 'assistant'},
+        {type: 'assistant'},
+        {type: 'user'},
+        {type: 'assistant'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'assistant'},
+        {type: 'assistant'},
+        {type: 'assistant'},
+        {type: 'user'},
+        {type: 'assistant'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'assistant'},
+        {type: 'assistant'},
+        {type: 'assistant'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'user'},
+        {type: 'user'},
+    ];
     
     function on_submit() {
         console.log(`Submitted prompt: "${prompt}"`);
@@ -12,10 +41,8 @@
 
 
 <div class="flex flex-col absolute inset-0">
-    <div class="grow">
-        <ChatWindow/>
+    <div class="grow overflow-hidden">
+        <ChatWindow {messages}/>
     </div>
-    <div class="justify-end">
-        <PromptBox bind:prompt {on_submit} autofocus/>
-    </div>
+    <PromptBox bind:prompt {on_submit} autofocus/>
 </div>
