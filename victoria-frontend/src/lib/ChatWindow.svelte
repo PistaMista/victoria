@@ -1,5 +1,8 @@
-<script>
-    export let reply = "";
+<script lang="ts">
+    import AssistantMessage from "./ChatItem/AssistantMessage.svelte";
+    import UserMessage from "./ChatItem/UserMessage.svelte";
+    
+    export let messages: Array<any> = [];
 </script>
 
 <div class="p-2 w-full h-full">
@@ -11,6 +14,12 @@
             focus:border-primary-900
             shadow-inner rounded-lg"
     >
-        {reply}
+        {#each messages as message}
+            {#if message.type == 'user'}
+                <UserMessage/>
+            {:else}
+                <AssistantMessage/>
+            {/if}
+        {/each}
     </div>
 </div>
