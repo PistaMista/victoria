@@ -10,7 +10,20 @@
 <div class="m-2 p-2">
     <form on:submit={on_submit}>
         <ButtonGroup class="w-full">
-            <Input placeholder="Type..." type="text" bind:value={prompt} {autofocus}/>
+            {#if autofocus}
+                <Input 
+                    placeholder="Type..." 
+                    type="text" 
+                    bind:value={prompt} 
+                    autofocus
+                />
+            {:else}
+                <Input 
+                    placeholder="Type..." 
+                    type="text" 
+                    bind:value={prompt} 
+                />
+            {/if}
             <Button color="primary" disabled={prompt.length == 0} type="submit">
                 <PaperPlaneOutline/>
             </Button>
