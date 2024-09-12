@@ -1,9 +1,9 @@
-from langchain_ollama import ChatOllama
-from langchain_core.messages import AIMessage
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 from argparse import ArgumentParser
 from waitress import serve
 import os
+from time import sleep
+from victoria_backend.llm import get_next_ai_message
 
 app = Flask(__name__, static_folder=os.environ['FRONTEND_PATH'] or '../../victoria-frontend/build')
 parser = ArgumentParser(
@@ -25,9 +25,10 @@ def static_files(path):
     else:
         return index()
 
-@app.route("/api/test")
-def test():
-    return { 'data': 'lolec'}
+@app.route("/api/chat", methods=[ "POST" ])
+def chat():
+    response = get_next_ai_message(request.json["messages"])    
+    return response
 
 def main():
     args = parser.parse_args()
