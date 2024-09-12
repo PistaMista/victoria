@@ -1,9 +1,10 @@
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessage
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 from argparse import ArgumentParser
 from waitress import serve
 import os
+from time import sleep
 
 app = Flask(__name__, static_folder=os.environ['FRONTEND_PATH'] or '../../victoria-frontend/build')
 parser = ArgumentParser(
@@ -25,9 +26,15 @@ def static_files(path):
     else:
         return index()
 
-@app.route("/api/test")
+@app.route("/api/chat", methods=[ "POST" ])
 def test():
-    return { 'data': 'lolec'}
+    response = {
+        'body': "Hello from server lol!"
+    }
+    
+    sleep(5.0)
+    
+    return response
 
 def main():
     args = parser.parse_args()

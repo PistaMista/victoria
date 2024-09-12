@@ -4,10 +4,26 @@
 
     let prompt = "";
     let messages: Array<any> = [ ];
+    let processing = false;
     
-    function on_submit() {
+    async function on_submit() {
+        if (processing) {
+            return
+        }
+
         messages = [...messages, {type: 'user', content: prompt}];
         prompt = "";
+        
+        processing = true;
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            body: JSON.stringify({})
+        });
+        
+        const json = await response.json();
+        messages = [...messages, {type: 'assistant', content: json.body}]
+        
+        processing = false;
     }
 </script>
 
@@ -16,5 +32,8 @@
     <div class="grow overflow-hidden">
         <ChatWindow {messages}/>
     </div>
-    <PromptBox bind:prompt {on_submit} autofocus/>
+    
+    <div>
+        <PromptBox bind:prompt {on_submit} show_spinner={processing} autofocus/>
+    </div>
 </div>
