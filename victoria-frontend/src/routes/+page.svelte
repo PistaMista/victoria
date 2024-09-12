@@ -20,12 +20,14 @@
 
         const response = await fetch('/api/chat', {
             method: 'POST',
-            body: JSON.stringify({})
+            body: JSON.stringify({
+                messages: messages
+            })
         });
         
         if (response.ok) {
             const json = await response.json();
-            messages = [...messages, {type: 'assistant', content: json.body}]
+            messages = [...messages, json]
             error = null;
         } else {
             error = {

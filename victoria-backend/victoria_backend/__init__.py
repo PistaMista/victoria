@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from waitress import serve
 import os
 from time import sleep
+from llm import get_next_ai_message
 
 app = Flask(__name__, static_folder=os.environ['FRONTEND_PATH'] or '../../victoria-frontend/build')
 parser = ArgumentParser(
@@ -27,11 +28,8 @@ def static_files(path):
         return index()
 
 @app.route("/api/chat", methods=[ "POST" ])
-def test():
-    response = {
-        body: "Hello from server lol!"
-    }
-    
+def chat():
+    response = get_next_ai_message(request.json["messages"])    
     sleep(5.0)
     
     return response
