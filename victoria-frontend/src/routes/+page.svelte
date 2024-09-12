@@ -41,8 +41,8 @@
 <div class="flex flex-col absolute inset-0">
     {#if error}
         <ErrorAlert>
-            <div slot="status"> {error.status} </div>
-            <div slot="statusText"> {error.statusText} </div>
+            <span slot="status"> {error.status} </span>
+            <span slot="statusText"> {error.statusText} </span>
         </ErrorAlert>
     {/if} 
 
