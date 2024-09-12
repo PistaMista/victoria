@@ -20,6 +20,7 @@
 
         const response = await fetch('/api/chat', {
             method: 'POST',
+            headers: new Headers({'content-type': 'application/json'}),
             body: JSON.stringify({
                 messages: messages
             })
