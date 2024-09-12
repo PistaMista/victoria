@@ -29,7 +29,7 @@ def static_files(path):
 @app.route("/api/chat", methods=[ "POST" ])
 def test():
     response = {
-        'body': "Hello from server lol!"
+        body: "Hello from server lol!"
     }
     
     sleep(5.0)

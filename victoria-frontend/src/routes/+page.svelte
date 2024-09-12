@@ -1,10 +1,12 @@
 <script lang="ts">
     import PromptBox from '$lib/PromptBox.svelte';
     import ChatWindow from '$lib/ChatWindow.svelte';
+    import ErrorToast from '$lib/ErrorToast.svelte';
 
     let prompt = "";
     let messages: Array<any> = [ ];
     let processing = false;
+    let error: any = null;
     
     async function on_submit() {
         if (processing) {
@@ -21,7 +23,17 @@
         });
         
         const json = await response.json();
-        messages = [...messages, {type: 'assistant', content: json.body}]
+        
+        if (response.ok) {
+            messages = [...messages, {type: 'assistant', content: json.body}]
+            error = null;
+        } else {
+            error = {
+                status: response.status,
+                statusText: response.statusText
+            }
+        }
+        
         
         processing = false;
     }
@@ -37,3 +49,10 @@
         <PromptBox bind:prompt {on_submit} show_spinner={processing} autofocus/>
     </div>
 </div>
+
+{#if error}
+    <ErrorToast>
+        <div slot="status"> {error.status} </div>
+        <div slot="statusText"> {error.statusText} </div>
+    </ErrorToast>
+{/if}
