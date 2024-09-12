@@ -3,38 +3,10 @@
     import ChatWindow from '$lib/ChatWindow.svelte';
 
     let prompt = "";
-    let messages: Array<any> = [
-        {type: 'user'},
-        {type: 'assistant'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'assistant'},
-        {type: 'assistant'},
-        {type: 'assistant'},
-        {type: 'user'},
-        {type: 'assistant'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'assistant'},
-        {type: 'assistant'},
-        {type: 'assistant'},
-        {type: 'user'},
-        {type: 'assistant'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'assistant'},
-        {type: 'assistant'},
-        {type: 'assistant'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'user'},
-        {type: 'user'},
-    ];
+    let messages: Array<any> = [ ];
     
     function on_submit() {
-        console.log(`Submitted prompt: "${prompt}"`);
+        messages = [...messages, {type: 'user', content: prompt}];
         prompt = "";
     }
 </script>
