@@ -20,7 +20,7 @@
                 {#if message.type == 'user'}
                     <UserMessage> {message.content} </UserMessage>
                 {:else}
-                    <AssistantMessage> {message.content} </AssistantMessage>
+                    <AssistantMessage content={message.content}/>
                 {/if}
             {/each}
         </div>
