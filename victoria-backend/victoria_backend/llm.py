@@ -1,7 +1,11 @@
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessage, HumanMessage
+import os
 
-chat = ChatOllama(model='default')
+chat = ChatOllama(
+    model=os.environ.get('VICTORIA_OLLAMA_MODEL', 'default'),
+    base_url=os.environ.get('VICTORIA_OLLAMA_ADDRESS', 'http://localhost:11434')
+)
 
 def to_message_object(msg):
     match (msg["type"]):
