@@ -1,16 +1,10 @@
 from flask import Flask, send_from_directory, request
-from argparse import ArgumentParser
 from waitress import serve
 import os
 from time import sleep
 from victoria_backend.llm import get_next_ai_message
 
-app = Flask(__name__, static_folder=os.environ['FRONTEND_PATH'] or '../../victoria-frontend/build')
-parser = ArgumentParser(
-            prog='Victoria',
-            description='An all-purpose AI assistant')
-parser.add_argument('-a', '--host-address')
-parser.add_argument('-p', '--port')
+app = Flask(__name__, static_folder=os.environ.get('FRONTEND_PATH', '../../victoria-frontend/build'))
 
 @app.route("/")
 def index():
@@ -31,6 +25,5 @@ def chat():
     return response
 
 def main():
-    args = parser.parse_args()
-    serve(app, host=args.host_address or "127.0.0.1", port=args.port or 5001)
+    serve(app, host=os.environ.get('VICTORIA_ADDRESS', "127.0.0.1"), port=os.environ.get('VICTORIA_PORT', 5001))
 
