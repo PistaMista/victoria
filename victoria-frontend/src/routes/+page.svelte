@@ -13,8 +13,10 @@
             return
         }
 
-        messages = [...messages, {type: 'user', content: prompt}];
-        prompt = "";
+        if (prompt.length > 0) {
+            messages = [...messages, {type: 'user', content: prompt}];
+            prompt = "";
+        }
         
         processing = true;
 
