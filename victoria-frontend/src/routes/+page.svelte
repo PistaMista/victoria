@@ -41,6 +41,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Victoria</title>
+</svelte:head>
+
 <div class="flex flex-col absolute inset-0">
     {#if error}
         <ErrorAlert>
