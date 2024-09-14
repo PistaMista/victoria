@@ -1,11 +1,12 @@
 <script lang="ts">
     import { marked } from 'marked';
+    import ChatItemBase from './ChatItemBase.svelte';
     export let content = "";
 </script>
 
-<div class="p-1 flex flex-row justify-end">
-    <div class="p-2 bg-primary-900 text-slate-200 rounded-lg">
+<ChatItemBase justify_end={true} inner_class="bg-primary-900">
+    <svelte:fragment slot="content">
         <!-- FIXME: There is totally an XSS attack here -->
         {@html marked(content)}
-    </div>
-</div>
+    </svelte:fragment>
+</ChatItemBase>
