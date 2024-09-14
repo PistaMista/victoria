@@ -9,7 +9,7 @@
     export let context_actions: Array<ContextAction> = [];
 </script>
 
-<ButtonGroup class="-mt-2 bg-slate-500 text-slate-200">
+<ButtonGroup class="-m-2 bg-slate-500 text-slate-200">
     {#each context_actions as action}
         <Button on:click={action.action}> <svelte:component this={action.icon_component}/> </Button>
     {/each}
