@@ -17,7 +17,7 @@
                 bind:value={prompt}
                 {autofocus}
             />
-            <Button color="primary" disabled={prompt.length == 0 || show_spinner} type="submit">
+            <Button color="primary" disabled={show_spinner} type="submit">
                 {#if show_spinner}
                     <Spinner size="4"/>
                 {:else}

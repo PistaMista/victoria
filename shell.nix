@@ -2,7 +2,7 @@ let
 	config = {
 		allowUnfree = true;
 	};
-	pkgs = import (fetchTarball "https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz") { inherit config; };
+	pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-24.05.tar.gz" ) { inherit config; };
 	vscode = pkgs.vscode-with-extensions.override {
 		vscodeExtensions = with pkgs.vscode-extensions;
 		[

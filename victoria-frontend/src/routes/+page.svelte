@@ -13,8 +13,10 @@
             return
         }
 
-        messages = [...messages, {type: 'user', content: prompt}];
-        prompt = "";
+        if (prompt.length > 0) {
+            messages = [...messages, {type: 'user', content: prompt}];
+            prompt = "";
+        }
         
         processing = true;
 
@@ -41,6 +43,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Victoria</title>
+</svelte:head>
+
 <div class="flex flex-col absolute inset-0">
     {#if error}
         <ErrorAlert>
@@ -50,7 +56,7 @@
     {/if} 
 
     <div class="grow overflow-hidden">
-        <ChatWindow {messages}/>
+        <ChatWindow bind:messages/>
     </div>
     
     <div>
