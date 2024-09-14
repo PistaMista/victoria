@@ -1,3 +1,3 @@
-<div class="p-1 bg-slate-300">
+<div class="p-1 bg-slate-500">
     MENU!
 </div>
