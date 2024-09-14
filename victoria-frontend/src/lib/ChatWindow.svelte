@@ -1,7 +1,7 @@
 <script lang="ts">
     import { afterUpdate } from "svelte";
-    import AssistantMessage from "./ChatItem/AssistantMessage.svelte";
-    import UserMessage from "./ChatItem/UserMessage.svelte";
+    import AssistantMessage from "./ChatItem/Messages/AssistantMessage.svelte";
+    import UserMessage from "./ChatItem/Messages/UserMessage.svelte";
     
     export let messages: Array<any> = [];
     
