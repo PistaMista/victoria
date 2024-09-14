@@ -54,7 +54,7 @@
     {/if} 
 
     <div class="grow overflow-hidden">
-        <ChatWindow {messages}/>
+        <ChatWindow bind:messages/>
     </div>
     
     <div>

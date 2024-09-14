@@ -18,9 +18,9 @@
         <div bind:this={container} class="p-2 h-full overflow-y-auto scroll-smooth">
             {#each messages as message}
                 {#if message.type == 'user'}
-                    <UserMessage> {message.content} </UserMessage>
+                    <UserMessage bind:content={message.content}/>
                 {:else}
-                    <AssistantMessage content={message.content}/>
+                    <AssistantMessage bind:content={message.content}/>
                 {/if}
             {/each}
         </div>
