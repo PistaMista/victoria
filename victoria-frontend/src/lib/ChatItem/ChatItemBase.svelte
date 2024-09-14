@@ -7,4 +7,7 @@
     <div class="p-2 text-slate-200 rounded-lg {inner_class}">
         <slot name="content"/>
     </div>
+    <div>
+        <slot name="menu"/>
+    </div>
 </div>
