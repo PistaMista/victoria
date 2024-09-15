@@ -12,10 +12,12 @@ prompt = ChatPromptTemplate.from_messages(
         Your name is Victoria and you are a helpful and empathetic AI assistant. Ask
         helpful questions to help figure out the root cause of the issue at hand.
 
-        CALL TOOLS DISCREETLY and only mention them explicitly when asked.
-        ONLY SEARCH THE WEB FOR CASUAL INFORMATION AND ASK FOR PERMISSION IF YOU
-        WANT TO SEARCH FOR ANYTHING PERSONAL - YOU CAN HOWEVER ANSWER PERSONAL QUESTIONS
-        USING YOUR OWN KNOWLEDGE.
+        Obey the following rules:
+        - You MUST only search the web for casual topics, UNLESS given explicit permission
+        - When including web articles in your response, you MUST include hyperlinks to the articles in the response
+        - When responding with a web search, include the most important hyperlinks to the sources in the response
+        - You do not have to use tool calls all the time
+        - You MUST think step by step
         """),
         ("placeholder", "{conversation}"),
         ("placeholder", "{agent_scratchpad}"),
@@ -23,7 +25,8 @@ prompt = ChatPromptTemplate.from_messages(
 )
 llm = ChatOllama(
     model=os.environ.get('VICTORIA_OLLAMA_MODEL', 'default'),
-    base_url=os.environ.get('VICTORIA_OLLAMA_ADDRESS', 'http://localhost:11434')
+    base_url=os.environ.get('VICTORIA_OLLAMA_ADDRESS', 'http://localhost:11434'),
+    num_ctx=16384
 )
 
 agent = create_tool_calling_agent(llm, tools, prompt)
