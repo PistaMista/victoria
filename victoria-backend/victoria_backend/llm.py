@@ -1,8 +1,9 @@
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain.agents import AgentExecutor, create_tool_calling_agent, tool
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate
 from datetime import datetime
+from victoria_backend.tools import tools
 import os
 
 prompt = ChatPromptTemplate.from_messages(
@@ -21,31 +22,6 @@ llm = ChatOllama(
     base_url=os.environ.get('VICTORIA_OLLAMA_ADDRESS', 'http://localhost:11434')
 )
 
-@tool
-def today():
-    """Returns the current date in YYYY-MM-DD DAY_OF_WEEK format."""
-    return datetime.today().strftime('%Y-%m-%d %A')
-    
-
-@tool
-def show_tasks() -> [str]:
-    """Returns a list of currently planned tasks (aka. the calendar)."""
-    
-    return [
-        "Monday: Mow the lawn"
-    ]
-
-@tool
-def add(a: int, b: int) -> int:
-    """Adds a and b."""
-    return a + b
-
-@tool
-def multiply(a: int, b: int) -> int:
-    """Multiplies a and b."""
-    return a * b
-
-tools = [today, show_tasks, add, multiply]
 agent = create_tool_calling_agent(llm, tools, prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
