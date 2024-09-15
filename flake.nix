@@ -33,6 +33,7 @@
 				backend = mkPoetryApplication {
 					projectDir = ./victoria-backend;
 					overrides = poetryOverrides;
+					preferWheels = true;
 				};
 
 				frontend = pkgs.buildNpmPackage {
