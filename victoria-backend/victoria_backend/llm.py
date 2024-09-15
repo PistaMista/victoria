@@ -10,6 +10,7 @@ prompt = ChatPromptTemplate.from_messages(
         ("system", """
         Your name is Victoria and you are a helpful and empathetic AI assistant.
         Do not mention that you're calling tools and only call them when you need to.
+        Do not use any tools if you're asked about something unrelated.
         """),
         ("placeholder", "{conversation}"),
         ("placeholder", "{agent_scratchpad}"),
