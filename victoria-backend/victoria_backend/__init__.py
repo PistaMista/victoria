@@ -1,8 +1,10 @@
 from flask import Flask, send_from_directory, request
+from langchain_core.messages import AIMessage, HumanMessage
 from waitress import serve
 import os
 from time import sleep
-from victoria_backend.llm import get_next_ai_message
+
+from victoria_backend.agent import agent
 
 app = Flask(__name__, static_folder=os.environ.get('FRONTEND_PATH', '../../victoria-frontend/build'))
 
@@ -23,6 +25,33 @@ def static_files(path):
 def chat():
     response = get_next_ai_message(request.json["messages"])    
     return response
+
+def to_message_object(msg):
+    match (msg["type"]):
+        case "user":
+            return HumanMessage(msg["content"])
+        case "assistant":
+            return AIMessage(msg["content"])
+
+def from_message_object(msg):
+    if type(msg) is HumanMessage:
+        return {
+            'type': "user",
+            'content': msg.content
+        }
+    elif type(msg) is AIMessage:
+        return {
+            'type': "assistant",
+            'content': msg.content
+        }
+
+def get_next_ai_message(messages):
+    messages = list(map(to_message_object, messages))
+    
+    new_messages = agent.invoke({"messages": messages})["messages"]
+    response = new_messages[-1]
+    print(response)
+    return from_message_object(response)
 
 def main():
     serve(app, host=os.environ.get('VICTORIA_ADDRESS', "127.0.0.1"), port=os.environ.get('VICTORIA_PORT', 5001))
