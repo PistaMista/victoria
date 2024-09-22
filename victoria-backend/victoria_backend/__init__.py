@@ -50,7 +50,6 @@ def get_next_ai_message(messages):
     
     new_messages = agent.invoke({"messages": messages})["messages"]
     response = new_messages[-1]
-    print(response)
     return from_message_object(response)
 
 def main():
