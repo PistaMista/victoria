@@ -48,7 +48,11 @@ def from_message_object(msg):
 def get_next_ai_message(messages):
     messages = list(map(to_message_object, messages))
     
-    new_messages = agent.invoke({"messages": messages})["messages"]
+    new_messages = agent.invoke({
+            "messages": messages,
+            "agent_outcome": None,
+            "intermediate_steps": []
+        })["messages"]
     response = new_messages[-1]
     return from_message_object(response)
 
