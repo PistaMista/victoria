@@ -1,4 +1,5 @@
 from langchain.agents import tool
+import base64
 
 @tool
 def add(a: int, b: int) -> int:
@@ -19,3 +20,8 @@ def multiply(a: int, b: int) -> int:
 def divide(a: int, b: int) -> int:
     """Divides the integers a and b."""
     return a / b
+
+@tool
+def base64_encode(input: str) -> str:
+    """Encodes the input string into base64."""
+    return base64.b64encode(bytes(input, 'utf-8')).decode('ascii')

@@ -1,9 +1,6 @@
 from typing import TypedDict, Annotated, Union, Sequence
-from langchain_core.prompts import PromptTemplate
 from langchain_ollama import ChatOllama
 from langchain_core.messages import BaseMessage, AIMessage, SystemMessage
-from langchain_core.agents import AgentFinish, AgentAction
-from langchain.agents import create_react_agent
 
 import operator
 import pprint
@@ -32,8 +29,10 @@ def run_agent(state: AgentState):
         
         In the user message are given instructions on how to use tools you are given. Despite the
         instructions, you do not have to use them. Keep your responses on point, USE THE TOOLS ONLY
-        IF THEY WOULD HELP WITH THE ACTUAL USER MESSAGE AT THE END OR THE PRIOR CONVERSATION. Otherwise, chat
+        IF THEY HELP A LITTLE WITH THE ACTUAL USER MESSAGE AT THE END OR THE PRIOR CONVERSATION. Otherwise, chat
         like normal, speak about the tools only when asked.
+        
+        You may need to call one-by-one and think step by step to respond correctly.
         """
     )
 
