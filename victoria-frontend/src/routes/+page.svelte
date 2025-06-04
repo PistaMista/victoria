@@ -1,7 +1,7 @@
 <script lang="ts">
-    import PromptBox from '$lib/PromptBox.svelte';
-    import ChatWindow from '$lib/ChatWindow.svelte';
-    import ErrorAlert from '$lib/ErrorAlert.svelte';
+    import PromptBox from '$lib/Chat/PromptBox.svelte';
+    import ChatWindow from '$lib/Chat/ChatWindow.svelte';
+    import ErrorAlert from '$lib/Chat/ErrorAlert.svelte';
 
     let prompt = "";
     let messages: Array<any> = [ ];
