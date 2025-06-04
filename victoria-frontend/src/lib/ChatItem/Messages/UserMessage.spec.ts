@@ -3,6 +3,16 @@ import { expect, test } from "vitest";
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/svelte';
 
+test('UserMessage displays given message', async () => {
+    render(UserMessage, {
+        content: "Hello, this is a message!",
+        delete_action: () => {}
+    });
+
+    var content = screen.getByRole("article");
+    expect(content).toHaveTextContent("Hello, this is a message!");
+});
+
 test('edit UserMessage', async () => {
     const user = userEvent.setup();
     render(UserMessage, { 
@@ -13,6 +23,7 @@ test('edit UserMessage', async () => {
     var content = screen.getByRole("article");
     expect(content).toHaveTextContent("Hello!");
     
+    // Hovering over the content opens the context menu
     await user.hover(content);
 
     // The first context action starts editing the message...
