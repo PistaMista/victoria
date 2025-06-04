@@ -5,11 +5,17 @@ import { svelteTesting } from '@testing-library/svelte/vite'
 export default defineConfig({
 	plugins: [sveltekit(), svelteTesting()],
 	test: {
-		environment: 'jsdom',
+		environment: 'happy-dom',
 		setupFiles: ['./vitest-setup.js']
 	},
 	resolve: process.env.VITEST
 		? {
-			conditions: ['browser']
+			conditions: ['browser'],
+			alias: [
+				{
+					find: "msw/node",
+					replacement: "/node_modules/msw/lib/native/index.mjs"
+				}
+			]
 		} : undefined
 });
