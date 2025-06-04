@@ -14,7 +14,9 @@
     <svelte:fragment slot="content">
         {#if !edit_mode}
             <!-- FIXME: There is totally an XSS attack here -->
-            {@html marked(content)}
+            <div role="article">
+                {@html marked(content)}
+            </div>
         {:else}
             <Textarea
                 class="rounded-lg"
