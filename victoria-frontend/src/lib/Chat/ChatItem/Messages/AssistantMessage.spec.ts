@@ -13,6 +13,6 @@ test('AssistantMessage displays given message', async () => {
     expect(content).toHaveTextContent("Hello, this is a message!");
 });
 
-test('execute AssistantMessage delete action', async () => {
-    assert.fail("not implemented")
+test.todo('execute AssistantMessage delete action', async () => {
+
 })

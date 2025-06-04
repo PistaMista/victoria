@@ -3,18 +3,18 @@ import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/svelte';
 import ChatWindow from "./ChatWindow.svelte";
 
-test('chat window shows one message', async () => {
+test.todo('chat window shows one message', async () => {
     assert.fail("not implemented")
 });
 
-test('can delete first assistant message', async () => {
+test.todo('can delete first assistant message', async () => {
     assert.fail("not implemented")
 });
 
-test('can edit second user message', async () => {
+test.todo('can edit second user message', async () => {
     assert.fail("not implemented")
 });
 
-test('can delete two user messages', async () => {
+test.todo('can delete two user messages', async () => {
     assert.fail("not implemented")
 });
