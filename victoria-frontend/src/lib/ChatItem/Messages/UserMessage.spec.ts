@@ -40,4 +40,25 @@ test('edit UserMessage', async () => {
 
     content = screen.getByRole("article");
     expect(content).toHaveTextContent("Goodbye");
-})
+});
+
+test('execute UserMessage delete action', async () => {
+    var executed = false;
+    const user = userEvent.setup();
+    render(UserMessage, { 
+        delete_action: () => {
+            executed = true;
+        }
+    });
+    
+    var content = screen.getByRole("article");
+    
+    // Hovering over the content opens the context menu
+    await user.hover(content);
+    
+    // The second context action runs the provided delete_action
+    const delete_button = screen.getAllByRole("button")[1];
+    await user.click(delete_button);
+
+    expect(executed).toBeTruthy();
+});
