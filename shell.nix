@@ -12,6 +12,7 @@ let
 			usernamehw.errorlens
 			svelte.svelte-vscode
 			ms-python.python
+
 		]
 		++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
 			{
@@ -19,6 +20,12 @@ let
 				publisher = "mhutchie";
 				version = "1.30.0";
 				sha256 = "sHeaMMr5hmQ0kAFZxxMiRk6f0mfjkg2XMnA4Gf+DHwA=";
+			}
+			{
+				name = "explorer";
+				publisher = "vitest";
+				version = "1.20.2";
+				sha256 = "sGzmmziX30JS4NDDo+6Si9sTN8F/Sxqmh+WZ/C8x3ls=";
 			}
 		];
 	};

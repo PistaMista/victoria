@@ -11,7 +11,9 @@
 <ChatItemBase justify_end={false} inner_class="bg-black prose prose-slate-200">
     <svelte:fragment slot="content">
         <!-- FIXME: There is totally an XSS attack here -->
-        {@html marked(content)}
+        <div role="article">
+            {@html marked(content)}
+        </div>
     </svelte:fragment>
     <svelte:fragment slot="menu">
         <ContextMenuBase
