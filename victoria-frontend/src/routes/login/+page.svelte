@@ -3,7 +3,9 @@
 </script>
 
 <div class="flex flex-col absolute inset-0">
-    <div class="grow"/>
+    <div class="grow flex justify-center items-center">
+        LOGO GOES HERE
+    </div>
     <div class="flex justify-center m-2">
         <div class="flex shrink flex-col justify-start max-w-[10cm] w-1/2 h-1/3">
             <div class="flex justify-center">
