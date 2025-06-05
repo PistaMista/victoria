@@ -23,7 +23,7 @@
                 <Button class="grow">Log in</Button>
             </div>
             <div class="mt-1 text-xs flex justify-center">
-                <span>Not registered? <a>Register here.</a></span>
+                <span>Not registered? <a href="/register">Register here.</a></span>
             </div>
         </div>
     </div>
