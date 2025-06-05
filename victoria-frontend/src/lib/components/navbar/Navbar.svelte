@@ -3,6 +3,7 @@
     import NavbarItem from "./NavbarItem.svelte";
     import Button from "../button/Button.svelte";
     import { BarsOutline } from "flowbite-svelte-icons";
+    import UserPortrait from "./UserPortrait.svelte";
     
     export let routes: Array<Route>;
 </script>
@@ -14,8 +15,12 @@
         {/each}
     </nav>
 
-    <Button class="md:hidden hover:bg-slate-400 px-1">
+    <Button class="md:hidden hover:bg-slate-400 px-1 content-center">
         <BarsOutline/>
     </Button>
+    
+    <div class="grow"/>
+    
+    <UserPortrait class="p-1 hover:bg-slate-400 content-center"/>
 </div>
 
