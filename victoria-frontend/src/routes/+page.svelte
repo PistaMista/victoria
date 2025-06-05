@@ -43,10 +43,6 @@
     }
 </script>
 
-<svelte:head>
-    <title>Victoria</title>
-</svelte:head>
-
 <div class="flex flex-col absolute inset-0">
     {#if error}
         <ErrorAlert>
@@ -55,11 +51,4 @@
         </ErrorAlert>
     {/if} 
 
-    <div class="grow overflow-hidden">
-        <ChatWindow bind:messages/>
-    </div>
-    
-    <div>
-        <PromptBox bind:prompt {on_submit} show_spinner={processing} autofocus/>
-    </div>
 </div>
