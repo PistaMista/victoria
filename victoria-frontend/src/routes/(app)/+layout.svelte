@@ -13,7 +13,7 @@
     ];
 </script>
 
-<div class="flex flex-col justify-start inset-0 absolute">
+<div class="flex flex-col inset-0 absolute">
     <div>
         <Navbar {routes}/>
     </div>
