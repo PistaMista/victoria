@@ -3,10 +3,13 @@
     import type { Route } from "$lib/types/route";
     
     let routes: Array<Route> = [
-        {display_name: "Conversations", route_path: "/conversations"},
+        {display_name: "Dashboard", route_path: "/"},
+        {display_name: "Chats", route_path: "/chats"},
+        {display_name: "Monologues", route_path: "/monologues"},
+        {display_name: "Tasks", route_path: "/tasks"},
+        {display_name: "Agents", route_path: "/agents"},
         {display_name: "Knowledge", route_path: "/knowledge" },
-        {display_name: "Models", route_path: "/models"},
-        {display_name: "Monologues", route_path: "/monologues"}
+        {display_name: "Admin", route_path: "/admin"}
     ];
 </script>
 
@@ -14,7 +17,7 @@
     <div>
         <Navbar {routes}/>
     </div>
-    <div class="grow"> 
+    <div class="grow min-w-0 min-h-0 overflow-hidden"> 
         <slot/>
     </div>
 </div>
