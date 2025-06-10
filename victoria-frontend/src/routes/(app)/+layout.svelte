@@ -13,7 +13,7 @@
     ];
 </script>
 
-<div class="flex flex-col inset-0 absolute">
+<div class="flex flex-col inset-0 absolute overflow-hidden">
     <div>
         <Navbar {routes}/>
     </div>
