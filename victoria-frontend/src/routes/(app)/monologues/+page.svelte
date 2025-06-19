@@ -1,12 +1,38 @@
 <script lang="ts">
-    import { Search } from "flowbite-svelte";   
+    import Button from "$lib/components/button/Button.svelte";
+    import { Search, Dropdown, DropdownItem } from "flowbite-svelte";   
+    import { ChevronDoubleDownOutline, ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
 <div class="flex flex-col w-full h-full">
-    <div class="p-1 bg-slate-400 flex flex-row">
-        <Search class="grow max-h-8 md:max-w-72"></Search>
-        <div class="mx-2 content-center">
-            FILTERS
+    <div class="p-1 bg-slate-400 flex flex-col md:flex-row">
+        <Search class="grow max-h-8 md:max-w-72 mb-1 md:mb-0"></Search>
+        <div class="mx-2 content-center flex flex-row">
+            <div class="hover:bg-slate-300 p-1 rounded-md">
+                <Button class="flex flex-row">Trigger<ChevronDownOutline class="w-6 h-6"/></Button>
+                <Dropdown>
+                    <DropdownItem>Timer</DropdownItem>
+                    <DropdownItem>Chat Message</DropdownItem>
+                    <DropdownItem>Webhook</DropdownItem>
+                    <DropdownItem>Monologue success</DropdownItem>
+                </Dropdown>
+            </div>
+            <div class="hover:bg-slate-300 p-1 rounded-md">
+                <Button class="flex flex-row">Status<ChevronDownOutline class="w-6 h-6"/></Button>
+                <Dropdown>
+                    <DropdownItem>PENDING</DropdownItem>
+                    <DropdownItem>RUNNING</DropdownItem>
+                    <DropdownItem>SUCCESS</DropdownItem>
+                    <DropdownItem>FAILURE</DropdownItem>
+                </Dropdown>
+            </div>
+            <div class="hover:bg-slate-300 p-1 rounded-md">
+                <Button class="flex flex-row">Agent<ChevronDownOutline class="w-6 h-6"/></Button>
+                <Dropdown>
+                    <DropdownItem>Cook</DropdownItem>
+                    <DropdownItem>Researcher</DropdownItem>
+                </Dropdown>
+            </div>
         </div>
     </div>
     
