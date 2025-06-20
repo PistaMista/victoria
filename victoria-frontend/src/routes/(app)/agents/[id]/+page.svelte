@@ -11,7 +11,7 @@
                 Researcher
             </div>
             <div class="my-2">
-                <Label class="font-bold">Thumbnail</Label>
+                <Label class="sticky top-0 bg-white px-2 font-bold">Thumbnail</Label>
                 <div class="bg-slate-400 rounded-md p-2">
                     <div class="place-self-center">
                         <div class="w-48 h-48 bg-yellow-200 rounded-md"></div>
@@ -20,13 +20,13 @@
                 </div>
             </div>
             <div class="my-2">
-                <Label class="font-bold">System prompt</Label>
+                <Label class="sticky top-0 bg-white px-2 font-bold">System prompt</Label>
                 <div class="rounded-md bg-slate-400 p-2">
                     <Textarea/>
                 </div>
             </div>
             <div class="my-2">
-                <Label class="font-bold">Model parameters</Label>
+                <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Model parameters</Label>
                 <div class="rounded-md bg-slate-400 p-2">
                     <div class="flex flex-row mt-2">
                         <div class="grow flex flex-col">
@@ -56,7 +56,7 @@
                 </div>
             </div>
             <div class="my-2">
-                <Label class="font-bold"> Triggers </Label>
+                <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Triggers </Label>
                 <div class="bg-slate-400 rounded-md p-2">
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
@@ -79,7 +79,7 @@
                 </div>
             </div>
             <div class="my-2">
-                <Label class="font-bold"> Actions </Label>
+                <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Actions </Label>
                 <div class="bg-slate-400 rounded-md p-2">
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
