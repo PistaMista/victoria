@@ -51,6 +51,8 @@
                     <!-- Thoughts -->
                     <div class="rounded-md z-20 bg-slate-200 p-2">
                         <RocketSolid class="float-left mr-2"/>
+                        <!-- This will be a link to the detail of the event -->
+                        <div class="w-full font-semibold">Monitor emails</div>
                         Email received: "Hello, this is John I would like to invite you to the XYZ conference on the 18th of June..."
                     </div>
                     <div class="rounded-md z-20 bg-slate-200 p-2">

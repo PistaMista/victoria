@@ -8,6 +8,7 @@
     </div>
 
     <div class="flex flex-col md:flex-row md:flex-wrap justify-start p-2">
+        <!-- This is an AgentCard -->
         <div class="bg-slate-300 rounded-md p-2 flex flex-col md:w-72 m-1">
             <div class="flex flex-row content-center pl-1 mb-1">
                 <div class="font-bold">
