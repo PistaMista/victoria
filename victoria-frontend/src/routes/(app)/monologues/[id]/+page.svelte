@@ -50,6 +50,7 @@
                 <div class="relative flex flex-col px-2 py-2 space-y-12">
                     
                     <!-- Thoughts -->
+                    <!-- These "thought cards" should be collapsible - the thoughts can be quite long -->
                     <div class="rounded-md z-20 bg-slate-200 p-2">
                         <RocketSolid class="float-left mr-2"/>
                         <!-- This will be a link to the detail of the event -->
