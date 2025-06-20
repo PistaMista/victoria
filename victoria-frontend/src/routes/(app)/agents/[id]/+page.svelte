@@ -27,6 +27,7 @@
                 </div>
             </div>
             <div class="my-2">
+                <!-- This section is the same as the chat options's Model parameters section -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Model parameters</Label>
                 <div class="rounded-md bg-slate-400 p-2">
                     <div class="flex flex-row mt-2">
