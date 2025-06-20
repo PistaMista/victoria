@@ -1,7 +1,7 @@
 <script lang="ts">
     import Button from "$lib/components/button/Button.svelte";
     import { Search, Dropdown, DropdownItem } from "flowbite-svelte";   
-    import { ChevronDoubleDownOutline, ChevronDownOutline } from "flowbite-svelte-icons";
+    import { ChevronDoubleDownOutline, ChevronDownOutline, PlusOutline } from "flowbite-svelte-icons";
 </script>
 
 <div class="flex flex-col w-full h-full">
@@ -22,6 +22,9 @@
                     <DropdownItem>Cook</DropdownItem>
                     <DropdownItem>Researcher</DropdownItem>
                 </Dropdown>
+            </div>
+            <div class="hover:bg-slate-300 p-1 rounded-md">
+                <Button class="flex flex-row text-nowrap"><PlusOutline class="w-6 h-6"/></Button>
             </div>
         </div>
     </div>
