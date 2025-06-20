@@ -6,6 +6,7 @@
 <div class="w-full h-full overflow-y-auto">
     <div class="flex flex-col content-center mx-2 md:m-auto md:max-w-96">
         <div class="my-2">
+            <!-- This is a DetailViewSection -->
             <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Summary</Label>
             <div class="bg-slate-400 rounded-md p-2">
                 <div class="border-b-2 font-semibold">

@@ -10,6 +10,7 @@
             <div class="font-bold">
                 Researcher
             </div>
+            <!-- This is a DetailViewSection -->
             <div class="my-2">
                 <Label class="sticky top-0 bg-white px-2 font-bold">Thumbnail</Label>
                 <div class="bg-slate-400 rounded-md p-2">
