@@ -80,6 +80,7 @@
                 </div>
             </div>
             <div class="my-2">
+            <!-- This section is the same as the chat options view -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Actions </Label>
                 <div class="bg-slate-400 rounded-md p-2">
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
