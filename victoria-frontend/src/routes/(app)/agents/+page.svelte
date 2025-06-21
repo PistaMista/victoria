@@ -1,10 +1,16 @@
 <script>
+    import Button from "$lib/components/button/Button.svelte";
     import { Search } from "flowbite-svelte";
-    import { DotsVerticalOutline, ClockOutline, CheckCircleOutline, BanOutline } from "flowbite-svelte-icons";
+    import { DotsVerticalOutline, ClockOutline, CheckCircleOutline, BanOutline, PlusOutline } from "flowbite-svelte-icons";
 </script>
 <div class="flex flex-col w-full h-full">
-    <div class="mx-2 my-2 p-2 bg-slate-300 rounded-md">
-        <Search/>
+    <div class="p-1 bg-slate-400 flex flex-col md:flex-row">
+        <Search class="grow max-h-8 md:max-w-72 mb-1 md:mb-0"></Search>
+        <div class="mx-2 content-center flex flex-row">
+            <div class="hover:bg-slate-300 p-1 rounded-md">
+                <Button class="flex flex-row text-nowrap"><PlusOutline class="w-6 h-6"/></Button>
+            </div>
+        </div>
     </div>
 
     <div class="flex flex-col md:flex-row md:flex-wrap justify-start p-2">
