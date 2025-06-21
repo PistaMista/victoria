@@ -21,6 +21,7 @@
             <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Status</Label>
             <div class="bg-slate-400 rounded-md p-2">
                 <div class="flex flex-row">
+                    <!-- This is a MonologueStatusIndicator -->
                     <div class="bg-black rounded-md px-1 font-bold text-lime-500">RUNNING</div>
                     <div class="grow"/>
                     <div class="mx-1 flex flex-row">

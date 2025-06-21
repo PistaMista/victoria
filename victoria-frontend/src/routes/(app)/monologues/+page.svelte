@@ -40,6 +40,7 @@
         <div class="flex flex-row px-2 my-1 border-t-2 border-black hover:bg-slate-400">
             <div class="content-center">
                 <div class="flex flex-col">
+                    <!-- This is a MonologueStatusIndicator -->
                     <div class="font-bold text-lime-600 rounded-md bg-slate-600 p-1">
                         RUNNING
                     </div>
