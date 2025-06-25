@@ -1,5 +1,5 @@
 <script>
-    import { Label, Button } from "flowbite-svelte";
+    import { Label, Button, Input } from "flowbite-svelte";
     import {  ChevronLeftOutline, PlusOutline, TrashBinSolid, CogSolid } from "flowbite-svelte-icons";
 </script>
 
@@ -28,26 +28,22 @@
 
         <div class="my-2">
             <!-- This is a DetailViewSection -->
-            <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Ollama</Label>
+            <Label class="sticky top-0 bg-white px-2 z-40 font-bold">URL</Label>
             <div class="bg-slate-400 rounded-md p-2">
-                <div class="flex flex-col space-y-2">
-                    <div class="flex flex-row">
-                        <div class="font-bold">
-                            Connections
-                        </div>
-                        <Button class="ml-auto w-6 h-6 p-0"><PlusOutline/></Button>
-                    </div>
-                    
-                    <!-- This is the list of connections -->
-                    <div class="flex flex-col">
-                        <!-- This is a list item representing the connection -->
-                        <div class="flex flex-row">
-                            <div class="mr-auto">Homelab</div>
-                            <Button class="w-6 h-6 p-0"><CogSolid/></Button>
-                        </div>                        
-                    </div>
-                </div>
+                <Input/>
             </div>
         </div>
+
+        <div class="my-2">
+            <!-- This is a DetailViewSection -->
+            <Label class="sticky top-0 bg-white px-2 z-40 font-bold">API Key</Label>
+            <div class="bg-slate-400 rounded-md p-2">
+                <Input/>
+            </div>
+        </div>
+        
+        <Button class="font-bold bg-lime-500">
+            ADD CONNECTION
+        </Button>
     </div>
 </div>
