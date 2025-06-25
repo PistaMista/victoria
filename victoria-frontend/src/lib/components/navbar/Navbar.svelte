@@ -21,6 +21,7 @@
     
     <div class="grow"/>
     
-    <UserPortrait class="p-1 hover:bg-slate-400 content-center"/>
+    <!-- This is a UserAvatar -->
+    <div class="hover:bg-slate-400 w-6 h-6 bg-orange-500 rounded-full m-0.5"/>
 </div>
 

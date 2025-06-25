@@ -58,6 +58,7 @@
                 </div>
             </div>
             <div class="my-2">
+                <!-- This section is the same as the permitted triggers view for users -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Triggers </Label>
                 <div class="bg-slate-400 rounded-md p-2">
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
@@ -81,7 +82,7 @@
                 </div>
             </div>
             <div class="my-2">
-            <!-- This section is the same as the chat options view -->
+            <!-- This section is the same as the chat options view and permitted actions view for users -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Actions </Label>
                 <div class="bg-slate-400 rounded-md p-2">
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
