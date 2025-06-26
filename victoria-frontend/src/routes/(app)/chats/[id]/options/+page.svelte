@@ -55,5 +55,13 @@
                     </div>
             </div>
         </div>
+
+        <div class="my-3">
+            <Button class="w-full bg-red-500">Delete chat</Button>
+        </div>
+
+        <div class="my-3">
+            <Button class="w-full">Save options</Button>
+        </div>
     </div>
 </div>

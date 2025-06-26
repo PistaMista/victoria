@@ -44,6 +44,8 @@
             </div>
         </div>
 
+        <Button class="w-full bg-red-500">Delete action repository</Button>
+
         <div class="my-3">
             <Button class="w-full">Save action repository</Button>
         </div>

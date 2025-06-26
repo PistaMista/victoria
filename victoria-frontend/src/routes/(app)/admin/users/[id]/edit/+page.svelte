@@ -121,6 +121,8 @@
                 </div>
             </div>
         </div>
+
+        <Button class="w-full bg-red-500">DELETE USER</Button>
         
         <Button class="font-bold">SAVE USER</Button>
     </div>

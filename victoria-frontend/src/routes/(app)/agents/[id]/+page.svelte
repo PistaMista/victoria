@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { Textarea, Button, Range, Input, Label, Toggle } from "flowbite-svelte";
-    import { RefreshOutline } from "flowbite-svelte-icons";
+    import { Textarea, Button, Range, Input, Label, Toggle, Dropdown, DropdownItem } from "flowbite-svelte";
+    import { RefreshOutline, ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
 <div class="w-full h-full overflow-y-auto">
@@ -18,6 +18,17 @@
                         <div class="w-48 h-48 bg-yellow-200 rounded-md"></div>
                         <Button class="m-2">Pick image</Button>
                     </div>
+                </div>
+            </div>
+            <div class="my-2">
+                <Label class="sticky top-0 bg-white px-2 font-bold">Base model</Label>
+                <div class="rounded-md bg-slate-400 p-2">
+                    <Button class="flex flex-row w-full">gemma3:12b<ChevronDownOutline class="w-6 h-6"/></Button>
+                    <Dropdown>
+                        <DropdownItem>gemma3:12b</DropdownItem>
+                        <DropdownItem>llama3.1:8b</DropdownItem>
+                        <DropdownItem>qwen2.5:7b</DropdownItem>
+                    </Dropdown>
                 </div>
             </div>
             <div class="my-2">
@@ -118,7 +129,10 @@
                 </div>
             </div>
             <div class="my-3">
-                <Button>Save changes</Button>
+                <Button class="w-full bg-red-500">Delete agent</Button>
+            </div>
+            <div class="my-3">
+                <Button class="w-full">Save agent</Button>
             </div>
         </div>
         <div class="md:basis-1/5"/>

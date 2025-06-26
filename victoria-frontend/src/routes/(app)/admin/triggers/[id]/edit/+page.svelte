@@ -118,6 +118,8 @@
             </div>
         </div>
 
+        <Button class="w-full bg-red-500">Delete trigger</Button>
+
         <div class="my-3">
             <Button class="w-full">Save trigger</Button>
         </div>
