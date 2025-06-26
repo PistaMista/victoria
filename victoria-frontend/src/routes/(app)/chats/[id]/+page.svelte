@@ -68,6 +68,28 @@
                             </ButtonGroup>
                         </div>
                     </div>
+                    <div class="flex flex-col">
+                        <div class="flex flex-row">
+                            <div class="font-semibold mr-auto">Researcher</div>
+                            <div class="text-gray-600 text-xs content-center">Today at 10:01 AM</div>                            
+                        </div>
+                        <!-- An choice prompt message -->
+                        <div class="flex flex-col">
+                            <div class="bg-gradient-to-tr from-red-500 to-orange-500 justify-center flex flex-row font-semibold rounded-md">
+                                <ExclamationCircleSolid class="mt-0.5 mr-2"/>
+                                CHOICE REQUIRED
+                                <ExclamationCircleSolid class="mt-0.5 ml-2"/>
+                            </div>
+                            <div class="text-center">
+                                Please choose an account to sign into
+                            </div>
+
+                            <div class="flex flex-col space-y-2 rounded-md p-2 m-1 bg-slate-500">
+                                <Button class="w-full">This one</Button>
+                                <Button class="w-full">That one</Button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <!-- <div>Running monologue info</div> -->
                 <div class="flex flex-row mt-1">
