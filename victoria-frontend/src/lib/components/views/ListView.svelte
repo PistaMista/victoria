@@ -1,0 +1,1 @@
+<!-- Must support both a pure list view (items in a column) and a flex-wrap layout with cards -->
