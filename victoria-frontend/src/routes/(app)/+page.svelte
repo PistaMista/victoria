@@ -12,7 +12,7 @@
                 Monologue Activity
             </div>
             <div class="bg-slate-300 rounded-md flex flex-col p-2 space-y-2">
-                <!-- COMPONENT: MonologueMiniCard-->
+                <!-- COMPONENT: MonologueMiniCard -->
                 <div class="flex bg-slate-400 p-1 rounded-md">
                     Check system dashboard
                     <div class="grow mx-2"/>
