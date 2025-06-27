@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Textarea, Button, Range, Input, Label, Toggle, Dropdown, DropdownItem } from "flowbite-svelte";
+    import { Textarea, Button, Range, Input, Label, Dropdown, DropdownItem, Checkbox } from "flowbite-svelte";
     import { RefreshOutline, ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
@@ -76,19 +76,19 @@
                         <div class="font-bold grow">
                             Chat
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Timer
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Task passing due date
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                 </div>
             </div>
@@ -100,31 +100,31 @@
                         <div class="font-bold grow">
                             Send chat message
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Search web
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Access task list
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Access Zettelkasten
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Use memory
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                 </div>
             </div>

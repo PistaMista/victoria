@@ -1,5 +1,5 @@
 <script>
-    import { Label, Button, Input, Toggle } from "flowbite-svelte";
+    import { Label, Button, Input, Checkbox } from "flowbite-svelte";
     import {  ChevronLeftOutline, PlusOutline, TrashBinSolid, CogSolid } from "flowbite-svelte-icons";
 </script>
 
@@ -34,7 +34,7 @@
                     <div class="text-white mr-auto">
                         gemma3:12b
                     </div>
-                    <Toggle/>
+                    <Checkbox/>
                 </div>
             </div>
         </div>

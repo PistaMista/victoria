@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {  Button, Range, Input, Label, Toggle, Dropdown, DropdownItem } from "flowbite-svelte";
+    import {  Button, Range, Input, Label, Checkbox, Dropdown, DropdownItem } from "flowbite-svelte";
     import { ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
@@ -27,31 +27,31 @@
                         <div class="font-bold grow">
                             Send chat message
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Search web
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Access task list
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Access Zettelkasten
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Use memory
                         </div>
-                        <Toggle/>
+                        <Checkbox/>
                     </div>
             </div>
         </div>

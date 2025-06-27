@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Textarea, Button, Range, Input, Label, Toggle } from "flowbite-svelte";
+    import { Textarea, Button, Range, Input, Label, Checkbox } from "flowbite-svelte";
     import { ClockOutline, RocketOutline, CheckOutline, CloseOutline, RocketSolid, BrainSolid, HammerSolid, ReplyAllSolid } from "flowbite-svelte-icons";
 </script>
 
