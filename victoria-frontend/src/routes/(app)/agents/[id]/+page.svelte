@@ -3,14 +3,18 @@
     import { RefreshOutline, ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
+
+<!-- COMPONENT: AgentDetailView -->
+<!-- COMPONENT: DetailView -->
 <div class="w-full h-full overflow-y-auto">
     <div class="flex flex-row">
         <div class="md:basis-1/5"/>
         <div class="grow md:basis-3/5 flex flex-col p-2">
+            <!-- This is the "title" of the DetailView -->
             <div class="font-bold">
                 Researcher
             </div>
-            <!-- This is a DetailViewSection -->
+            <!-- COMPONENT: DetailViewSection -->
             <div class="my-2">
                 <Label class="sticky top-0 bg-white px-2 font-bold">Thumbnail</Label>
                 <div class="bg-slate-400 rounded-md p-2">
@@ -20,6 +24,7 @@
                     </div>
                 </div>
             </div>
+            <!-- COMPONENT: DetailViewSection -->
             <div class="my-2">
                 <Label class="sticky top-0 bg-white px-2 font-bold">Base model</Label>
                 <div class="rounded-md bg-slate-400 p-2">
@@ -31,12 +36,14 @@
                     </Dropdown>
                 </div>
             </div>
+            <!-- COMPONENT: DetailViewSection -->
             <div class="my-2">
                 <Label class="sticky top-0 bg-white px-2 font-bold">System prompt</Label>
                 <div class="rounded-md bg-slate-400 p-2">
                     <Textarea/>
                 </div>
             </div>
+            <!-- COMPONENT: DetailViewSection -->
             <div class="my-2">
                 <!-- This section is the same as the chat options's Model parameters section -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Model parameters</Label>
@@ -68,22 +75,26 @@
 
                 </div>
             </div>
+            <!-- COMPONENT: DetailViewSection -->
             <div class="my-2">
                 <!-- This section is the same as the permitted triggers view for users -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Triggers </Label>
                 <div class="bg-slate-400 rounded-md p-2">
+                    <!-- COMPONENT: TriggerToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Chat
                         </div>
                         <Checkbox/>
                     </div>
+                    <!-- COMPONENT: TriggerToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Timer
                         </div>
                         <Checkbox/>
                     </div>
+                    <!-- COMPONENT: TriggerToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Task passing due date
@@ -92,34 +103,40 @@
                     </div>
                 </div>
             </div>
+            <!-- COMPONENT: DetailViewSection -->
             <div class="my-2">
             <!-- This section is the same as the chat options view and permitted actions view for users -->
                 <Label class="sticky top-0 bg-white px-2 z-40 font-bold"> Actions </Label>
                 <div class="bg-slate-400 rounded-md p-2">
+                    <!-- COMPONENT: ActionToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Send chat message
                         </div>
                         <Checkbox/>
                     </div>
+                    <!-- COMPONENT: ActionToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Search web
                         </div>
                         <Checkbox/>
                     </div>
+                    <!-- COMPONENT: ActionToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Access task list
                         </div>
                         <Checkbox/>
                     </div>
+                    <!-- COMPONENT: ActionToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Access Zettelkasten
                         </div>
                         <Checkbox/>
                     </div>
+                    <!-- COMPONENT: ActionToggle -->
                     <div class="flex flex-row m-1 bg-slate-200 rounded-md p-1">
                         <div class="font-bold grow">
                             Use memory
@@ -128,9 +145,11 @@
                     </div>
                 </div>
             </div>
+            <!-- COMPONENT: DeleteButton -->
             <div class="my-3">
                 <Button class="w-full bg-red-500">Delete agent</Button>
             </div>
+            <!-- COMPONENT: SaveButton -->
             <div class="my-3">
                 <Button class="w-full">Save agent</Button>
             </div>
