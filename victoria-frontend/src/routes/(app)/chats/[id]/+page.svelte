@@ -4,13 +4,14 @@
 </script>
 
 <div class="w-full h-full flex flex-col pt-2 md:pb-2">
+    <!-- COMPONENT: ChatWindow -->
     <div class="grow min-h-0 mb-2 overflow-y-scroll">
         <div class="flex flex-col md:w-2/3 mx-2 md:m-auto">
-            <!-- This is an Exchange component -->
+            <!-- COMPONENT: Exchange -->
             <div class="w-full flex flex-col">
                 <!-- This is the user's Message -->
                 <div class="border-b-2 border-slate-500 bg-orange-200 rounded-t-md p-1">
-                    <!-- This is a Message component -->
+                    <!-- COMPONENT: Message -->
                     <div class="flex flex-col">
                         <div class="flex flex-row">
                             <!-- This is the name of the actor -->
@@ -19,35 +20,37 @@
                             <div class="text-gray-600 text-xs content-center">Today at 10:00 AM</div>                            
                         </div>
                         <!-- The content of the Message varies by its type -->
-                        <!-- There will be different MessageContent components, see agent messages for all types -->
+                        <!-- There will be different Content components, see agent messages for all types -->
                         <div class="prose">Lorem askjdnkja nsjkdn akjns jknasjkd njkasnd jknasjkdn jkansj kdnkajsnd</div>
                     </div>
                 </div>
                 <!-- These are the Message(s) sent by the Agent -->
                 <div class="flex flex-col space-y-2 border-b-2 border-slate-500 border-dashed bg-slate-100 p-1">
-                    <!-- This is a Message component -->
+                    <!-- COMPONENT: Message -->
                     <div class="flex flex-col">
                         <div class="flex flex-row">
                             <div class="font-semibold mr-auto">Researcher</div>
                             <div class="text-gray-600 text-xs content-center">Today at 10:01 AM</div>                            
                         </div>
-                        <!-- A basic Markdown message -->
+                        <!-- COMPONENT: MarkdownContent -->
                         <div class="prose">I have found XYZ</div>
                     </div>
+                    <!-- COMPONENT: Message -->
                     <div class="flex flex-col">
                         <div class="flex flex-row">
                             <div class="font-semibold mr-auto">Researcher</div>
                             <div class="text-gray-600 text-xs content-center">Today at 10:01 AM</div>                            
                         </div>
-                        <!-- An image message -->
+                        <!-- COMPONENT: ImageContent -->
                         <div class="w-2/3 mx-auto h-24 bg-red-500 rounded-md"/>
                     </div>
+                    <!-- COMPONENT: Message -->
                     <div class="flex flex-col">
                         <div class="flex flex-row">
                             <div class="font-semibold mr-auto">Researcher</div>
                             <div class="text-gray-600 text-xs content-center">Today at 10:01 AM</div>                            
                         </div>
-                        <!-- An action confirmation message -->
+                        <!-- COMPONENT: ActionConfirmationContent -->
                         <div class="flex flex-col">
                             <div class="bg-gradient-to-tr from-red-500 to-orange-500 justify-center flex flex-row font-semibold rounded-md">
                                 <ExclamationCircleSolid class="mt-0.5 mr-2"/>
@@ -68,12 +71,14 @@
                             </ButtonGroup>
                         </div>
                     </div>
+                    <!-- COMPONENT: Message -->
                     <div class="flex flex-col">
                         <div class="flex flex-row">
                             <div class="font-semibold mr-auto">Researcher</div>
                             <div class="text-gray-600 text-xs content-center">Today at 10:01 AM</div>                            
                         </div>
-                        <!-- An choice prompt message -->
+
+                        <!-- COMPONENT: ChoicePromptContent -->
                         <div class="flex flex-col">
                             <div class="bg-gradient-to-tr from-red-500 to-orange-500 justify-center flex flex-row font-semibold rounded-md">
                                 <ExclamationCircleSolid class="mt-0.5 mr-2"/>
@@ -92,12 +97,13 @@
                     </div>
                 </div>
                 <!-- <div>Running monologue info</div> -->
+                <!-- COMPONENT: MonologueStatusIndicator -->
                 <div class="flex flex-row mt-1">
-                    <!-- This is a MonologueStatusIndicator -->
                     <a class="font-semibold hover:text-blue-500" href="/monologues/2">Answer user query</a>
                     <div class="bg-black rounded-md px-1 font-bold text-lime-500 ml-auto">RUNNING</div>
                 </div>
                 <!-- These buttons are only shown if there is no Exchange at this level with a non-completed Monologue -->
+                <!-- COMPONENT: ExchangeContextButtons? -->
                 <div class="flex flex-row mt-1 space-x-1 content-center">
                     <EditOutline class="rounded-md hover:bg-slate-500"/>
                     <RefreshOutline class="rounded-md hover:bg-slate-500"/>
@@ -111,6 +117,8 @@
             </div>
         </div>
     </div>
+    
+    <!-- COMPONENT: ChatPrompt -->
     <ButtonGroup class="md:bg-slate-400 p-0 md:p-2 md:w-2/3 md:m-auto rounded-none md:rounded-md">
         <Button class="w-8 min-h-0"><HammerSolid/></Button>
         <Button class="w-8 min-h-0"><PaperClipOutline/></Button>
