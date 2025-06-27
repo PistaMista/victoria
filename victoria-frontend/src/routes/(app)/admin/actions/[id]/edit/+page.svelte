@@ -33,12 +33,12 @@
             <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Action repository</Label>
             <div class="bg-slate-400 rounded-md p-2">
                 <div class="flex flex-col space-y-2">
-                    <!-- COMPONENT: LabeledInput -->
+                    <!-- COMPONENT: LabeledSetting -->
                     <div>
                         <Label>Name</Label>                    
                         <Input/>
                     </div>
-                    <!-- COMPONENT: LabeledInput -->
+                    <!-- COMPONENT: LabeledSetting -->
                     <div>
                         <Label>URL</Label>                    
                         <Input/>
