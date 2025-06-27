@@ -4,23 +4,28 @@
     import { ChevronLeftOutline, PlusOutline } from "flowbite-svelte-icons";
 </script>
 
+<!-- COMPONENT: TriggerListView -->
+<!-- COMPONENT: ListView -->
 <div class="flex flex-col w-full h-full">
     <div class="p-1 bg-slate-400 flex flex-row">
-        <!-- This is a back button -->
+        <!-- COMPONENT: BackButton -->
         <div class="flex flex-row hover:bg-slate-500 rounded-md p-1">
             <ChevronLeftOutline class="h-8 w-8 my-auto"/>
             <div class="content-center mr-2">
                 Back
             </div>
         </div>
+        <!-- COMPONENT: ListViewHeaderSearchBar -->
         <Search class="grow max-h-10 mb-1 md:mb-0"></Search>
+
+        <!-- COMPONENT: ListViewHeaderButton -->
         <div class="hover:bg-slate-300 p-1 rounded-md">
             <Button class="flex flex-row text-nowrap"><PlusOutline class="w-6 h-8 my-auto"/></Button>
         </div>
     </div>
     
     <div class="flex flex-col grow min-h-0 bg-slate-300 overflow-y-scroll">
-        <!-- This is a TriggerListItem? -->
+        <!-- COMPONENT: TriggerListItem -->
         <div class="flex flex-col px-2 my-1 border-t-2 border-black hover:bg-slate-400">
             <div class="flex flex-row">
                 <div class="font-bold">
@@ -35,6 +40,7 @@
             </div>
         </div>
 
+        <!-- COMPONENT: TriggerListItem -->
         <div class="flex flex-col px-2 my-1 border-t-2 border-black hover:bg-slate-400">
             <div class="flex flex-row">
                 <div class="font-bold">
@@ -49,6 +55,7 @@
             </div>
         </div>
 
+        <!-- COMPONENT: TriggerListItem -->
         <div class="flex flex-col px-2 my-1 border-t-2 border-black hover:bg-slate-400">
             <div class="flex flex-row">
                 <div class="font-bold">
@@ -63,6 +70,7 @@
             </div>
         </div>
 
+        <!-- COMPONENT: TriggerListItem -->
         <div class="flex flex-col px-2 my-1 border-t-2 border-black hover:bg-slate-400">
             <div class="flex flex-row">
                 <div class="font-bold">
