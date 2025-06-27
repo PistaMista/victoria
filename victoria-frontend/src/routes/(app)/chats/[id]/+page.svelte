@@ -3,6 +3,7 @@
     import { PaperPlaneSolid, PaperClipOutline, HammerSolid, CloseOutline, CheckOutline, ExclamationCircleSolid, RefreshOutline, EditSolid, ChevronLeftOutline, ChevronRightOutline, EditOutline } from "flowbite-svelte-icons";
 </script>
 
+<!-- COMPONENT: ChatView -->
 <div class="w-full h-full flex flex-col pt-2 md:pb-2">
     <!-- COMPONENT: ChatWindow -->
     <div class="grow min-h-0 mb-2 overflow-y-scroll">
