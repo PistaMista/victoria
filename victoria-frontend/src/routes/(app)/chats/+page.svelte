@@ -4,6 +4,7 @@
     import { ChevronDoubleDownOutline, ChevronDownOutline, PlusOutline } from "flowbite-svelte-icons";
 </script>
 
+<!-- COMPONENT: ChatListView -->
 <!-- COMPONENT: ListView -->
 <div class="flex flex-col w-full h-full">
     <div class="p-1 bg-slate-400 flex flex-col md:flex-row">
