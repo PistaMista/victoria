@@ -41,7 +41,7 @@
                     <div>
                         <!-- COMPONENT: LabeledSetting -->
                         <Label>Type</Label>
-                        <!-- COMPONENT: TriggerTypeDropdown -->
+                        <!-- COMPONENT: GeneralDropdown -->
                         <Button class="flex flex-row w-full">WEBHOOK<ChevronDownOutline class="w-6 h-6"/></Button>
                         <Dropdown>
                             <DropdownItem>Timer</DropdownItem>
@@ -94,7 +94,7 @@
                     <div>
                         <!-- COMPONENT: LabeledSetting -->
                         <Label>Type</Label>
-                        <!-- COMPONENT: ParserTypeDropdown -->
+                        <!-- COMPONENT: GeneralDropdown -->
                         <Button class="flex flex-row w-full">IDENTITY<ChevronDownOutline class="w-6 h-6"/></Button>
                         <Dropdown>
                             <DropdownItem>Identity</DropdownItem>
