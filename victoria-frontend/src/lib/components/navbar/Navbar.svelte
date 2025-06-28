@@ -1,9 +1,7 @@
 <script lang="ts">
     import type { Route } from "$lib/types/route";
     import NavbarItem from "./NavbarItem.svelte";
-    import Button from "../button/Button.svelte";
     import { BarsOutline } from "flowbite-svelte-icons";
-    import UserPortrait from "./UserPortrait.svelte";
     
     export let routes: Array<Route>;
 </script>
