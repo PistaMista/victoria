@@ -5,3 +5,5 @@ import { render, screen } from '@testing-library/svelte';
 test.todo('trigger thought content displays name of trigger corresponding to the triggering event')
 
 test.todo('trigger thought content displays content of the triggering event')
+
+test.todo('pressing trigger thought link routes to detail of triggering event')
