@@ -7,8 +7,13 @@
 </script>
 
 <ListView backRoute="/admin">
-    <ListViewHeaderSearchBar slot="header"/>
-    <ListViewHeaderButton slot="header"><PlusOutline class="w-6 h-8 my-auto"/></ListViewHeaderButton>
+    <svelte:fragment slot="header">
+        <ListViewHeaderSearchBar/>
+        <ListViewHeaderButton><PlusOutline class="w-6 h-8 my-auto"/></ListViewHeaderButton>
+    </svelte:fragment>
 
-    <ActionRepositoryListItem slot="items"/>
+    <svelte:fragment slot="items">
+        <ActionRepositoryListItem/>
+
+    </svelte:fragment>
 </ListView>

@@ -7,11 +7,16 @@
 </script>
 
 <ListView cards>
-    <ListViewHeaderSearchBar slot="header"/>
-    <div slot="header" class="mx-2 content-center flex flex-row">
-        <ListViewHeaderButton><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
-    </div>
     
-    <AgentCard slot="items"/>
-    <AgentCard slot="items"/>
+    <svelte:fragment slot="header">
+        <ListViewHeaderSearchBar/>
+        <div class="mx-2 content-center flex flex-row">
+            <ListViewHeaderButton><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
+        </div>
+    </svelte:fragment>
+    
+    <svelte:fragment slot="items">
+        <AgentCard/>
+        <AgentCard/>
+    </svelte:fragment>
 </ListView>

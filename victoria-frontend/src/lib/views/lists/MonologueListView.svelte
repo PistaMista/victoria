@@ -6,17 +6,21 @@
 </script>
 
 <ListView>
-    <ListViewHeaderSearchBar slot="header"/>
-    <div slot="header" class="mx-2 content-center flex flex-row">
-        <!-- Filter by trigger type -->
-        <ListViewHeaderDropdown/>
-        <!-- Filter by monologue status -->
-        <ListViewHeaderDropdown/>
-        <!-- Filter by assigned agent -->
-        <ListViewHeaderDropdown/>
-    </div>
 
+    <svelte:fragment slot="header">
+        <ListViewHeaderSearchBar/>
+        <div class="mx-2 content-center flex flex-row">
+            <!-- Filter by trigger type -->
+            <ListViewHeaderDropdown/>
+            <!-- Filter by monologue status -->
+            <ListViewHeaderDropdown/>
+            <!-- Filter by assigned agent -->
+            <ListViewHeaderDropdown/>
+        </div>
+    </svelte:fragment>
 
-    <MonologueListItem slot="items"/>
-    <MonologueListItem slot="items"/>
+    <svelte:fragment slot="items">
+        <MonologueListItem/>
+        <MonologueListItem/>
+    </svelte:fragment>
 </ListView>

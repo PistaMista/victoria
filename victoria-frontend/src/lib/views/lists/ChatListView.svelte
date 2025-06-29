@@ -8,16 +8,22 @@
 </script>
 
 <ListView>
-    <ListViewHeaderSearchBar slot="header"/>
+    <svelte:fragment slot="header">
+        <ListViewHeaderSearchBar/>
+        <div class="mx-2 content-center flex flex-row">
+            <!-- Sort by Recent/Longest/Important -->
+            <ListViewHeaderDropdown/>
+            <!-- Filter by chat receiver -->
+            <ListViewHeaderDropdown/>
 
-    <div slot="header" class="mx-2 content-center flex flex-row">
-        <!-- Sort by Recent/Longest/Important -->
-        <ListViewHeaderDropdown/>
-        <!-- Filter by chat receiver -->
-        <ListViewHeaderDropdown/>
+            <ListViewHeaderButton><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
+        </div>
+    </svelte:fragment>
 
-        <ListViewHeaderButton><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
-    </div>
     
-    <ChatListItem slot="items"/>
+    <svelte:fragment slot="items">
+        <ChatListItem/>
+        <ChatListItem/>
+        <ChatListItem/>
+    </svelte:fragment>
 </ListView>

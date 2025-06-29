@@ -7,10 +7,14 @@
 </script>
 
 <ListView backRoute="/admin">
-    <ListViewHeaderSearchBar slot="header"/>
-    <ListViewHeaderButton slot="header"><PlusOutline class="w-6 h-8 my-auto"/></ListViewHeaderButton>
+    <svelte:fragment slot="header">
+        <ListViewHeaderSearchBar/>
+        <ListViewHeaderButton><PlusOutline class="w-6 h-8 my-auto"/></ListViewHeaderButton>
+    </svelte:fragment>
     
-    <TriggerListItem slot="items"/>
-    <TriggerListItem slot="items"/>
-    <TriggerListItem slot="items"/>
+    <svelte:fragment slot="items">
+        <TriggerListItem/>
+        <TriggerListItem/>
+        <TriggerListItem/>
+    </svelte:fragment>
 </ListView>
