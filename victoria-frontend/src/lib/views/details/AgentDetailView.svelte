@@ -1,5 +1,6 @@
 <script lang="ts">
-    import DeleteButton from "$lib/components/buttons/DeleteButton.svelte";
+    import CreateButton from "$lib/components/buttons/CreateButton.svelte";
+import DeleteButton from "$lib/components/buttons/DeleteButton.svelte";
     import SaveButton from "$lib/components/buttons/SaveButton.svelte";
     import GeneralDropdown from "$lib/components/dropdowns/GeneralDropdown.svelte";
     import DetailViewSection from "$lib/components/sections/DetailViewSection.svelte";
@@ -54,5 +55,9 @@
     
     <DetailViewSection title="Save agent">
         <SaveButton/>
+    </DetailViewSection>
+
+    <DetailViewSection title="Create agent">
+        <CreateButton/>
     </DetailViewSection>
 </DetailView>
