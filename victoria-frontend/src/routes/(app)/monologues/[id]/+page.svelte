@@ -7,6 +7,8 @@
     import ActionContent from "$lib/components/monologue/thoughts/ActionContent.svelte";
     import VerbatimContent from "$lib/components/monologue/thoughts/VerbatimContent.svelte";
     import TriggerContent from "$lib/components/monologue/thoughts/TriggerContent.svelte";
+    import Thought from "$lib/components/monologue/Thought.svelte";
+    import ThoughtTimeline from "$lib/components/monologue/ThoughtTimeline.svelte";
 </script>
 
 <!-- COMPONENT: MonologueDetailView -->
@@ -60,35 +62,7 @@
             <!-- COMPONENT: DetailViewSection -->
             <Label class="sticky top-0 bg-white px-2 z-40 font-bold">Thoughts</Label>
             <div class="bg-slate-400 rounded-md p-2">
-                <!-- COMPONENT: ThoughtTimeline -->
-                <div class="relative flex flex-col px-2 py-2 space-y-12">
-                    <!-- These "thought cards" should be collapsible - the thoughts can be quite long -->
-                    <!-- COMPONENT: Thought -->
-                    <div class="rounded-md z-20 bg-slate-200 p-2">
-                        <TriggerContent/>
-                    </div>
-                    <!-- COMPONENT: Thought -->
-                    <div class="rounded-md z-20 bg-slate-200 p-2">
-                        <VerbatimContent/>
-                    </div>
-                    <!-- COMPONENT: Thought -->
-                    <div class="rounded-md z-20 bg-slate-200 p-2">
-                        <ActionContent/>
-                    </div>
-
-                    <!-- COMPONENT: Thought -->
-                    <div class="rounded-md z-20 bg-slate-200 p-2">
-                        <SuccessContent/>
-                    </div>
-
-                    <!-- COMPONENT: Thought -->
-                    <div class="rounded-md z-20 bg-slate-200 p-2">
-                        <FailureContent/>
-                    </div>
-
-                    <!-- Dotted line for decoration-->
-                    <div class="absolute z-10 top-0 bottom-4 left-6 w-0.5 border-l-4 border-dotted border-gray-200"/>
-                </div>
+                <ThoughtTimeline/>
             </div>
         </div>
         
