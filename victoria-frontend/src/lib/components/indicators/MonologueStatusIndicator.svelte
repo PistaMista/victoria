@@ -20,3 +20,13 @@
         20m
     </div>
 </div>
+
+<!-- This is the short vertical version shown in MonologueListItem -->
+<div class="flex flex-col">
+    <div class="font-bold text-lime-600 rounded-md bg-slate-600 p-1">
+        RUNNING
+    </div>
+    <div class="text-center">
+        20m39s
+    </div>
+</div>
