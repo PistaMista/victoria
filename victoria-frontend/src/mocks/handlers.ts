@@ -4,9 +4,70 @@ export const handlers = [
     /// THESE ENDPOINTS ALWAYS WORK ON OBJECTS OWNED
     /// BY THE CURRENTLY SIGNED IN USER
     /* CHATS */
-    http.get('/api/chats', () => {}),
-    http.post('/api/chats', () => {}),
-    http.delete('/api/chats/:id', () => {}),
+    http.get('/api/chats', ({request}) => {
+        const url = new URL(request.url);
+        const sortBy = url.searchParams.get('sortBy');
+        const receiver = url.searchParams.get('receiver');
+        
+        const chats = {
+            admin: {
+                id: 1,
+                title: "System admin",
+                summary: "Chat about system administration."
+            },
+            learning: {
+                id: 2,
+                title: "Language learning",
+                summary: "Discussing ways to learn languages effectively."
+            }
+        }
+        
+        switch (receiver) {
+            case 'general':
+                return HttpResponse.json(
+                    [
+                        chats.admin
+                    ]
+                )
+
+            case 'research':
+                return HttpResponse.json(
+                    [
+                        chats.learning
+                    ]
+                )
+        }
+        
+        switch (sortBy) {
+            case 'importance':
+                return HttpResponse.json(
+                    [
+                        chats.learning,
+                        chats.admin
+                    ]
+                )
+            case 'length':
+            case 'recent':
+                return HttpResponse.json(
+                    [
+                        chats.admin,
+                        chats.learning
+                    ]
+                )
+        }
+    }),
+    http.post('/api/chats', () => {
+        return HttpResponse.json(
+            {
+                id: 3,
+                title: "New chat",
+                summary: "A chat about nothing in particular (yet)."
+            }
+        )
+    }),
+    http.delete('/api/chats/:id', () => {
+        return HttpResponse.json(true)
+    }),
 
     http.get('/api/chats/:id/exchanges', () => {}),
     // This returns the ID of the created exchange
