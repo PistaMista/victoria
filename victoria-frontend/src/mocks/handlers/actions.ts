@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
+import type { Action } from "$lib/types/action"
 
 export const handlers = [
     http.get('/api/actions', () => {
-        return HttpResponse.json([
+        return HttpResponse.json<Array<Action>>([
             {
                 id: 1,
                 repoId: 1,
