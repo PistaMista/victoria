@@ -1,10 +1,11 @@
 import { http, HttpResponse } from "msw"
+import type { Thought } from "$lib/types/thought"
 
 export const handlers = [
     http.get('/api/thoughts/:id', ({ params: { id }}) => {
         switch (id) {
             case '1':
-                return HttpResponse.json({
+                return HttpResponse.json<Thought>({
                     id: 1,
                     invocation: {
                         type: 'ThoughtInvocation',
@@ -16,8 +17,8 @@ export const handlers = [
                     result: "I should add the contained event to the calendar"
                 })
             case '2':
-                return HttpResponse.json({
-                    id: 1,
+                return HttpResponse.json<Thought>({
+                    id: 2,
                     invocation: {
                         type: 'FailureInvocation',
                         name: null,
@@ -26,8 +27,8 @@ export const handlers = [
                     result: ""
                 })
             case '3':
-                return HttpResponse.json({
-                    id: 1,
+                return HttpResponse.json<Thought>({
+                    id: 3,
                     invocation: {
                         type: 'SuccessInvocation',
                         name: null,
@@ -36,8 +37,8 @@ export const handlers = [
                     result: ""
                 })
             case '4':
-                return HttpResponse.json({
-                    id: 1,
+                return HttpResponse.json<Thought>({
+                    id: 4,
                     invocation: {
                         type: 'TriggerInvocation',
                         name: null,
@@ -49,8 +50,8 @@ export const handlers = [
                     result: "An email has arrived..."
                 })
             case '5':
-                return HttpResponse.json({
-                    id: 1,
+                return HttpResponse.json<Thought>({
+                    id: 5,
                     invocation: {
                         type: 'ActionInvocation',
                         name: 'web_search',
