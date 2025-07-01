@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
+import { UserListItem, User } from "$lib/types/user"
 
 export const handlers = [
     http.get('/api/users', () => {
-        return HttpResponse.json([
+        return HttpResponse.json<Array<UserListItem>>([
             {
                 id: 1,
                 username: 'krystof',
@@ -11,13 +12,15 @@ export const handlers = [
         ])
     }),
     http.post('/api/users', () => {
-        return HttpResponse.json({
-            id: 2
+        return HttpResponse.json<UserListItem>({
+            id: 2,
+            username: 'john',
+            role: 'user'
         })
     }),
     
     http.get('/api/users/:id', () => {
-        return HttpResponse.json({
+        return HttpResponse.json<User>({
             id: 1,
             username: 'krystof',
             role: 'admin',
@@ -26,9 +29,9 @@ export const handlers = [
         })
     }),
     http.put('/api/users/:id', () => {
-        return HttpResponse.json(true)
+        return HttpResponse.json<Boolean>(true)
     }),
     http.delete('/api/users/:id', () => {
-        return HttpResponse.json(true)
+        return HttpResponse.json<Boolean>(true)
     }),
 ]
