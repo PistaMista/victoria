@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw"
+import { ChatOptions, type Chat, type SentMessageInfo } from "$lib/types/chat"
 
 export const handlers = [
     http.get('/api/chats', ({request}) => {
@@ -23,14 +24,14 @@ export const handlers = [
         
         switch (receiver) {
             case 'general':
-                return HttpResponse.json(
+                return HttpResponse.json<Array<Chat>>(
                     [
                         chats.admin
                     ]
                 )
 
             case 'research':
-                return HttpResponse.json(
+                return HttpResponse.json<Array<Chat>>(
                     [
                         chats.learning
                     ]
@@ -39,7 +40,7 @@ export const handlers = [
         
         switch (sortBy) {
             case 'importance':
-                return HttpResponse.json(
+                return HttpResponse.json<Array<Chat>>(
                     [
                         chats.learning,
                         chats.admin
@@ -47,7 +48,7 @@ export const handlers = [
                 )
             case 'length':
             case 'recent':
-                return HttpResponse.json(
+                return HttpResponse.json<Array<Chat>>(
                     [
                         chats.admin,
                         chats.learning
@@ -56,7 +57,7 @@ export const handlers = [
         }
     }),
     http.post('/api/chats', () => {
-        return HttpResponse.json(
+        return HttpResponse.json<Chat>(
             {
                 id: 3,
                 rootExchangeId: null,
@@ -66,12 +67,12 @@ export const handlers = [
         )
     }),
     http.delete('/api/chats/:id', () => {
-        return HttpResponse.json(true)
+        return HttpResponse.json<Boolean>(true)
     }),
 
     // This returns the ID of the created exchange
     http.post('/api/chats/:id/send-message', () => {
-        return HttpResponse.json(
+        return HttpResponse.json<SentMessageInfo>(
             {
                 exchangeId: 3
             }
@@ -79,7 +80,7 @@ export const handlers = [
     }),
 
     http.get('/api/chats/:id/options', () => {
-        return HttpResponse.json(
+        return HttpResponse.json<ChatOptions>(
             {
                 receiver: 'general',
                 enabledActionIds: [1, 2, 3, 5]
@@ -87,7 +88,7 @@ export const handlers = [
         )
     }),
     http.put('/api/chats/:id/options', () => {
-        return HttpResponse.json(
+        return HttpResponse.json<ChatOptions>(
             {
                 receiver: 'research',
                 enabledActionIds: [1, 4]
