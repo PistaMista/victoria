@@ -49,7 +49,11 @@ export const handlers = [
         
         return HttpResponse.json<Message>(
             {
-                id: 2
+                id: 2,
+                content: {
+                    type: 'markdown',
+                    markdownText: "weeee"
+                }
             }
         )
     }),
