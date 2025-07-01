@@ -22,7 +22,6 @@
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^3.2.1",
     "autoprefixer": "^10.4.20",
-    "datauri": "^4.1.0",
     "flowbite": "^2.5.1",
     "flowbite-svelte": "^0.46.16",
     "flowbite-svelte-icons": "^1.6.1",
