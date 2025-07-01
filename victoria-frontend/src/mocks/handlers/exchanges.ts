@@ -1,10 +1,12 @@
 import { http, HttpResponse, delay } from "msw"
+import { Exchange } from "$lib/types/exchange"
+import { Message } from "$lib/types/message"
 
 export const handlers = [
     http.get('/api/exchanges/:id', ({ params: { id } }) => {
         switch (id) {
             case '1':
-                return HttpResponse.json(
+                return HttpResponse.json<Exchange>(
                     {
                         userMessageId: 1,
                         agentMessageIds: [1, 2, 3, 4],
@@ -13,7 +15,7 @@ export const handlers = [
                     }
                 )
             case '2':
-                return HttpResponse.json(
+                return HttpResponse.json<Exchange>(
                     {
                         userMessageId: 2,
                         agentMessageIds: [1],
@@ -22,7 +24,7 @@ export const handlers = [
                     }
                 )
             case '3':
-                return HttpResponse.json(
+                return HttpResponse.json<Exchange>(
                     {
                         userMessageId: 3,
                         agentMessageIds: [1],
@@ -31,7 +33,7 @@ export const handlers = [
                     }
                 )
             case '4':
-                return HttpResponse.json(
+                return HttpResponse.json<Exchange>(
                     {
                         userMessageId: 2,
                         agentMessageIds: [1, 3, 4],
@@ -45,9 +47,9 @@ export const handlers = [
     http.get('/api/exchanges/:id/new-messages', async () => {
         await delay(3000);
         
-        return HttpResponse.json(
+        return HttpResponse.json<Message>(
             {
-                newMessageId: 2
+                id: 2
             }
         )
     }),
