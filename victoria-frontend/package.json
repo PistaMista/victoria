@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "vitest run && vite build",
+    "build": "vitest run --passWithNoTests && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"

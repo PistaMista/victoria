@@ -1,0 +1,1 @@
+<div class="w-2/3 mx-auto h-24 bg-red-500 rounded-md"/>
