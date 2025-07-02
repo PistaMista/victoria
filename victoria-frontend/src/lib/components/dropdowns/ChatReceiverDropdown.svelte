@@ -3,7 +3,7 @@
     import { ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
-<div>
+<div {...$$restProps}>
     <Button class="flex flex-row w-full">General<ChevronDownOutline class="w-6 h-6"/></Button>
     <Dropdown>
         <DropdownItem>General</DropdownItem>

@@ -3,7 +3,7 @@
     import { ChevronDownOutline } from "flowbite-svelte-icons";
 </script>
 
-<div class="hover:bg-slate-300 p-1 rounded-md">
+<div class="hover:bg-slate-300 p-1 rounded-md" {...$$restProps}>
     <Button class="flex flex-row">Trigger<ChevronDownOutline class="w-6 h-6"/></Button>
     <Dropdown>
         <DropdownItem>Timer</DropdownItem>
