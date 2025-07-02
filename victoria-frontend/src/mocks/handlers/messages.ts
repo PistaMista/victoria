@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import { Message } from "$lib/types/message"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/messages/:id', ({params: { id }}) => {
+export const getMessageHandler = await spy(
+    ({params: { id }}) => {
         switch (id) {
             case '1':
                 return HttpResponse.json<Message>(
@@ -50,5 +51,9 @@ export const handlers = [
                     }
                 )
         }
-    }),
+    }
+)
+
+export const handlers = [
+    http.get('/api/messages/:id', getMessageHandler),
 ]

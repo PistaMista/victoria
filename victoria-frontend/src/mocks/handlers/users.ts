@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import { UserListItem, User } from "$lib/types/user"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/users', () => {
+export const listUsersHandler = await spy(
+    () => {
         return HttpResponse.json<Array<UserListItem>>([
             {
                 id: 1,
@@ -10,16 +11,21 @@ export const handlers = [
                 role: 'admin'
             }
         ])
-    }),
-    http.post('/api/users', () => {
+    }   
+)
+
+export const createUserHandler = await spy(
+    () => {
         return HttpResponse.json<UserListItem>({
             id: 2,
             username: 'john',
             role: 'user'
         })
-    }),
-    
-    http.get('/api/users/:id', () => {
+    }   
+)
+
+export const getUserHandler = await spy(
+    () => {
         return HttpResponse.json<User>({
             id: 1,
             username: 'krystof',
@@ -27,11 +33,26 @@ export const handlers = [
             permittedActions: [1, 2, 3, 4],
             permittedTriggers: [1]
         })
-    }),
-    http.put('/api/users/:id', () => {
+    }   
+)
+
+export const updateUserHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
-    http.delete('/api/users/:id', () => {
+    }   
+)
+
+export const deleteUserHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
+    }
+)
+
+export const handlers = [
+    http.get('/api/users', listUsersHandler),
+    http.post('/api/users', createUserHandler),
+    
+    http.get('/api/users/:id', getUserHandler),
+    http.put('/api/users/:id', updateUserHandler),
+    http.delete('/api/users/:id', deleteUserHandler),
 ]

@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import type { Model } from "$lib/types/model"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/models', () => {
+export const listModelsHandler = await spy(
+    () => {
         return HttpResponse.json<Array<Model>>([
             {
                 id: 1,
@@ -11,11 +12,23 @@ export const handlers = [
                 enabled: true
             }
         ])
-    }),
-    http.post('/api/models/:id/enable', () => {
+    }   
+)
+
+export const enableModelHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
-    http.post('/api/models/:id/disable', () => {
+    }   
+)
+
+export const disableModelHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(false)
-    }),
+    }   
+)
+
+export const handlers = [
+    http.get('/api/models', listModelsHandler),
+    http.post('/api/models/:id/enable', enableModelHandler),
+    http.post('/api/models/:id/disable', disableModelHandler),
 ]

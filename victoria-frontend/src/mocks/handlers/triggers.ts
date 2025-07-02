@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import { TriggerListItem, Trigger } from "$lib/types/trigger"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/triggers', () => {
+export const listTriggersHandler = await spy(
+    () => {
         return HttpResponse.json<Array<TriggerListItem>>([
             {
                 id: 1,
@@ -25,16 +26,21 @@ export const handlers = [
                 type: 'webhook',
             }
         ])
-    }),
-    http.post('/api/triggers', () => {
+    }   
+)
+
+export const createTriggerHandler = await spy(
+    () => {
         return HttpResponse.json<TriggerListItem>({
             id: 5,
             name: 'A new trigger',
             type: 'timer'
         })
-    }),
+    }   
+)
 
-    http.get('/api/triggers/:id', ({ params: { id }}) => {
+export const getTriggerHandler = await spy(
+    ({ params: { id }}) => {
         switch (id) {
             case '1':
                 return HttpResponse.json<Trigger>({
@@ -82,11 +88,26 @@ export const handlers = [
                     template: "A new message has been sent in the #tech-talk discord channel: ${content}"                    
                 })
         }
-    }),
-    http.put('/api/triggers/:id', () => {
+    }   
+)
+
+export const updateTriggerHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
-    http.delete('/api/triggers/:id', () => {
+    }
+)
+
+export const deleteTriggerHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
+    }   
+)
+
+export const handlers = [
+    http.get('/api/triggers', listTriggersHandler),
+    http.post('/api/triggers', createTriggerHandler),
+
+    http.get('/api/triggers/:id', getTriggerHandler),
+    http.put('/api/triggers/:id', updateTriggerHandler),
+    http.delete('/api/triggers/:id', deleteTriggerHandler),
 ]

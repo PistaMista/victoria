@@ -1,9 +1,10 @@
 import { http, HttpResponse } from "msw"
 import { Monologue, MonologueListItem } from "$lib/types/monologue"
 import { Thought } from "$lib/types/thought"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/monologues', () => {
+export const listMonologuesHandler = await spy(
+    () => {
         return HttpResponse.json<Array<MonologueListItem>>([
             {
                 id: 1,
@@ -18,8 +19,11 @@ export const handlers = [
                 summary: "Checking available ingredients"
             }
         ])
-    }),
-    http.get('/api/monologues/:id', ({params: { id }}) => {
+    }   
+)
+
+export const getMonologueHandler = await spy(
+    ({params: { id }}) => {
         switch (id) {
             case '1':
                 return HttpResponse.json<Monologue>({
@@ -39,9 +43,11 @@ export const handlers = [
                 })
                 
         }
-    }),
-    
-    http.get('/api/monologues/:id/thoughts', () => {
+    }   
+)
+
+export const getMonologueThoughtsHandler = await spy(
+    () => {
         return HttpResponse.json<Array<Thought>>([
             {
                 id: 1,
@@ -87,5 +93,12 @@ export const handlers = [
                 result: ""
             },
         ])
-    }),
+    }
+)
+
+export const handlers = [
+    http.get('/api/monologues', listMonologuesHandler),
+    http.get('/api/monologues/:id', getMonologueHandler),
+    
+    http.get('/api/monologues/:id/thoughts', getMonologueThoughtsHandler),
 ]

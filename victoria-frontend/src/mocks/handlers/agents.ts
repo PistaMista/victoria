@@ -1,9 +1,10 @@
 import { http, HttpResponse } from "msw"
 import type { Agent, AgentListItem } from "$lib/types/agent";
 import { MonologueListItem } from "$lib/types/monologue";
+import { spy } from "../spy";
 
-export const handlers = [
-    http.get('/api/agents', () => {
+export const listAgentsHandler = await spy(
+    () => {
         return HttpResponse.json<Array<AgentListItem>>(
             [
                 {
@@ -18,8 +19,11 @@ export const handlers = [
                 }
             ]
         )
-    }),
-    http.post('/api/agents', async ({ request }) => {
+    }   
+)
+
+export const createAgentHandler = await spy(
+ async ({ request }) => {
         const body = await request.json() as {
             name: string
         };
@@ -31,9 +35,11 @@ export const handlers = [
                 status: 'IDLE'
             }
         )
-    }),
-    
-    http.get('/api/agents/:id', ({params: { id }}) => {
+    }   
+)
+
+export const getAgentHandler = await spy(
+    ({params: { id }}) => {
         return HttpResponse.json<Agent>({
             id: Number(id),
             name: "Cook",
@@ -47,15 +53,23 @@ export const handlers = [
             enabledTriggers: [1],
             enabledActions: [1, 2, 4]
         })
-    }),
-    http.put('/api/agents/:id', () => {
-        return HttpResponse.json<Boolean>(true)
-    }),
-    http.delete('/api/agents/:id', () => {
-        return HttpResponse.json<Boolean>(true)
-    }),
+    }   
+)
 
-    http.get('/api/agents/:id/monologues', () => {
+export const updateAgentHandler = await spy(
+    () => {
+        return HttpResponse.json<Boolean>(true)
+    }   
+)
+
+export const deleteAgentHandler = await spy(
+    () => {
+        return HttpResponse.json<Boolean>(true)
+    }   
+)
+
+export const getAgentMonologuesHandler = await spy(
+    () => {
         return HttpResponse.json<Array<MonologueListItem>>(
             [
                 {
@@ -72,5 +86,16 @@ export const handlers = [
                 }
             ]
         )
-    }),
+    }   
+)
+
+export const handlers = [
+    http.get('/api/agents', listAgentsHandler),
+    http.post('/api/agents', createAgentHandler),
+    
+    http.get('/api/agents/:id', getAgentHandler),
+    http.put('/api/agents/:id', updateAgentHandler),
+    http.delete('/api/agents/:id', deleteAgentHandler),
+
+    http.get('/api/agents/:id/monologues', getAgentMonologuesHandler),
 ]

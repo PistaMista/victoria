@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import type { Thought } from "$lib/types/thought"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/thoughts/:id', ({ params: { id }}) => {
+export const getThoughtHandler = await spy(
+    ({ params: { id }}) => {
         switch (id) {
             case '1':
                 return HttpResponse.json<Thought>({
@@ -62,5 +63,9 @@ export const handlers = [
                     result: "[ { title: 'Some article title', summary: 'Some summary' } ]"
                 })
         }
-    }),
+    }
+)
+
+export const handlers = [
+    http.get('/api/thoughts/:id', getThoughtHandler),
 ]

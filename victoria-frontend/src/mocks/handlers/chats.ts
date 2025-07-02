@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import { ChatOptions, type Chat, type SentMessageInfo } from "$lib/types/chat"
+import { spy } from "../spy";
 
-export const handlers = [
-    http.get('/api/chats', ({request}) => {
+export const listChatsHandler = await spy(({request}) => 
+    {
         const url = new URL(request.url);
         const sortBy = url.searchParams.get('sortBy');
         const receiver = url.searchParams.get('receiver');
@@ -55,8 +56,11 @@ export const handlers = [
                     ]
                 )
         }
-    }),
-    http.post('/api/chats', () => {
+    }
+);
+
+export const chatCreateHandler = await spy(
+    () => {
         return HttpResponse.json<Chat>(
             {
                 id: 3,
@@ -65,34 +69,55 @@ export const handlers = [
                 summary: "A chat about nothing in particular (yet)."                
             }
         )
-    }),
-    http.delete('/api/chats/:id', () => {
-        return HttpResponse.json<Boolean>(true)
-    }),
+    }
+);
 
-    // This returns the ID of the created exchange
-    http.post('/api/chats/:id/send-message', () => {
+export const chatDeleteHandler = await spy(
+    () => {
+        return HttpResponse.json<Boolean>(true)
+    }   
+)
+
+export const sendMessageHandler = await spy(
+    () => {
         return HttpResponse.json<SentMessageInfo>(
             {
                 exchangeId: 3
             }
         )
-    }),
+    }   
+)
 
-    http.get('/api/chats/:id/options', () => {
+export const getChatOptionsHandler = await spy(
+    () => {
         return HttpResponse.json<ChatOptions>(
             {
                 receiver: 'general',
                 enabledActionIds: [1, 2, 3, 5]
             }
         )
-    }),
-    http.put('/api/chats/:id/options', () => {
+    }   
+)
+
+export const setChatOptionsHandler = await spy(
+    () => {
         return HttpResponse.json<ChatOptions>(
             {
                 receiver: 'research',
                 enabledActionIds: [1, 4]
             }
         )
-    }),
+    }   
+)
+
+export const handlers = [
+    http.get('/api/chats', listChatsHandler),
+    http.post('/api/chats', chatCreateHandler),
+    http.delete('/api/chats/:id', chatDeleteHandler),
+
+    // This returns the ID of the created exchange
+    http.post('/api/chats/:id/send-message', sendMessageHandler),
+
+    http.get('/api/chats/:id/options', getChatOptionsHandler),
+    http.put('/api/chats/:id/options', setChatOptionsHandler),
 ]

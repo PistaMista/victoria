@@ -1,9 +1,10 @@
 import { http, HttpResponse, delay } from "msw"
 import { Exchange } from "$lib/types/exchange"
 import { Message } from "$lib/types/message"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/exchanges/:id', ({ params: { id } }) => {
+export const getExchangeHandler = await spy(
+    ({ params: { id } }) => {
         switch (id) {
             case '1':
                 return HttpResponse.json<Exchange>(
@@ -42,9 +43,11 @@ export const handlers = [
                     }
                 )
         }
-    }),
-    // This is an HTTP long poll for new messages
-    http.get('/api/exchanges/:id/new-messages', async () => {
+    }   
+)
+
+export const newMessageHandler = await spy(
+    async () => {
         await delay(3000);
         
         return HttpResponse.json<Message>(
@@ -56,5 +59,12 @@ export const handlers = [
                 }
             }
         )
-    }),
+    }   
+)
+
+
+export const handlers = [
+    http.get('/api/exchanges/:id', getExchangeHandler),
+    // This is an HTTP long poll for new messages
+    http.get('/api/exchanges/:id/new-messages', newMessageHandler),
 ]

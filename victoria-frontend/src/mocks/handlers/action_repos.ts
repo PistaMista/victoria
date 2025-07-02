@@ -1,8 +1,9 @@
 import { http, HttpResponse } from "msw"
 import { ActionRepository } from "../../lib/types/action_repo"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/action-repos', () => {
+export const listActionReposHandler = await spy(
+    () => {
         return HttpResponse.json<Array<ActionRepository>>([
             {
                 id: 1,
@@ -10,8 +11,11 @@ export const handlers = [
                 url: "http://golem/PistaMista/HA-tools.git"
             } as ActionRepository
         ])
-    }),
-    http.post('/api/action-repos', () => {
+    }   
+)
+
+export const createActionRepoHandler = await spy(
+    () => {
         return HttpResponse.json<ActionRepository>(
             {
                 id: 2,
@@ -19,9 +23,11 @@ export const handlers = [
                 url: "http://seznam.cz"
             }
         )
-    }),
-    
-    http.get('/api/action-repos/:id', ({ params: { id }}) => {
+    }   
+)
+
+export const getActionRepoHandler = await spy(
+    ({ params: { id }}) => {
         switch (id) {
             case '1':
                 return HttpResponse.json<ActionRepository>(
@@ -32,11 +38,26 @@ export const handlers = [
                     }
                 )
         }
-    }),
-    http.put('/api/action-repos/:id', () => {
+    }   
+)
+
+export const setActionRepoHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
-    http.delete('/api/action-repos/:id', () => {
+    }   
+)
+
+export const deleteActionRepoHandler = await spy(
+    () => {
         return HttpResponse.json<Boolean>(true)
-    }),
+    }   
+)
+
+export const handlers = [
+    http.get('/api/action-repos', listActionReposHandler),
+    http.post('/api/action-repos', createActionRepoHandler),
+    
+    http.get('/api/action-repos/:id', getActionRepoHandler),
+    http.put('/api/action-repos/:id', setActionRepoHandler),
+    http.delete('/api/action-repos/:id', deleteActionRepoHandler),
 ]
