@@ -34,6 +34,19 @@ test('chat list view sends request to create new chat', async () => {
     );
 })
 
+test('chat list view routes to new chat after creation', async () => {
+    const user = userEvent.setup();
+    const { getByLabelText } = render(ChatListView);
+    const createButton = getByLabelText("Create chat");
+
+    // Click the button
+    user.click(createButton);
+
+    await waitFor(() => {
+        expect(window.location.pathname).toBe("/chats/3")
+    });
+});
+
 test('chat list view can sort by importance', async () => {
     const user = userEvent.setup();
     const { getByLabelText, getByRole } = render(ChatListView);
