@@ -17,10 +17,11 @@
     </div>
 
     {#if cards}
-        <div class="flex flex-col md:flex-row md:flex-wrap justify-start p-2">
+        <div role="list" class="flex flex-col md:flex-row md:flex-wrap justify-start p-2">
+            <slot name="items"/>
         </div>
     {:else}
-        <div class="flex flex-col grow min-h-0 bg-slate-300 overflow-y-scroll">
+        <div role="list" class="flex flex-col grow min-h-0 bg-slate-300 overflow-y-scroll">
             <slot name="items"/>
         </div>
     {/if}

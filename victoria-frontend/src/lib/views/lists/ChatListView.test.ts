@@ -1,8 +1,13 @@
-import { expect, test, assert, type Mock } from "vitest";
+import { expect, test, assert, type Mock, vi } from "vitest";
 import userEvent from '@testing-library/user-event';
-import { render, waitFor } from '@testing-library/svelte';
+import { render, waitFor, within } from '@testing-library/svelte';
 import ChatListView from "./ChatListView.svelte";
 import { chatCreateHandler, listChatsHandler } from "../../../mocks/handlers/chats";
+import { goto } from '$app/navigation';
+
+vi.mock('$app/navigation', () => ({
+    goto: vi.fn()
+}))
 
 test('chat list view contains all chat titles from API response', async () => {
     const { getByRole } = render(ChatListView);
@@ -26,12 +31,10 @@ test('chat list view sends request to create new chat', async () => {
 
     
     // Click the button
-    user.click(createButton);
+    await user.click(createButton);
 
     // Creation request should be sent
-    await waitFor(() => 
-        expect(chatCreateHandler).toBeCalled()
-    );
+    expect(chatCreateHandler).toBeCalled()
 })
 
 test('chat list view routes to new chat after creation', async () => {
@@ -40,95 +43,89 @@ test('chat list view routes to new chat after creation', async () => {
     const createButton = getByLabelText("Create chat");
 
     // Click the button
-    user.click(createButton);
+    await user.click(createButton);
 
-    await waitFor(() => {
-        expect(window.location.pathname).toBe("/chats/3")
-    });
+    expect(goto).toBeCalledWith("/chats/3")
 });
 
 test('chat list view can sort by importance', async () => {
     const user = userEvent.setup();
-    const { getByLabelText, getByRole } = render(ChatListView);
+    const { getByLabelText, findByLabelText } = render(ChatListView);
     
     const sortByDropdown = getByLabelText("Sort by");
+    const button = within(sortByDropdown).getByRole('button');
 
     // Click the dropdown
-    user.click(sortByDropdown);
+    await user.click(button);
 
-    const importanceOption = getByLabelText("Importance");
+    const importanceOption = await findByLabelText("Importance");
     
     // Select importance option
-    user.click(importanceOption);
+    await user.click(importanceOption);
 
     // Appropriate request should be sent
-    await waitFor(() => {
-        expect(listChatsHandler).toBeCalled();
-        expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('sortBy=importance');
-    })
+    expect(listChatsHandler).toBeCalledTimes(2);
+    expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('sortBy=importance');
 })
 
 test('chat list view can sort by recent', async () => {
     const user = userEvent.setup();
-    const { getByLabelText, getByRole } = render(ChatListView);
+    const { getByLabelText, findByLabelText } = render(ChatListView);
     
     const sortByDropdown = getByLabelText("Sort by");
+    const button = within(sortByDropdown).getByRole('button');
 
     // Click the dropdown
-    user.click(sortByDropdown);
+    await user.click(button);
 
-    const recentOption = getByLabelText("Recent");
+    const recentOption = await findByLabelText("Recent");
     
     // Select recent option
-    user.click(recentOption);
+    await user.click(recentOption);
     
     // Appropriate request should be sent
-    await waitFor(() => {
-        expect(listChatsHandler).toBeCalledTimes(2);
-        expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('sortBy=recent');
-    })
+    expect(listChatsHandler).toBeCalledTimes(2);
+    expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('sortBy=recent');
 })
 
 test('chat list view can sort by length', async () => {
     const user = userEvent.setup();
-    const { getByLabelText, getByRole } = render(ChatListView);
+    const { getByLabelText, findByLabelText } = render(ChatListView);
     
     const sortByDropdown = getByLabelText("Sort by");
+    const button = within(sortByDropdown).getByRole('button');
 
     // Click the dropdown
-    user.click(sortByDropdown);
+    await user.click(button);
 
-    const lengthOption = getByLabelText("Length");
+    const lengthOption = await findByLabelText("Length");
     
     // Select length option
-    user.click(lengthOption);
+    await user.click(lengthOption);
     
     // Appropriate request should be sent
-    await waitFor(() => {
-        expect(listChatsHandler).toBeCalledTimes(2);
-        expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('sortBy=length');
-    })
+    expect(listChatsHandler).toBeCalledTimes(2);
+    expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('sortBy=length');
 })
 
 test('chat list view can filter by chat receiver', async () => {
     const user = userEvent.setup();
-    const { getByLabelText, getByRole } = render(ChatListView);
+    const { getByLabelText, findByLabelText } = render(ChatListView);
 
     const filterByDropdown = getByLabelText("Filter by chat receiver");
+    const button = within(filterByDropdown).getByRole('button');
     
     // Click the chat receiver dropdown
-    user.click(filterByDropdown);
+    await user.click(button);
     
-    const generalOption = getByLabelText("general");
+    const generalOption = await findByLabelText("general");
 
     // Select the 'general' option
-    user.click(generalOption);
+    await user.click(generalOption);
 
     // Appropriate request should be sent
-    await waitFor(() => {
-        expect(listChatsHandler).toBeCalledTimes(2);
-        expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('receiver=general');
-    })
+    expect(listChatsHandler).toBeCalledTimes(2);
+    expect((listChatsHandler as Mock).mock.calls[1][0].request.url).toContain('receiver=general');
 })
 
 test('chat list view can search for chats', async () => {
@@ -136,6 +133,12 @@ test('chat list view can search for chats', async () => {
     const { getByRole } = render(ChatListView);
 
     const searchBar = getByRole('search');
+    
+    // No search query by default
+    await waitFor(() => {
+        expect(listChatsHandler).toHaveBeenCalledOnce();
+        expect((listChatsHandler as Mock).mock.calls[0][0].request.url).not.toContain('searchQuery=');
+    });
 
     // Type a search query
     user.type(searchBar, "pineapples");

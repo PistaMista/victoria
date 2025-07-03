@@ -110,6 +110,14 @@ export const setChatOptionsHandler = await spy(
     }   
 )
 
+export const listChatReceiversHandler = await spy(
+    () => {
+        return HttpResponse.json<string[]>(
+            ['general', 'research']
+        )
+    }
+)
+
 export const handlers = [
     http.get('/api/chats', listChatsHandler),
     http.post('/api/chats', chatCreateHandler),
@@ -120,4 +128,6 @@ export const handlers = [
 
     http.get('/api/chats/:id/options', getChatOptionsHandler),
     http.put('/api/chats/:id/options', setChatOptionsHandler),
+
+    http.get('/api/chats/receivers', listChatReceiversHandler),
 ]
