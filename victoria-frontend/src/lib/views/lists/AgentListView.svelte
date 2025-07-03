@@ -1,22 +1,51 @@
-<script>
+<script lang="ts">
     import ListViewHeaderButton from "$lib/components/buttons/ListViewHeaderButton.svelte";
     import AgentCard from "$lib/components/cards/AgentCard.svelte";
     import ListViewHeaderSearchBar from "$lib/components/search/ListViewHeaderSearchBar.svelte";
     import ListView from "$lib/views/ListView.svelte";
     import { PlusOutline } from "flowbite-svelte-icons";
+    import type { AgentListItem } from "$lib/types/agent";
+    import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
+    import { getCurrentUserAgents } from "$lib/api/agents";
+    
+    let agents: AgentListItem[] = [];
+    let searchQuery: string = "";
+    let mounted = false;
+    
+    function createAgent() {
+        goto('/agents/add');
+    }
+    
+    onMount(() => {
+        mounted = true;
+    })
+    
+    $: if (mounted) {
+        (async () => {
+            let query: string | null = searchQuery ? searchQuery : null;
+            agents = await getCurrentUserAgents(query);
+        })();
+    }
 </script>
 
 <ListView cards>
     
     <svelte:fragment slot="header">
-        <ListViewHeaderSearchBar/>
+        <ListViewHeaderSearchBar
+            ontype={(val) => { searchQuery = val }}
+        />
         <div class="mx-2 content-center flex flex-row">
-            <ListViewHeaderButton><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
+            <ListViewHeaderButton
+                onclick={createAgent}
+                aria-label="Create agent"
+            ><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
         </div>
     </svelte:fragment>
     
     <svelte:fragment slot="items">
-        <AgentCard/>
-        <AgentCard/>
+        {#each agents as agent}
+            <AgentCard {agent}/>
+        {/each}
     </svelte:fragment>
 </ListView>
