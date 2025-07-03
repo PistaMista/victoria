@@ -1,15 +1,55 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, waitFor } from '@testing-library/svelte';
+import AgentCard from "./AgentCard.svelte";
+import type { AgentListItem } from "$lib/types/agent";
+import { goto } from "$app/navigation";
 
-test.todo('agent card shows name of agent with given id', async () => {
+vi.mock("$app/navigation", () => ({
+    goto: vi.fn()
+}))
+
+const testAgent: AgentListItem = {
+    id: 2,
+    name: 'Cook',
+    status: 'BUSY'
+}
+
+test('agent card shows name of given agent', async () => {
+    const { container } = render(AgentCard, {
+        agent: testAgent    
+    });
+
+    expect(container).toHaveTextContent('Cook');
 })
 
-test.todo('agent card shows status of agent with given id', async () => {
+test('agent card shows status of given agent', async () => {
+    const { container } = render(AgentCard, {
+        agent: testAgent
+    });
+
+    expect(container).toHaveTextContent('BUSY');
 })
 
-test.todo('agent card shows monologue names of agent with given id', async () => {
+test('agent card shows monologue names of given agent', async () => {
+    const { container } = render(AgentCard, {
+        agent: testAgent
+    });
+
+    await waitFor(() => {
+        expect(container).toHaveTextContent('Research thesis ideas');
+        expect(container).toHaveTextContent('Respond to user message');
+    });
 })
 
-test.todo('agent card routes to agent editing when context button is pressed', async () => {
+test('agent card routes to agent editing when context button is pressed', async () => {
+    const user = userEvent.setup();
+    const { getByLabelText } = render(AgentCard, {
+        agent: testAgent
+    });
+    const detailButton = getByLabelText('Cook agent detail');
+    
+    await user.click(detailButton);
+    
+    expect(goto).toBeCalledWith('/agents/2');
 })
