@@ -8,13 +8,17 @@ export const listMonologuesHandler = await spy(
         return HttpResponse.json<Array<MonologueListItem>>([
             {
                 id: 1,
+                agentId: 2,
                 status: "RUNNING",
+                startTimestamp: 3000,
                 title: "Research thesis ideas",
                 summary: "Searching the web for sources"
             },
             {
                 id: 2,
+                agentId: 1,
                 status: "SUCCESS",
+                startTimestamp: 2000,
                 title: "Generate recipes for the week",
                 summary: "Checking available ingredients"
             }
