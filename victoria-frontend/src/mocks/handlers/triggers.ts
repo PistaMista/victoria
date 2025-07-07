@@ -104,7 +104,8 @@ export const deleteTriggerHandler = await spy(
 )
 
 export const handlers = [
-    http.get('/api/triggers', listTriggersHandler),
+    http.get('/api/triggers', listTriggersHandler), // This lists only triggers permitted for the current user
+    http.get('/api/triggers/all', listTriggersHandler), // This lists ALL triggers
     http.post('/api/triggers', createTriggerHandler),
 
     http.get('/api/triggers/:id', getTriggerHandler),

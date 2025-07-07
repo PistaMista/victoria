@@ -4,7 +4,7 @@ import type { MonologueListItem } from "$lib/types/monologue";
 import { MonologueListItem as MonologueListItemSchema } from "$lib/types/monologue";
 import { z } from "zod";
 
-export async function getCurrentUserAgents(searchQuery: string | null): Promise<AgentListItem[]> {
+export async function getCurrentUserAgents(searchQuery: string | null = null): Promise<AgentListItem[]> {
     const params = new URLSearchParams();
 
     if (searchQuery) {
