@@ -74,12 +74,16 @@ export const getAgentMonologuesHandler = await spy(
             [
                 {
                     id: 1,
+                    agentId: 2,
+                    startTimestamp: 200,
                     title: "Research thesis ideas",
                     summary: "Searching web for sources",
                     status: "RUNNING"
                 },
                 {
                     id: 2,
+                    agentId: 2,
+                    startTimestamp: 2000,
                     title: "Respond to user message",
                     summary: "Done",
                     status: "SUCCESS"
