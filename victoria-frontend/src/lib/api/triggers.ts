@@ -10,3 +10,18 @@ export async function getPermittedTriggers(): Promise<TriggerListItem[]> {
 
     return z.array(TriggerListItemSchema).parse(json);
 }
+
+export async function getAllTriggers(searchQuery: string | null = null): Promise<TriggerListItem[]> {
+    let params = new URLSearchParams();
+
+    if (searchQuery !== null) {
+        params.append('searchQuery', searchQuery);
+    }
+
+    const res = await fetch(`/api/triggers/all?${params.toString()}`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return z.array(TriggerListItemSchema).parse(json);
+}
