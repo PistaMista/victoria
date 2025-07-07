@@ -1,4 +1,5 @@
-import { AgentListItem } from "$lib/types/agent";
+import { Agent as AgentSchema, AgentListItem as AgentListItemSchema } from "$lib/types/agent";
+import type { Agent, AgentListItem } from "$lib/types/agent";
 import type { MonologueListItem } from "$lib/types/monologue";
 import { MonologueListItem as MonologueListItemSchema } from "$lib/types/monologue";
 import { z } from "zod";
@@ -15,7 +16,16 @@ export async function getCurrentUserAgents(searchQuery: string | null): Promise<
     });
     const json = await res.json();
 
-    return z.array(AgentListItem).parse(json);
+    return z.array(AgentListItemSchema).parse(json);
+}
+
+export async function getAgent(agentId: number): Promise<Agent> {
+    const res = await fetch(`/api/agents/${agentId}`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return AgentSchema.parse(json);
 }
 
 export async function getAgentMonologues(agentId: number): Promise<MonologueListItem[]> {
