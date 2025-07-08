@@ -93,7 +93,7 @@ export const getChatOptionsHandler = await spy(
         return HttpResponse.json<ChatOptions>(
             {
                 receiver: 'general',
-                enabledActionIds: [1, 2, 3, 5]
+                enabledActionIds: [1, 3]
             }
         )
     }   

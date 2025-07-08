@@ -1,5 +1,6 @@
-import type { Chat } from "$lib/types/chat";
-import { Chat as ChatSchema } from "$lib/types/chat";
+import type { ChatOptions, Chat } from "$lib/types/chat";
+import { Chat as ChatSchema, ChatOptions as ChatOptionsSchema } from "$lib/types/chat";
+import type { Diff } from "$lib/types/diff";
 import { z } from "zod";
 
 export type SortMode = 'recent' | 'length' | 'importance';
@@ -37,4 +38,29 @@ export async function createNewChat(): Promise<Chat> {
     const res = await fetch('/api/chats', { method: 'POST' });
     const json = await res.json();
     return ChatSchema.parse(json);
+}
+
+export async function deleteChat(id: number): Promise<boolean> {
+    const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    return z.boolean().parse(json);
+}
+
+export async function getChatOptions(id: number): Promise<ChatOptions> {
+    const res = await fetch(`/api/chats/${id}/options`, { method: 'GET' });
+    const json = await res.json();
+    return ChatOptionsSchema.parse(json);
+}
+
+export async function updateChatOptions(id: number, changes: Diff<ChatOptions>): Promise<ChatOptions> {
+    const res = await fetch(`/api/chats/${id}/options`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(changes)
+    });
+    const json = await res.json();
+
+    return ChatOptionsSchema.parse(json);
 }

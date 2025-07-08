@@ -11,7 +11,7 @@ export const getExchangeHandler = await spy(
                     {
                         userMessageId: 1,
                         agentMessageIds: [1, 2, 3, 4],
-                        monologueId: 1,
+                        monologueIds: [1],
                         childExchangeIds: [2]
                     }
                 )
@@ -20,7 +20,7 @@ export const getExchangeHandler = await spy(
                     {
                         userMessageId: 2,
                         agentMessageIds: [1],
-                        monologueId: 2,
+                        monologueIds: [2, 1],
                         childExchangeIds: [3, 4]
                     }
                 )
@@ -29,7 +29,7 @@ export const getExchangeHandler = await spy(
                     {
                         userMessageId: 3,
                         agentMessageIds: [1],
-                        monologueId: 2,
+                        monologueIds: [2],
                         childExchangeIds: []
                     }
                 )
@@ -38,7 +38,7 @@ export const getExchangeHandler = await spy(
                     {
                         userMessageId: 2,
                         agentMessageIds: [1, 3, 4],
-                        monologueId: 2,
+                        monologueIds: [2],
                         childExchangeIds: []
                     }
                 )
