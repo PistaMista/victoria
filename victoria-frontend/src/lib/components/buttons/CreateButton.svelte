@@ -5,4 +5,4 @@
     export let onclick: () => void;
 </script>
 
-<Button on:click={onclick} class="w-full font-bold bg-lime-600"><PlusOutline/>CREATE</Button>
+<Button on:click={onclick} class="w-full font-bold bg-lime-600" {...$$restProps}><PlusOutline/>CREATE</Button>
