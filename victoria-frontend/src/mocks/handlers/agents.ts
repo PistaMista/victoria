@@ -23,15 +23,11 @@ export const listAgentsHandler = await spy(
 )
 
 export const createAgentHandler = await spy(
- async ({ request }) => {
-        const body = await request.json() as {
-            name: string
-        };
-
+ async () => {
         return HttpResponse.json<AgentListItem>(
             {
                 id: 3,
-                name: body.name,
+                name: "Lol",
                 status: 'IDLE'
             }
         )
@@ -43,6 +39,7 @@ export const getAgentHandler = await spy(
         return HttpResponse.json<Agent>({
             id: Number(id),
             name: "Cook",
+            thumbnailDataURI: null,
             status: 'IDLE',
             baseModelId: 1,
             systemPrompt: "You're a Cook that generates recipes for the week...",

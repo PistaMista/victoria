@@ -10,6 +10,12 @@ export const listModelsHandler = await spy(
                 connectionId: 2,
                 name: 'gemma3:12b',
                 enabled: true
+            },
+            {
+                id: 2,
+                connectionId: 2,
+                name: 'llama3.1:8b',
+                enabled: true
             }
         ])
     }   

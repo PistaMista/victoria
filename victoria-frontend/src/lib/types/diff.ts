@@ -1,17 +1,35 @@
 export type Diff<T> = {
-    [K in keyof T]: T[K] | undefined;
+    [K in keyof T]: 
+        T[K] extends any[] ? T[K] | undefined :
+        T[K] extends object ? Diff<T[K]> | undefined :
+        T[K] | undefined;
 }
 
-// FIXME: This will not work with nested objects
 export function getDiff<T extends object>(oldObj: T, newObj: T): Diff<T> {
     const result = {} as Diff<T>;
     
-    Object.keys(oldObj).forEach((key) => {
-        const valNew = newObj[key as keyof T];
-        const valOld = oldObj[key as keyof T];
+    Object.keys(oldObj).forEach((k) => {
+        const key = k as keyof T;
+        const valNew = newObj[key];
+        const valOld = oldObj[key];
 
-        if (valNew !== valOld) {
-            result[key as keyof T] = valNew;
+        // Arrays
+        if (Array.isArray(valNew) && Array.isArray(valOld)) {
+            if (valNew.some((v, i) => v !== valOld[i])) {
+                result[key] = structuredClone(valNew);
+            }
+        // Plain objects
+        } else if (
+            typeof valOld === 'object' && typeof valNew === 'object'
+            && valOld !== null && valNew !== null
+        ) {
+            const diff = getDiff(valOld, valNew);
+            if (Object.keys(diff).length > 0) {
+                result[key] = structuredClone(diff) as any;
+            }
+        // Primitives
+        } else if (valNew !== valOld) {
+            result[key] = valNew;
         }
     })
     

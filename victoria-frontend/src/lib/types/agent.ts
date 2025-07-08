@@ -12,6 +12,7 @@ export type ModelParameters = z.infer<typeof ModelParameters>;
 export const Agent = z.object({
     id: z.number(),
     name: z.string(),
+    thumbnailDataURI: z.string().nullable(),
     status: AgentStatus,
     baseModelId: z.number(),
     systemPrompt: z.string(),

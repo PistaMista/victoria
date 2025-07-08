@@ -28,5 +28,6 @@ export const getActionsHandler = await spy(
 )
 
 export const handlers = [
-    http.get('/api/actions', getActionsHandler),
+    http.get('/api/actions', getActionsHandler), // This lists only permitted actions for the current user
+    http.get('/api/actions/all', getActionsHandler), // This lists ALL existing actions
 ]
