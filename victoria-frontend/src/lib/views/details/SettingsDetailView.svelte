@@ -7,8 +7,8 @@
 
 <DetailView backRoute="/admin">
     <DetailViewSection title="Settings">
-        <OptionsRouteButton icon={CogSolid} text="General"/>        
-        <OptionsRouteButton icon={LinkOutline} text="Connections"/>
-        <OptionsRouteButton icon={BrainSolid} text="Models"/>
+        <OptionsRouteButton icon={CogSolid} text="General" route="/admin/settings/general"/>        
+        <OptionsRouteButton icon={LinkOutline} text="Connections" route="/admin/settings/connections"/>
+        <OptionsRouteButton icon={BrainSolid} text="Models" route="/admin/settings/models"/>
     </DetailViewSection>
 </DetailView>
