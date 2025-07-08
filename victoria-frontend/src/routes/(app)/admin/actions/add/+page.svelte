@@ -2,4 +2,6 @@
     import ActionRepositoryDetailView from "$lib/views/details/ActionRepositoryDetailView.svelte";
 </script>
 
-<ActionRepositoryDetailView/>
+<ActionRepositoryDetailView
+    id={null}
+/>
