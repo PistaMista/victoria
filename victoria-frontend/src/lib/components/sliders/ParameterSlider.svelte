@@ -20,7 +20,7 @@
     </div>
 
     <form on:submit={() => value = clamp(newValue, min, max)}>
-        <Input bind:value={newValue} on:blur={() => newValue = value} class="place-self-center ml-1 w-12"/>
+        <Input {...$$restProps} bind:value={newValue} on:blur={() => newValue = value} class="place-self-center ml-1 w-12"/>
     </form>
     <Button on:click={() => value = fallback} class="p-1 ml-1"><RefreshOutline></RefreshOutline></Button>
 </div>
