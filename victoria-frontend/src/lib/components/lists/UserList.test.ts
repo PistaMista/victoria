@@ -1,7 +1,27 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, waitFor } from '@testing-library/svelte';
+import { goto } from "$app/navigation";
+import UserList from "./UserList.svelte";
 
-test.todo('user list shows all usernames')
+vi.mock("$app/navigation", () => ({
+    goto: vi.fn()
+}))
 
-test.todo('pressing add button in user list routes to the user create view')
+test('user list shows all usernames', async () => {
+    const { container } = render(UserList);
+    
+    await waitFor(() => {
+        expect(container).toHaveTextContent("krystof");
+    })
+})
+
+test('pressing add button in user list routes to the user create view', async () => {
+    const user = userEvent.setup();
+    const { getByLabelText } = render(UserList);
+    
+    const button = getByLabelText("Create user");
+    await user.click(button);
+
+    expect(goto).toBeCalledWith("/admin/users/add");
+})

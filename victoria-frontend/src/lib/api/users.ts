@@ -3,6 +3,15 @@ import type { User, UserListItem } from "$lib/types/user";
 import { User as UserSchema, UserListItem as UserListItemSchema } from "$lib/types/user";
 import type { Diff } from "$lib/types/diff";
 
+export async function listUsers(): Promise<UserListItem[]> {
+    const res = await fetch(`/api/users`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+    
+    return z.array(UserListItemSchema).parse(json);
+}
+
 export async function getUser(id: number): Promise<User> {
     const res = await fetch(`/api/users/${id}`, {
         method: 'GET'
