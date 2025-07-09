@@ -4,6 +4,15 @@ import type { Diff } from "$lib/types/diff";
 import { z } from "zod";
 
 
+export async function listConnections(): Promise<ConnectionListItem[]> {
+    const res = await fetch(`/api/connections`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return z.array(ConnectionListItemSchema).parse(json);
+}
+
 export async function getConnection(id: number): Promise<Connection> {
     const res = await fetch(`/api/connections/${id}`, {
         method: 'GET'
