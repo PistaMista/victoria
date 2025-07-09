@@ -29,8 +29,9 @@ export const getUserHandler = await spy(
         return HttpResponse.json<User>({
             id: 1,
             username: 'krystof',
+            newPassword: "",
             role: 'admin',
-            permittedActions: [1, 2, 3, 4],
+            permittedActions: [1, 2, 3],
             permittedTriggers: [1]
         })
     }   

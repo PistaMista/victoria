@@ -17,7 +17,7 @@ export function getDiff<T extends object>(oldObj: T, newObj: T): Diff<T> {
 
         // Arrays
         if (Array.isArray(valNew) && Array.isArray(valOld)) {
-            if (valNew.some((v, i) => v !== valOld[i])) {
+            if (valNew.length !== valOld.length || valNew.some((v, i) => v !== valOld[i])) {
                 result[key] = structuredClone(valNew);
             }
         // Plain objects
