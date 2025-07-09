@@ -50,6 +50,12 @@ export const getMonologueHandler = await spy(
     }   
 )
 
+export const abortMonologueHandler = await spy(
+    () => {
+        return HttpResponse.json<boolean>(true);
+    }
+)
+
 export const getMonologueThoughtsHandler = await spy(
     () => {
         return HttpResponse.json<Array<Thought>>([
@@ -104,5 +110,6 @@ export const handlers = [
     http.get('/api/monologues', listMonologuesHandler),
     http.get('/api/monologues/:id', getMonologueHandler),
     
+    http.post('/api/monologues/:id/abort', abortMonologueHandler),
     http.get('/api/monologues/:id/thoughts', getMonologueThoughtsHandler),
 ]
