@@ -15,12 +15,12 @@ export const listConnectionsHandler = await spy(
 
 export const createConnectionHandler = await spy(
     () => {
-        return HttpResponse.json<Array<ConnectionListItem>>([
+        return HttpResponse.json<ConnectionListItem>(
             {
                 id: 1,
                 name: "Homelab"
             }
-        ])
+        )
     }
 )
 
