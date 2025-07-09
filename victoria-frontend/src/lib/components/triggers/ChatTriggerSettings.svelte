@@ -1,10 +1,13 @@
-<script>
+<script lang="ts">
     import { Input } from "flowbite-svelte";
     import LabeledSetting from "../sections/LabeledSetting.svelte";
+    import type { ChatSettings } from "$lib/types/trigger";
+    
+    export let settings: ChatSettings;
 </script>
 
 <div>
-    <LabeledSetting label="Chat receiver name">
-        <Input/>
+    <LabeledSetting label="Chat receiver">
+        <Input aria-label="Chat receiver" bind:value={settings.receiver}/>
     </LabeledSetting>
 </div>
