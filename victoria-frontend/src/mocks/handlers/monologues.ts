@@ -33,6 +33,8 @@ export const getMonologueHandler = await spy(
                 return HttpResponse.json<Monologue>({
                     id: 1,
                     agentId: 2,
+                    startTimestamp: 3000,
+                    endTimestamp: 3000,
                     status: "RUNNING",
                     title: "Research thesis ideas",
                     summary: "Searching the web for sources"
@@ -41,6 +43,8 @@ export const getMonologueHandler = await spy(
                 return HttpResponse.json<Monologue>({
                     id: 2,
                     agentId: 1,
+                    startTimestamp: 3000,
+                    endTimestamp: 3000,
                     status: "SUCCESS",
                     title: "Generate recipes for the week",
                     summary: "Checking available ingredients"

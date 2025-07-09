@@ -1,5 +1,5 @@
-import type { MonologueListItem, MonologueStatus } from "$lib/types/monologue";
-import { MonologueListItem as MonologueListItemSchema } from "$lib/types/monologue";
+import type { Monologue, MonologueListItem, MonologueStatus } from "$lib/types/monologue";
+import { MonologueListItem as MonologueListItemSchema, Monologue as MonologueSchema } from "$lib/types/monologue";
 import { Thought as ThoughtSchema } from "$lib/types/thought";
 import type { Thought } from "$lib/types/thought";
 import { URLSearchParams } from "happy-dom";
@@ -37,6 +37,15 @@ export async function getCurrentUserMonologues(
     return z.array(MonologueListItemSchema).parse(json);
 }
 
+export async function getMonologue(id: number): Promise<Monologue> {
+    const res = await fetch(`/api/monologues/${id}`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return MonologueSchema.parse(json);
+}
+
 export async function getMonologueThoughts(monologueId: number): Promise<Thought[]> {
     const res = await fetch(`/api/monologues/${monologueId}/thoughts`, {
         method: 'GET'
@@ -44,4 +53,13 @@ export async function getMonologueThoughts(monologueId: number): Promise<Thought
     const json = await res.json();
 
     return z.array(ThoughtSchema).parse(json);
+}
+
+export async function abortMonologue(id: number): Promise<boolean> {
+    const res = await fetch(`/api/monologues/${id}/abort`, {
+        method: 'POST'
+    });
+    const json = await res.json();
+
+    return z.boolean().parse(json);
 }

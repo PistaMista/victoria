@@ -16,6 +16,8 @@ export type MonologueListItem = z.infer<typeof MonologueListItem>;
 export const Monologue = z.object({
     id: z.number(),
     agentId: z.number(),
+    startTimestamp: z.number().gte(0),
+    endTimestamp: z.number().gte(0).nullable(),
     title: z.string(),
     summary: z.string(),
     status: MonologueStatus,
