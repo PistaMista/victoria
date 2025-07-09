@@ -2,13 +2,13 @@
     import AgentStatusIndicator from "../indicators/AgentStatusIndicator.svelte";
     import MonologueMiniCard from "./MonologueMiniCard.svelte";
     import { DotsVerticalOutline } from "flowbite-svelte-icons";
-    import type { AgentListItem } from "$lib/types/agent";
+    import type { Agent, AgentListItem } from "$lib/types/agent";
     import { onMount } from "svelte";
     import { getAgentMonologues } from "$lib/api/agents";
     import type { MonologueListItem } from "$lib/types/monologue";
     import { goto } from "$app/navigation";
     
-    export let agent: AgentListItem;
+    export let agent: AgentListItem | Agent;
     let monologues: MonologueListItem[] = [];
     let mounted = false;
     
