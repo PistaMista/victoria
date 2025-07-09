@@ -61,6 +61,7 @@ export const getMonologueThoughtsHandler = await spy(
         return HttpResponse.json<Array<Thought>>([
             {
                 id: 1,
+                startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                 invocation: {
                     type: 'TriggerInvocation',
                     name: null,
@@ -73,6 +74,7 @@ export const getMonologueThoughtsHandler = await spy(
             },
             {
                 id: 2,
+                startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                 invocation: {
                     type: 'ThoughtInvocation',
                     name: null,
@@ -84,6 +86,7 @@ export const getMonologueThoughtsHandler = await spy(
             },
             {
                 id: 3,
+                startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                 invocation: {
                     type: 'ActionInvocation',
                     name: 'web_search',
@@ -95,6 +98,7 @@ export const getMonologueThoughtsHandler = await spy(
             },
             {
                 id: 4,
+                startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                 invocation: {
                     type: 'SuccessInvocation',
                     name: null,

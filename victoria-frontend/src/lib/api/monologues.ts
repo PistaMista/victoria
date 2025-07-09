@@ -1,5 +1,7 @@
 import type { MonologueListItem, MonologueStatus } from "$lib/types/monologue";
 import { MonologueListItem as MonologueListItemSchema } from "$lib/types/monologue";
+import { Thought as ThoughtSchema } from "$lib/types/thought";
+import type { Thought } from "$lib/types/thought";
 import { URLSearchParams } from "happy-dom";
 import { z } from "zod";
 
@@ -33,4 +35,13 @@ export async function getCurrentUserMonologues(
     const json = await res.json();
 
     return z.array(MonologueListItemSchema).parse(json);
+}
+
+export async function getMonologueThoughts(monologueId: number): Promise<Thought[]> {
+    const res = await fetch(`/api/monologues/${monologueId}/thoughts`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return z.array(ThoughtSchema).parse(json);
 }

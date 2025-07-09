@@ -8,6 +8,7 @@ export const getThoughtHandler = await spy(
             case '1':
                 return HttpResponse.json<Thought>({
                     id: 1,
+                    startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                     invocation: {
                         type: 'ThoughtInvocation',
                         name: null,
@@ -20,6 +21,7 @@ export const getThoughtHandler = await spy(
             case '2':
                 return HttpResponse.json<Thought>({
                     id: 2,
+                    startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                     invocation: {
                         type: 'FailureInvocation',
                         name: null,
@@ -30,6 +32,7 @@ export const getThoughtHandler = await spy(
             case '3':
                 return HttpResponse.json<Thought>({
                     id: 3,
+                    startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                     invocation: {
                         type: 'SuccessInvocation',
                         name: null,
@@ -40,6 +43,7 @@ export const getThoughtHandler = await spy(
             case '4':
                 return HttpResponse.json<Thought>({
                     id: 4,
+                    startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                     invocation: {
                         type: 'TriggerInvocation',
                         name: null,
@@ -53,6 +57,7 @@ export const getThoughtHandler = await spy(
             case '5':
                 return HttpResponse.json<Thought>({
                     id: 5,
+                    startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
                     invocation: {
                         type: 'ActionInvocation',
                         name: 'web_search',

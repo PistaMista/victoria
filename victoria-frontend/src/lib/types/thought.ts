@@ -42,6 +42,7 @@ export type FailureInvocation = z.infer<typeof SuccessInvocation>;
 
 export const Thought = z.object({
     id: z.number(),
+    startTimestamp: z.number().gte(0),
     invocation: z.discriminatedUnion('type', [TriggerInvocation, ActionInvocation, ThoughtInvocation, SuccessInvocation, FailureInvocation]),
     result: z.string(),
 });
