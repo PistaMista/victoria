@@ -13,7 +13,7 @@
     let mounted = false;
     
     function goToDetail() {
-        goto(`/agents/${agent.id}`);
+        goto(`/agents/${agent.id}/edit`);
     }
     
     onMount(() => {

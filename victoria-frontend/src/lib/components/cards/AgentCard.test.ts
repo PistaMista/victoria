@@ -51,5 +51,5 @@ test('agent card routes to agent editing when context button is pressed', async 
     
     await user.click(detailButton);
     
-    expect(goto).toBeCalledWith('/agents/2');
+    expect(goto).toBeCalledWith('/agents/2/edit');
 })
