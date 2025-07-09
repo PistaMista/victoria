@@ -34,7 +34,8 @@ export const disableModelHandler = await spy(
 )
 
 export const handlers = [
-    http.get('/api/models', listModelsHandler),
+    http.get('/api/models/enabled', listModelsHandler), // This gets only enabled models
+    http.get('/api/models/all', listModelsHandler), // This gets all models
     http.post('/api/models/:id/enable', enableModelHandler),
     http.post('/api/models/:id/disable', disableModelHandler),
 ]

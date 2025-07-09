@@ -3,7 +3,16 @@ import type { Model } from "$lib/types/model"
 import { Model as ModelSchema } from "$lib/types/model"
 
 export async function getEnabledModels(): Promise<Model[]> {
-    const res = await fetch('/api/models', {
+    const res = await fetch('/api/models/enabled', {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return z.array(ModelSchema).parse(json);
+}
+
+export async function getAllModels(): Promise<Model[]> {
+    const res = await fetch('/api/models/all', {
         method: 'GET'
     });
     const json = await res.json();
