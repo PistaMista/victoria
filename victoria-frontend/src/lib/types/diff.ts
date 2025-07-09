@@ -8,7 +8,9 @@ export type Diff<T> = {
 export function getDiff<T extends object>(oldObj: T, newObj: T): Diff<T> {
     const result = {} as Diff<T>;
     
-    Object.keys(oldObj).forEach((k) => {
+    Object.keys(oldObj)
+    .concat(Object.keys(newObj))
+    .forEach((k) => {
         const key = k as keyof T;
         const valNew = newObj[key];
         const valOld = oldObj[key];

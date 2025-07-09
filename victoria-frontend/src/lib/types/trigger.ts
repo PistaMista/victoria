@@ -15,13 +15,13 @@ export type TriggerListItem = z.infer<typeof TriggerListItem>;
 
 export const TimerSettings = z.object({
     type: z.literal('timer'),
-    interval: z.string(),
+    interval: z.number().gt(0),
 });
 export type TimerSettings = z.infer<typeof TimerSettings>;
 
 export const PollSettings = z.object({
     type: z.literal('poll'),
-    interval: z.string(),
+    interval: z.number().gt(0),
     url: z.string(),
 });
 export type PollSettings = z.infer<typeof PollSettings>;

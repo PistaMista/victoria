@@ -8,13 +8,12 @@
 </script>
 
 <div>
-    <LabeledSetting label="Polled URL">
-        <Input aria-label="URL" bind:value={settings.url}/>
+    <LabeledSetting label="URL">
+        <Input bind:value={settings.url}/>
     </LabeledSetting>
     
     <LabeledSetting label="Interval">
         <ParameterSlider
-            aria-label="Interval"
             label="Interval"
             min={0}
             max={15000}

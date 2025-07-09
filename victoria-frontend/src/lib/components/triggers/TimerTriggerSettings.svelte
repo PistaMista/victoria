@@ -9,7 +9,6 @@
 <div>
     <LabeledSetting label="Interval">
         <ParameterSlider
-            aria-label="Interval"
             label="Interval"
             min={0}
             max={15000}

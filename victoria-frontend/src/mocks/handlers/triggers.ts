@@ -48,7 +48,7 @@ export const getTriggerHandler = await spy(
                     name: 'Generate recipes',
                     settings: {
                         type: 'timer',
-                        interval: "2d"
+                        interval: 10
                     },
                     parser: "identity",
                     template: "Based on the feed from the fridge camera, generate recipes for the week"
@@ -59,7 +59,7 @@ export const getTriggerHandler = await spy(
                     name: 'Retrieve news',
                     settings: {
                         type: 'poll',
-                        interval: "1h",
+                        interval: 200,
                         url: "https://bbc.co.uk/rss"
                     },
                     parser: "identity",

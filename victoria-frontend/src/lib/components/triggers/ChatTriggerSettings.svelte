@@ -8,6 +8,6 @@
 
 <div>
     <LabeledSetting label="Chat receiver">
-        <Input aria-label="Chat receiver" bind:value={settings.receiver}/>
+        <Input bind:value={settings.receiver}/>
     </LabeledSetting>
 </div>
