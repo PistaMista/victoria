@@ -1,5 +1,5 @@
-import type { TriggerListItem } from "$lib/types/trigger";
-import { TriggerListItem as TriggerListItemSchema } from "$lib/types/trigger";
+import type { Trigger, TriggerListItem } from "$lib/types/trigger";
+import { TriggerListItem as TriggerListItemSchema, Trigger as TriggerSchema } from "$lib/types/trigger";
 import { z } from "zod"
 
 export async function getPermittedTriggers(): Promise<TriggerListItem[]> {
@@ -24,4 +24,13 @@ export async function getAllTriggers(searchQuery: string | null = null): Promise
     const json = await res.json();
 
     return z.array(TriggerListItemSchema).parse(json);
+}
+
+export async function getTrigger(id: number): Promise<Trigger> {
+    const res = await fetch(`/api/triggers/${id}`, {
+        method: 'GET'
+    });
+    const json = await res.json();
+
+    return TriggerSchema.parse(json);
 }

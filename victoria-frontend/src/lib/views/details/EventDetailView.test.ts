@@ -1,7 +1,17 @@
 import { expect, test } from "vitest";
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, waitFor } from '@testing-library/svelte';
+import EventDetailView from "./EventDetailView.svelte";
 
-test.todo('event detail shows trigger name')
+test('event detail shows event details', async () => {
+    const { container } = render(EventDetailView, {
+        id: 1
+    });
 
-test.todo('event detail shows event content')
+    await waitFor(() => {
+        // Trigger name
+        expect(container).toHaveTextContent("Generate recipes");
+        // Event content
+        expect(container).toHaveTextContent("An email has arrived: 'Join the 2025 game access conference...'")
+    })
+})
