@@ -36,7 +36,7 @@ test('clicking researcher detail button routes to researcher detail', async () =
 
     await user.click(detailButton);
 
-    expect(goto).toBeCalledWith("/agents/2");
+    expect(goto).toBeCalledWith("/agents/2/edit");
 });
 
 test('agent list view can search for agents', async () => {
