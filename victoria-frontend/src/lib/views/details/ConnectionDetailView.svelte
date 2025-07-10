@@ -4,6 +4,7 @@
     import DeleteButton from "$lib/components/buttons/DeleteButton.svelte";
     import SaveButton from "$lib/components/buttons/SaveButton.svelte";
     import DetailViewSection from "$lib/components/sections/DetailViewSection.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import type { Connection } from "$lib/types/connection";
     import { getDiff } from "$lib/types/diff";
     import DetailView from "$lib/views/DetailView.svelte";
@@ -21,27 +22,55 @@
     let modifiedConnection: Connection = structuredClone(loadedConnection);
     $: changes = getDiff(loadedConnection, modifiedConnection);
 
+    let dataPromise: Promise<any> = Promise.resolve();
+    let savePromise: Promise<any> = Promise.resolve();
+    let deletePromise: Promise<any> = Promise.resolve();
+    let createPromise: Promise<any> = Promise.resolve();
 
-    async function onSave() {
-        await updateConnection(loadedConnection.id, changes);
-    }
-    
-    async function onDelete() {
-        await deleteConnection(loadedConnection.id);        
-    }
-    
-    async function onCreate() {
-        await createConnection(modifiedConnection);
-    }
-    
-    onMount(async () => {
+    async function load() {
         if (id !== null) {
             loadedConnection = await getConnection(id);
             modifiedConnection = structuredClone(loadedConnection);
         }
+    }
+
+    async function onSave() {
+        savePromise = updateConnection(loadedConnection.id, changes);
+    }
+    
+    async function onDelete() {
+        deletePromise = deleteConnection(loadedConnection.id);        
+    }
+    
+    async function onCreate() {
+        createPromise = createConnection(modifiedConnection);
+    }
+    
+    onMount(() => {
+        dataPromise = load();
     })
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading connection details..."
+    rejectMessage="Failed to load connection details"
+>
+<Loader
+    promise={savePromise}
+    pendingMessage="Saving changes..."
+    rejectMessage="Failed to save changes"
+>
+<Loader
+    promise={deletePromise}
+    pendingMessage="Deleting connection..."
+    rejectMessage="Failed to delete connection"
+>
+<Loader
+    promise={createPromise}
+    pendingMessage="Creating connection..."
+    rejectMessage="Failed to create connection"
+>
 <DetailView backRoute="/admin/settings/connections">
     <DetailViewSection title="Name">
         <Input
@@ -79,3 +108,7 @@
         />
     </DetailViewSection>
 </DetailView>
+</Loader>
+</Loader>
+</Loader>
+</Loader>
