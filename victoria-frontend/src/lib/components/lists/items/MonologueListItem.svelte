@@ -5,6 +5,7 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { getAgent } from "$lib/api/agents";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     
     function openMonologueDetail() {
         goto(`/monologues/${monologue.id}`)
@@ -12,17 +13,17 @@
     
     export let monologue: MonologueListItem;
     let agent: Agent | null = null;
-    let mounted: Boolean = false;
+
+    let agentPromise: Promise<any> = Promise.resolve();
+
+    async function loadAgent() {
+        agent = await getAgent(monologue.agentId);
+
+    }
 
     onMount(() => {
-        mounted = true;
+        agentPromise = loadAgent();
     })
-    
-    $: if (mounted) {
-        (async () => {
-            agent = await getAgent(monologue.agentId);
-        })();
-    }
 </script>
 
 <button on:click={openMonologueDetail} class="flex flex-row px-2 my-1 border-t-2 border-black hover:bg-slate-400">
@@ -41,7 +42,14 @@
         </div>
 
         <div>
-            Started by <span class="font-semibold text-blue-500">{agent?.name}</span> 20m ago
+            <Loader
+                promise={agentPromise}
+                pendingMessage="Loading agent info..."
+                rejectMessage="Failed to load agent info"
+            >
+                Started by <span class="font-semibold text-blue-500">{agent?.name}</span> 20m ago
+
+            </Loader>
         </div>
     </div>
 </button>
