@@ -8,6 +8,10 @@ export async function getEnabledModels(): Promise<Model[]> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(ModelSchema).parse(json);
 }
 
@@ -17,6 +21,10 @@ export async function getAllModels(): Promise<Model[]> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(ModelSchema).parse(json);
 }
 
@@ -25,6 +33,10 @@ export async function setModelEnabled(id: number, enabled: boolean): Promise<Boo
         method: 'POST'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }

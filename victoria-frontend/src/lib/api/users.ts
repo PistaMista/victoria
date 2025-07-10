@@ -17,6 +17,10 @@ export async function getUser(id: number): Promise<User> {
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
     
     return UserSchema.parse(json);
 }
@@ -31,6 +35,10 @@ export async function createUser(user: User): Promise<UserListItem> {
     })
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return UserListItemSchema.parse(json);
 }
 
@@ -39,6 +47,10 @@ export async function deleteUser(id: number): Promise<boolean> {
         method: 'DELETE'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }
@@ -52,6 +64,10 @@ export async function updateUser(id: number, changes: Diff<User>) {
         body: JSON.stringify(changes)
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }

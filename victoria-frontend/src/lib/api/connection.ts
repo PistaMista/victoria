@@ -10,6 +10,10 @@ export async function listConnections(): Promise<ConnectionListItem[]> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(ConnectionListItemSchema).parse(json);
 }
 
@@ -18,6 +22,10 @@ export async function getConnection(id: number): Promise<Connection> {
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
     
     return ConnectionSchema.parse(json);
 }
@@ -34,6 +42,10 @@ export async function updateConnection(id: number, changes: Diff<Connection>): P
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.boolean().parse(json);
 }
 
@@ -42,6 +54,10 @@ export async function deleteConnection(id: number): Promise<boolean> {
         method: 'DELETE'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }
@@ -55,6 +71,10 @@ export async function createConnection(newConnection: Connection): Promise<Conne
         body: JSON.stringify(newConnection)
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return ConnectionListItem.parse(json);
 }

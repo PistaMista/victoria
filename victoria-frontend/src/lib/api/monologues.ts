@@ -34,6 +34,10 @@ export async function getCurrentUserMonologues(
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(MonologueListItemSchema).parse(json);
 }
 
@@ -42,6 +46,10 @@ export async function getMonologue(id: number): Promise<Monologue> {
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return MonologueSchema.parse(json);
 }
@@ -52,6 +60,10 @@ export async function getMonologueThoughts(monologueId: number): Promise<Thought
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(ThoughtSchema).parse(json);
 }
 
@@ -60,6 +72,10 @@ export async function abortMonologue(id: number): Promise<boolean> {
         method: 'POST'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }

@@ -24,6 +24,10 @@ export async function getAllTriggers(searchQuery: string | null = null): Promise
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(TriggerListItemSchema).parse(json);
 }
 
@@ -32,6 +36,10 @@ export async function getTrigger(id: number): Promise<Trigger> {
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return TriggerSchema.parse(json);
 }
@@ -46,6 +54,10 @@ export async function updateTrigger(id: number, changes: Diff<Trigger>): Promise
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.boolean().parse(json);
 }
 
@@ -54,6 +66,10 @@ export async function deleteTrigger(id: number): Promise<boolean> {
         method: 'DELETE'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }
@@ -67,6 +83,10 @@ export async function createTrigger(trigger: Trigger): Promise<TriggerListItem> 
         body: JSON.stringify(trigger)
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return TriggerListItemSchema.parse(json);
 }

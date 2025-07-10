@@ -14,6 +14,10 @@ export async function getActionRepositories(searchQuery: string | null = null): 
         method: 'GET'
     });
     const json = await res.json();
+    
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.array(ActionRepositorySchema).parse(json);
 }
@@ -23,6 +27,10 @@ export async function getActionRepository(id: number): Promise<ActionRepository>
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return ActionRepositorySchema.parse(json);
 }
@@ -37,6 +45,10 @@ export async function updateActionRepository(id: number, changes: Diff<ActionRep
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.boolean().parse(json);
 }
 
@@ -45,6 +57,10 @@ export async function deleteActionRepository(id: number): Promise<Boolean> {
         method: 'DELETE'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }
@@ -58,6 +74,10 @@ export async function createActionRepository(newRepo: ActionRepository): Promise
         body: JSON.stringify(newRepo)
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return ActionRepositorySchema.parse(json);
 }

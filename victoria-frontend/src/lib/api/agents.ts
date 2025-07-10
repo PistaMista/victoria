@@ -17,6 +17,10 @@ export async function getCurrentUserAgents(searchQuery: string | null = null): P
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(AgentListItemSchema).parse(json);
 }
 
@@ -26,6 +30,10 @@ export async function getAgent(agentId: number): Promise<Agent> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return AgentSchema.parse(json);
 }
 
@@ -34,6 +42,10 @@ export async function getAgentMonologues(agentId: number): Promise<MonologueList
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.array(MonologueListItemSchema).parse(json);
 }
@@ -48,6 +60,10 @@ export async function createAgent(agent: Agent): Promise<AgentListItem> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return AgentListItemSchema.parse(json);
 }
 
@@ -61,6 +77,10 @@ export async function updateAgent(id: number, changes: Diff<Agent>): Promise<boo
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.boolean().parse(json);
 }
 
@@ -69,6 +89,10 @@ export async function deleteAgent(id: number): Promise<boolean> {
         method: 'DELETE'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.boolean().parse(json);
 }

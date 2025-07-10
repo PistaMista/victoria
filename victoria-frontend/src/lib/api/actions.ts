@@ -8,6 +8,10 @@ export async function getPermittedActions(): Promise<Action[]> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(ActionSchema).parse(json);
 }
 
@@ -16,6 +20,10 @@ export async function getAllActions(): Promise<Action[]> {
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return z.array(ActionSchema).parse(json);
 }

@@ -22,6 +22,11 @@ export async function getCurrentUserChats(sortBy: SortMode = 'recent', receiver:
         method: 'GET' 
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(ChatSchema).parse(json);
 }
 
@@ -31,24 +36,43 @@ export async function getChatReceivers(): Promise<string[]> {
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.array(z.string()).parse(json);
 }
 
 export async function createNewChat(): Promise<Chat> {
     const res = await fetch('/api/chats', { method: 'POST' });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return ChatSchema.parse(json);
 }
 
 export async function deleteChat(id: number): Promise<boolean> {
     const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return z.boolean().parse(json);
 }
 
 export async function getChatOptions(id: number): Promise<ChatOptions> {
     const res = await fetch(`/api/chats/${id}/options`, { method: 'GET' });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return ChatOptionsSchema.parse(json);
 }
 
@@ -62,6 +86,10 @@ export async function updateChatOptions(id: number, changes: Diff<ChatOptions>):
     });
     const json = await res.json();
 
+    if (!res.ok) {
+        throw Error(json);
+    }
+
     return ChatOptionsSchema.parse(json);
 }
 
@@ -74,6 +102,10 @@ export async function sendMessageToChat(chatId: number, msg: string): Promise<Se
         body: JSON.stringify({ message: msg })
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
 
     return SentMessageInfoSchema.parse(json);
 }

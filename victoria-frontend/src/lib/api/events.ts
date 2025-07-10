@@ -7,6 +7,10 @@ export async function getEvent(id: number): Promise<Event> {
         method: 'GET'
     });
     const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
     
     return EventSchema.parse(json);
 }
