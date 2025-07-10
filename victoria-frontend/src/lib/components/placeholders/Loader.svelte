@@ -2,18 +2,11 @@
     import { CloseOutline } from "flowbite-svelte-icons";
     import { Spinner } from "flowbite-svelte";
 
-    export let promise: Promise<void>;
+    export let promise: Promise<any>;
     export let pendingMessage: string;
     export let rejectMessage: string;
     
-    let resolved: boolean = false;
     let error: string | null = null;
-    
-    // promise
-    //     .then(() => {
-    //         resolved = true
-    //     })
-    //     .catch((e) => error = e.toString());
 </script>
 
 {#await promise}
