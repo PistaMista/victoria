@@ -5,6 +5,7 @@
     import ListViewHeaderSearchBar from "$lib/components/search/ListViewHeaderSearchBar.svelte";
     import type { ActionRepository } from "$lib/types/action_repo";
     import ListView from "$lib/views/ListView.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import { PlusOutline } from "flowbite-svelte-icons";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
@@ -12,6 +13,8 @@
     let repositories: ActionRepository[] = [];
     let searchQuery: string = "";
     let mounted = false;
+    
+    let dataPromise: Promise<void> = Promise.resolve();
     
     function createActionRepository() {
         goto("/admin/actions/add");
@@ -22,7 +25,7 @@
     })
     
     $: if (mounted) {
-        (async () => {
+        dataPromise = (async () => {
             let query: string | null = searchQuery ? searchQuery : null;
             repositories = await getActionRepositories(query);
         })();
@@ -41,10 +44,16 @@
     </svelte:fragment>
 
     <svelte:fragment slot="items">
-        {#each repositories as repo}
-            <ActionRepositoryListItem
-                repository={repo}
-            />
-        {/each}
+        <Loader
+            promise={dataPromise}
+            pendingMessage="Loading actions..."
+            rejectMessage="Failed to load actions"
+        >
+            {#each repositories as repo}
+                <ActionRepositoryListItem
+                    repository={repo}
+                />
+            {/each}
+        </Loader>
     </svelte:fragment>
 </ListView>
