@@ -5,15 +5,11 @@ import TriggerDetailView from './TriggerDetailView.svelte';
 import { createTriggerHandler, deleteTriggerHandler, getTriggerHandler, updateTriggerHandler } from "../../../mocks/handlers/triggers";
 
 test('trigger detail shows name, type, parameters and template of trigger', async () => {
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 2
     });
     
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-    
-    const nameBox = within(getByLabelText("Name")).getByRole("textbox") as HTMLInputElement;
+    const nameBox = within(await findByLabelText("Name")).getByRole("textbox") as HTMLInputElement;
     const typeDropdown = getByLabelText("Type");
     const urlBox = within(getByLabelText("URL")).getByRole("textbox") as HTMLInputElement;
     const intervalBox = within(getByLabelText("Interval")).getByRole("textbox") as HTMLInputElement;
@@ -28,16 +24,11 @@ test('trigger detail shows name, type, parameters and template of trigger', asyn
 
 test('trigger detail can edit name of trigger', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 2
     });
     
-    // TODO: Spinners should be shown instead of fields when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-    
-    const nameBox = within(getByLabelText("Name")).getByRole('textbox') as HTMLInputElement;
+    const nameBox = within(await findByLabelText("Name")).getByRole('textbox') as HTMLInputElement;
     const saveButton = getByLabelText("Save trigger");
 
     await user.clear(nameBox);
@@ -53,16 +44,11 @@ test('trigger detail can edit name of trigger', async () => {
 
 test('trigger detail can edit template of trigger', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 2
     });
     
-    // TODO: Spinners should be shown instead of fields when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-    
-    const templateBox = getByLabelText("Template");
+    const templateBox = await findByLabelText("Template");
     const saveButton = getByLabelText("Save trigger");
     
     await user.clear(templateBox);
@@ -78,16 +64,11 @@ test('trigger detail can edit template of trigger', async () => {
 
 test('trigger detail can delete given trigger', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { findByLabelText } = render(TriggerDetailView, {
         id: 3
     });
 
-    // TODO: Spinners should be shown instead of fields and buttons when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-
-    const deleteButton = getByLabelText("Delete trigger");
+    const deleteButton = await findByLabelText("Delete trigger");
 
     await user.click(deleteButton);
 
@@ -97,16 +78,12 @@ test('trigger detail can delete given trigger', async () => {
 
 test('trigger detail shows and can edit Poll trigger settings', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 2
     });
     
-    // TODO: Spinners should be shown instead of fields when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
 
-    const urlBox = within(getByLabelText("URL")).getByRole('textbox') as HTMLInputElement;
+    const urlBox = within(await findByLabelText("URL")).getByRole('textbox') as HTMLInputElement;
     const intervalBox = within(getByLabelText("Interval")).getByRole('textbox') as HTMLInputElement;
     const saveButton = getByLabelText("Save trigger");
     
@@ -137,16 +114,11 @@ test('trigger detail shows and can edit Poll trigger settings', async () => {
 
 test('trigger detail shows and can edit Chat trigger settings', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 3
     });
     
-    // TODO: Spinners should be shown instead of fields when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-    
-    const receiverBox = within(getByLabelText("Chat receiver")).getByRole('textbox') as HTMLInputElement;
+    const receiverBox = within(await findByLabelText("Chat receiver")).getByRole('textbox') as HTMLInputElement;
     const saveButton = getByLabelText("Save trigger");
     
     // Shows
@@ -173,16 +145,11 @@ test('trigger detail shows and can edit Chat trigger settings', async () => {
 
 test('trigger detail shows and can edit Timer trigger settings', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 1
     });
     
-    // TODO: Spinners should be shown instead of fields when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-
-    const intervalBox = within(getByLabelText("Interval")).getByRole('textbox') as HTMLInputElement;
+    const intervalBox = within(await findByLabelText("Interval")).getByRole('textbox') as HTMLInputElement;
     const saveButton = getByLabelText("Save trigger");
     
     // Shows
@@ -207,17 +174,12 @@ test('trigger detail shows and can edit Timer trigger settings', async () => {
 
 test('trigger detail can change Poll trigger to Chat trigger', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: 2
     });
     
-    // TODO: Spinners should be shown instead of fields when not loaded
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    });
-    
     { // Change type to chat
-        const typeDropdown = getByLabelText("Type");
+        const typeDropdown = await findByLabelText("Type");
         const button = within(typeDropdown).getByRole('button');
         await user.click(button);
         const option = within(typeDropdown).getByLabelText('Chat');
@@ -247,12 +209,12 @@ test('trigger detail can change Poll trigger to Chat trigger', async () => {
 
 test('trigger detail can create new trigger (given no id)', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerDetailView, {
+    const { getByLabelText, findByLabelText } = render(TriggerDetailView, {
         id: null
     });
     
     { // Name
-        const nameBox = within(getByLabelText("Name")).getByRole("textbox") as HTMLInputElement;
+        const nameBox = within(await findByLabelText("Name")).getByRole("textbox") as HTMLInputElement;
         await user.type(nameBox, 'Retrieve car fuel level');
     }
     

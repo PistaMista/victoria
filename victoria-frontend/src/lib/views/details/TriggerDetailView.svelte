@@ -16,6 +16,7 @@
     import { onMount } from "svelte";
     import { createTrigger, deleteTrigger, getTrigger, updateTrigger } from "$lib/api/triggers";
     import type { Option } from "$lib/components/dropdowns/GeneralDropdown.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     
     export let id: number | null;
     
@@ -35,8 +36,13 @@
 
     let chosenTypeOption: Option | null = null;
     $: modifiedTrigger.settings.type = chosenTypeOption?.value ?? 'chat';
+    
+    let dataPromise: Promise<any> = Promise.resolve();
+    let savePromise: Promise<any> = Promise.resolve();
+    let deletePromise: Promise<any> = Promise.resolve();
+    let createPromise: Promise<any> = Promise.resolve();
 
-    onMount(async () => {
+    async function load() {
         if (id !== null) {
             loadedTrigger = await getTrigger(id);
             modifiedTrigger = structuredClone(loadedTrigger);
@@ -46,25 +52,49 @@
                 value: modifiedTrigger.settings.type
             }
         }
+    }
+    
+    function onSave() {
+        if (id !== null) {
+            savePromise = updateTrigger(id, changes);
+        }
+    }
+    
+    function onDelete() {
+        if (id !== null) {
+            deletePromise = deleteTrigger(id);
+        }
+    }
+    
+    function onCreate() {
+        createPromise = createTrigger(modifiedTrigger);
+    }
+
+    onMount(() => {
+        dataPromise = load();
     });
-    
-    async function onSave() {
-        if (id !== null) {
-            await updateTrigger(id, changes);
-        }
-    }
-    
-    async function onDelete() {
-        if (id !== null) {
-            await deleteTrigger(id);
-        }
-    }
-    
-    async function onCreate() {
-        await createTrigger(modifiedTrigger);
-    }
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading trigger details..."
+    rejectMessage="Failed to load trigger"
+>
+<Loader
+    promise={deletePromise}
+    pendingMessage="Deleting trigger..."
+    rejectMessage="Failed to delete trigger"
+>
+<Loader
+    promise={savePromise}
+    pendingMessage="Saving changes..."
+    rejectMessage="Failed to save changes"
+>
+<Loader
+    promise={createPromise}
+    pendingMessage="Creating trigger..."
+    rejectMessage="Failed to create trigger"
+>
 <DetailView backRoute="/admin/triggers">
     <DetailViewSection title="Trigger">
         <LabeledSetting label="Name">
@@ -126,3 +156,7 @@
         </DetailViewSection>
     {/if}
 </DetailView>
+</Loader>
+</Loader>
+</Loader>
+</Loader>
