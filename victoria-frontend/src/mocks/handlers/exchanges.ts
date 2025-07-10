@@ -46,25 +46,30 @@ export const getExchangeHandler = await spy(
     }   
 )
 
-export const newMessageHandler = await spy(
-    async () => {
-        await delay(3000);
+export const getMessagesHandler = await spy(
+    async ({params: { sentAfter }}) => {
+        let after: number = Number(sentAfter);
         
-        return HttpResponse.json<Message>(
-            {
-                id: 2,
-                content: {
-                    type: 'markdown',
-                    markdownText: "weeee"
+        if (after < 5000) {
+            return HttpResponse.json<Message[]>([
+                {
+                    id: 2,
+                    timestamp: 5000,
+                    content: {
+                        type: 'markdown',
+                        markdownText: "weeee"
+                    }
                 }
-            }
-        )
+            ])
+        } else {
+            return HttpResponse.json<Message[]>([]);
+        }
     }   
 )
 
 
 export const handlers = [
     http.get('/api/exchanges/:id', getExchangeHandler),
-    // This is an HTTP long poll for new messages
-    http.get('/api/exchanges/:id/new-messages', newMessageHandler),
+    // This is an HTTP long poll for messages sent after a given timestamp
+    http.get('/api/exchanges/:id/messages', getMessagesHandler),
 ]

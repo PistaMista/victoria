@@ -1,5 +1,5 @@
-import type { ChatOptions, Chat } from "$lib/types/chat";
-import { Chat as ChatSchema, ChatOptions as ChatOptionsSchema } from "$lib/types/chat";
+import type { ChatOptions, Chat, SentMessageInfo } from "$lib/types/chat";
+import { Chat as ChatSchema, ChatOptions as ChatOptionsSchema, SentMessageInfo as SentMessageInfoSchema } from "$lib/types/chat";
 import type { Diff } from "$lib/types/diff";
 import { z } from "zod";
 
@@ -63,4 +63,17 @@ export async function updateChatOptions(id: number, changes: Diff<ChatOptions>):
     const json = await res.json();
 
     return ChatOptionsSchema.parse(json);
+}
+
+export async function sendMessageToChat(chatId: number, msg: string): Promise<SentMessageInfo> {
+    const res = await fetch(`/api/chats/${chatId}/send-message`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: msg })
+    });
+    const json = await res.json();
+
+    return SentMessageInfoSchema.parse(json);
 }

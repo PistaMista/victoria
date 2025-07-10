@@ -29,6 +29,7 @@ export type ActionConfirmationContent = z.infer<typeof ActionConfirmationContent
 
 export const Message = z.object({
     id: z.number(),
+    timestamp: z.number().gte(0),
     content: z.discriminatedUnion('type', [MarkdownContent, ImageContent, ChoicePromptContent, ActionConfirmationContent])
 });
 export type Message = z.infer<typeof Message>;

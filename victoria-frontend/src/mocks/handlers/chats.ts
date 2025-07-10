@@ -59,6 +59,19 @@ export const listChatsHandler = await spy(({request}) =>
     }
 );
 
+export const getChatHandler = await spy(
+    ({request: { id }}) => {
+        return HttpResponse.json<Chat>(
+            {
+                id: Number(id),
+                rootExchangeId: 1,
+                title: "System admin",
+                summary: "A chat about system administration"
+            }
+        )
+    }
+)
+
 export const chatCreateHandler = await spy(
     () => {
         return HttpResponse.json<Chat>(
@@ -123,11 +136,13 @@ export const handlers = [
     http.post('/api/chats', chatCreateHandler),
     http.delete('/api/chats/:id', chatDeleteHandler),
 
+    http.get('/api/chats/receivers', listChatReceiversHandler),
+    
     // This returns the ID of the created exchange
     http.post('/api/chats/:id/send-message', sendMessageHandler),
 
     http.get('/api/chats/:id/options', getChatOptionsHandler),
     http.put('/api/chats/:id/options', setChatOptionsHandler),
 
-    http.get('/api/chats/receivers', listChatReceiversHandler),
+    http.get('/api/chats/:id', getChatHandler),
 ]

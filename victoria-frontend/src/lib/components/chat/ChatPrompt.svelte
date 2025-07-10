@@ -1,11 +1,38 @@
 <script lang="ts">
     import { ButtonGroup, Button, Textarea } from "flowbite-svelte";
-    import { PaperClipOutline, PaperPlaneSolid, HammerSolid } from "flowbite-svelte-icons";
+    import { PaperPlaneSolid, HammerSolid } from "flowbite-svelte-icons";
+    import { goto } from "$app/navigation";
+    import { sendMessageToChat } from "$lib/api/chatting";
+    
+    export let id: number;
+    
+    let message: string = "";
+    
+    function openChatOptions() {
+        goto(`/chats/${id}/options`);       
+    }
+    
+    async function sendMessage() {
+        if (message.length > 0) {
+            await sendMessageToChat(id, message);
+        }
+    }
 </script>
 
 <ButtonGroup class="md:bg-slate-400 p-0 md:p-2 md:w-2/3 md:m-auto rounded-none md:rounded-md">
-    <Button class="w-8 min-h-0"><HammerSolid/></Button>
-    <Button class="w-8 min-h-0"><PaperClipOutline/></Button>
-    <Textarea class="bg-slate-200 border-none rounded-none"/>
-    <Button class="w-12 min-h-0"><PaperPlaneSolid/></Button>
+    <Button 
+        aria-label="Show chat options"
+        class="w-8 min-h-0" 
+        on:click={openChatOptions}
+    ><HammerSolid/></Button>
+    <Textarea 
+        aria-label="Message box"
+        class="bg-slate-200 border-none rounded-none"
+        bind:value={message}
+    />
+    <Button 
+        aria-label="Send message"
+        class="w-12 min-h-0"
+        on:click={sendMessage}
+    ><PaperPlaneSolid/></Button>
 </ButtonGroup>
