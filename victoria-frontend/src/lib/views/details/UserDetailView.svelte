@@ -14,6 +14,7 @@
     import { createUser, deleteUser, getUser, updateUser } from "$lib/api/users";
     import { onMount } from "svelte";
     import Toggle from "$lib/components/toggles/Toggle.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     
     export let id: number | null;
     
@@ -36,45 +37,62 @@
 
     $: modifiedUser.permittedActions = actions.filter(([_, e]) => e).map(([v, _]) => v.id);
     $: modifiedUser.permittedTriggers = triggers.filter(([_, e]) => e).map(([v, _]) => v.id);
+    
+    let dataPromise: Promise<any> = Promise.resolve();
+    let deletePromise: Promise<any> = Promise.resolve();
+    let savePromise: Promise<any> = Promise.resolve();
+    let createPromise: Promise<any> = Promise.resolve();
 
-    async function loadUser() {
+    async function load() {
         if (id !== null) {
             loadedUser = await getUser(id);
             modifiedUser = structuredClone(loadedUser);
         }
-    }
-
-    async function initActionToggles() {
         actions = (await getAllActions()).map(
             (val) => [val, loadedUser.permittedActions.includes(val.id)]
         )
-    }
-    
-    async function initTriggerToggles() {
         triggers = (await getAllTriggers()).map(
             (val) => [val, loadedUser.permittedTriggers.includes(val.id)]
         )
     }
-    
+
     async function onDelete() {
-        await deleteUser(loadedUser.id);
+        deletePromise = deleteUser(loadedUser.id);
     }
     
     async function onSave() {
-        await updateUser(modifiedUser.id, changes);
+        savePromise = updateUser(modifiedUser.id, changes);
     }
     
     async function onCreate() {
-        await createUser(modifiedUser);
+        createPromise = createUser(modifiedUser);
     }
     
     onMount(async () => {
-        await loadUser();
-        await initActionToggles();
-        await initTriggerToggles();
+        dataPromise = load();
     })
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading user details..."
+    rejectMessage="Failed to load user"
+>
+<Loader
+    promise={deletePromise}
+    pendingMessage="Deleting user..."
+    rejectMessage="Failed to delete user"
+>
+<Loader
+    promise={savePromise}
+    pendingMessage="Saving changes..."
+    rejectMessage="Failed to save changes"
+>
+<Loader
+    promise={createPromise}
+    pendingMessage="Creating user..."
+    rejectMessage="Failed to create user"
+>
 <DetailView backRoute="/admin/users">
     <DetailViewSection title="Username">
         <Input 
@@ -142,3 +160,7 @@
         />
     </DetailViewSection>
 </DetailView>
+</Loader>
+</Loader>
+</Loader>
+</Loader>
