@@ -19,18 +19,18 @@
 {#if resolved}
     <slot/>
 {:else}
-    <div class="m-2 p-auto border-slate-500 rounded-md">
-        <div class="flex flex-col">
+    <div class="mx-auto my-2">
+        <div>
             {#if error}
-                <div class="flex flex-row text-red-500 font-bold">
-                    <CloseOutline/> {rejectMessage}
+                <div class="flex flex-row text-red-500 font-bold justify-center">
+                    <CloseOutline class="mr-2"/> {rejectMessage}
                 </div>
                 <div class="text-red-500">
                     {error}
                 </div>
             {:else}
-                <div class="flex flex-row text-yellow-700 font-bold">
-                    <Spinner color="yellow"/> {pendingMessage}
+                <div class="flex flex-row text-yellow-700 font-bold justify-center">
+                    <Spinner color="yellow" class="mr-2"/> {pendingMessage}
                 </div>
             {/if}
         </div>
