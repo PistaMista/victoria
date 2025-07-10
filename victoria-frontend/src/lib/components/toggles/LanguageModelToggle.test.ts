@@ -14,12 +14,14 @@ test('language model toggle shows name of given LLM', async () => {
         }
     });
 
-    expect(container).toHaveTextContent("llama3.1:8b")
+    await waitFor(() => {
+        expect(container).toHaveTextContent("llama3.1:8b")
+    })
 })
 
 test('clicking model toggle of disabled model sends enable request', async () => {
     const user = userEvent.setup();
-    const { getByRole } = render(LanguageModelToggle, {
+    const { findByRole } = render(LanguageModelToggle, {
         model: {
             id: 3,
             connectionId: 2,
@@ -28,7 +30,7 @@ test('clicking model toggle of disabled model sends enable request', async () =>
         }
     });
 
-    const checkbox = getByRole('checkbox');
+    const checkbox = await findByRole('checkbox');
     await user.click(checkbox);
 
     expect(enableModelHandler).toBeCalled();
@@ -37,7 +39,7 @@ test('clicking model toggle of disabled model sends enable request', async () =>
 
 test('clicking model toggle of enabled model sends disable request', async () => {
     const user = userEvent.setup();
-    const { getByRole } = render(LanguageModelToggle, {
+    const { findByRole } = render(LanguageModelToggle, {
         model: {
             id: 5,
             connectionId: 2,
@@ -46,7 +48,7 @@ test('clicking model toggle of enabled model sends disable request', async () =>
         }
     });
 
-    const checkbox = getByRole('checkbox');
+    const checkbox = await findByRole('checkbox');
     await user.click(checkbox);
 
     expect(disableModelHandler).toBeCalled();
