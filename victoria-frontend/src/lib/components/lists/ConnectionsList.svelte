@@ -3,14 +3,21 @@
     import { PlusOutline } from "flowbite-svelte-icons";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import Loader from "../placeholders/Loader.svelte";
     import { listConnections } from "$lib/api/connection";
     import type { ConnectionListItem } from "$lib/types/connection";
     import ItemComponent from "./items/ConnectionListItem.svelte";
     
     let connections: ConnectionListItem[] = [];
 
-    onMount(async () => {
+    let dataPromise: Promise<any> = Promise.resolve();
+
+    async function load() {
         connections = await listConnections();
+    }
+
+    onMount(() => {
+        dataPromise = load();
     })
 </script>
 
@@ -27,8 +34,14 @@
     </div>
     
     <div class="flex flex-col">
-        {#each connections as connection}
-            <ItemComponent {connection} />
-        {/each}
+        <Loader
+            promise={dataPromise}
+            pendingMessage="Loading connections..."
+            rejectMessage="Failed to load connections"
+        >
+            {#each connections as connection}
+                <ItemComponent {connection} />
+            {/each}
+        </Loader>
     </div>
 </div>
