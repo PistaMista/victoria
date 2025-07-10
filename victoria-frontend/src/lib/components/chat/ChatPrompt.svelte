@@ -3,22 +3,30 @@
     import { PaperPlaneSolid, HammerSolid } from "flowbite-svelte-icons";
     import { goto } from "$app/navigation";
     import { sendMessageToChat } from "$lib/api/chatting";
+    import Loader from "../placeholders/Loader.svelte";
     
     export let id: number;
     
     let message: string = "";
     
+    let messagePromise: Promise<any> = Promise.resolve();
+    
     function openChatOptions() {
         goto(`/chats/${id}/options`);       
     }
     
-    async function sendMessage() {
+    function sendMessage() {
         if (message.length > 0) {
-            await sendMessageToChat(id, message);
+            messagePromise = sendMessageToChat(id, message);
         }
     }
 </script>
 
+<Loader
+    promise={messagePromise}
+    pendingMessage="Sending message..."
+    rejectMessage="Failed to send message"
+>
 <ButtonGroup class="md:bg-slate-400 p-0 md:p-2 md:w-2/3 md:m-auto rounded-none md:rounded-md">
     <Button 
         aria-label="Show chat options"
@@ -36,3 +44,4 @@
         on:click={sendMessage}
     ><PaperPlaneSolid/></Button>
 </ButtonGroup>
+</Loader>

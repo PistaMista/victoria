@@ -11,11 +11,11 @@ vi.mock("$app/navigation", () => ({
 
 test('chat prompt send button does not send message when clicked with an empty prompt', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ChatPrompt, {
+    const { findByLabelText } = render(ChatPrompt, {
         id: 1
     });
     
-    const sendButton = getByLabelText("Send message");
+    const sendButton = await findByLabelText("Send message");
     await user.click(sendButton);
 
     expect(sendMessageHandler).not.toBeCalled();
@@ -24,12 +24,12 @@ test('chat prompt send button does not send message when clicked with an empty p
 
 test('chat prompt can send text message to the conversation with given id', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ChatPrompt, {
+    const { findByLabelText } = render(ChatPrompt, {
         id: 1
     });
     
-    const messageBox = getByLabelText("Message box");
-    const sendButton = getByLabelText("Send message");
+    const messageBox = await findByLabelText("Message box");
+    const sendButton = await findByLabelText("Send message");
     
     await user.type(messageBox, "Hello there!");
     await user.click(sendButton);
@@ -43,11 +43,11 @@ test('chat prompt can send text message to the conversation with given id', asyn
 
 test('chat prompt options button routes to options of conversation with given id', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ChatPrompt, {
+    const { findByLabelText } = render(ChatPrompt, {
         id: 1
     });
     
-    const optionsButton = getByLabelText("Show chat options");
+    const optionsButton = await findByLabelText("Show chat options");
     await user.click(optionsButton);
 
     expect(goto).toBeCalledWith("/chats/1/options");
