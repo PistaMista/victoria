@@ -6,6 +6,7 @@
     import ChatReceiverDropdown from "$lib/components/dropdowns/ChatReceiverDropdown.svelte";
     import DetailViewSection from "$lib/components/sections/DetailViewSection.svelte";
     import Toggle from "$lib/components/toggles/Toggle.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import type { Action } from "$lib/types/action";
     import type { ChatOptions } from "$lib/types/chat";
     import { getDiff } from "$lib/types/diff";
@@ -24,27 +25,56 @@
     let actions: [Action, boolean][] = [];
     $: modifiedOptions.enabledActionIds = actions.filter(([_, e]) => e).map(([v, _]) => v.id);
     
-    async function initActionToggles() {
+    let initPromise: Promise<any> = Promise.resolve();
+    let dataPromise: Promise<any> = Promise.resolve();
+    let savePromise: Promise<any> = Promise.resolve();
+    let deletePromise: Promise<any> = Promise.resolve();
+    
+    async function init() {
         actions = (await getPermittedActions()).map(
             (val) => [val, loadedOptions.enabledActionIds.includes(val.id)]
         )
     }
     
-    async function onSave() {
-        await updateChatOptions(id, changes);
+    async function load() {
+        loadedOptions = await getChatOptions(id);
+        modifiedOptions = structuredClone(loadedOptions);
     }
     
-    async function onDelete() {
-        await deleteChat(id);
+    function onSave() {
+        savePromise = updateChatOptions(id, changes);
+    }
+    
+    function onDelete() {
+        deletePromise = deleteChat(id);
     }
 
     onMount(async () => {
-        loadedOptions = await getChatOptions(id);
-        modifiedOptions = structuredClone(loadedOptions);
-        await initActionToggles();
+        initPromise = init();
+        dataPromise = load();
     })
 </script>
 
+<Loader
+    promise={initPromise}
+    pendingMessage="Initializing view..."
+    rejectMessage="Failed to initialize view"
+>
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading chat options..."
+    rejectMessage="Failed to load chat options"
+>
+<Loader
+    promise={savePromise}
+    pendingMessage="Saving chat options"
+    rejectMessage="Failed to save chat options"
+>
+<Loader
+    promise={deletePromise}
+    pendingMessage="Deleting chat..."
+    rejectMessage="Failed to delete chat"
+>
 <DetailView>
     <DetailViewSection title="Message recipient">
         <ChatReceiverDropdown
@@ -77,3 +107,7 @@
         />
     </DetailViewSection>
 </DetailView>
+</Loader>
+</Loader>
+</Loader>
+</Loader>
