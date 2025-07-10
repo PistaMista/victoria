@@ -5,12 +5,12 @@ import ActionRepositoryDetailView from "./ActionRepositoryDetailView.svelte";
 import { createActionRepoHandler, deleteActionRepoHandler, getActionRepoHandler, setActionRepoHandler } from "../../../mocks/handlers/action_repos";
 
 test('action repository detail shows info about given repository', async () => {
-    const { getByLabelText } = render(ActionRepositoryDetailView, {
+    const { findByLabelText } = render(ActionRepositoryDetailView, {
         id: 1
     });
     
-    const nameField: HTMLInputElement = within(getByLabelText('Name')).getByRole('textbox');
-    const urlField: HTMLInputElement = within(getByLabelText('URL')).getByRole('textbox');
+    const nameField: HTMLInputElement = within(await findByLabelText('Name')).getByRole('textbox');
+    const urlField: HTMLInputElement = within(await findByLabelText('URL')).getByRole('textbox');
 
     await waitFor(() => {
         // Name
@@ -22,12 +22,12 @@ test('action repository detail shows info about given repository', async () => {
 
 test('action repository detail can edit URL of given repository', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ActionRepositoryDetailView, {
+    const { findByLabelText } = render(ActionRepositoryDetailView, {
         id: 1
     });
 
-    const urlField: HTMLInputElement = within(getByLabelText('URL')).getByRole('textbox') as HTMLInputElement;
-    const saveButton = getByLabelText('Save action repository');
+    const urlField: HTMLInputElement = within(await findByLabelText('URL')).getByRole('textbox') as HTMLInputElement;
+    const saveButton = await findByLabelText('Save action repository');
     
     // TODO: This is just a temporary fix - the fields SHOULD NOT be visible when the data is being loaded!!!
     // FIXME: We need to prevent the user from editing the fields and pressing the delete/save buttons unless the data is loaded
@@ -53,12 +53,12 @@ test('action repository detail can edit URL of given repository', async () => {
 
 test('action repository detail can edit name of given repository', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ActionRepositoryDetailView, {
+    const { findByLabelText } = render(ActionRepositoryDetailView, {
         id: 1
     });
 
-    const nameField: HTMLInputElement = within(getByLabelText('Name')).getByRole('textbox');
-    const saveButton = getByLabelText('Save action repository');
+    const nameField: HTMLInputElement = within(await findByLabelText('Name')).getByRole('textbox');
+    const saveButton = await findByLabelText('Save action repository');
 
     // TODO: This is just a temporary fix - the fields SHOULD NOT be visible when the data is being loaded!!!
     // FIXME: We need to prevent the user from editing the fields and pressing the delete/save buttons unless the data is loaded
@@ -81,11 +81,11 @@ test('action repository detail can edit name of given repository', async () => {
 
 test('action repository detail can delete a given repository', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ActionRepositoryDetailView, {
+    const { findByLabelText } = render(ActionRepositoryDetailView, {
         id: 1
     });
 
-    const deleteButton = getByLabelText("Delete action repository");
+    const deleteButton = await findByLabelText("Delete action repository");
 
     await user.click(deleteButton);
     
@@ -95,13 +95,13 @@ test('action repository detail can delete a given repository', async () => {
 
 test('action repository detail can create a new action repository (with no id given)', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(ActionRepositoryDetailView, {
+    const { findByLabelText } = render(ActionRepositoryDetailView, {
         id: null
     });
 
-    const nameField: HTMLInputElement = within(getByLabelText("Name")).getByRole('textbox');
-    const urlField: HTMLInputElement = within(getByLabelText("URL")).getByRole('textbox');
-    const createButton = getByLabelText("Create action repository");
+    const nameField: HTMLInputElement = within(await findByLabelText("Name")).getByRole('textbox');
+    const urlField: HTMLInputElement = within(await findByLabelText("URL")).getByRole('textbox');
+    const createButton = await findByLabelText("Create action repository");
     
     await user.type(nameField, "Mega repository 5000");
     await user.type(urlField, "https://www.megaurl.com");

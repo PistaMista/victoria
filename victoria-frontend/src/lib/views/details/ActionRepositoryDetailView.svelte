@@ -4,6 +4,7 @@
     import SaveButton from "$lib/components/buttons/SaveButton.svelte";
     import DetailViewSection from "$lib/components/sections/DetailViewSection.svelte";
     import LabeledSetting from "$lib/components/sections/LabeledSetting.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import DetailView from "$lib/views/DetailView.svelte";
     import {  Input } from "flowbite-svelte";
     import type { ActionRepository } from "$lib/types/action_repo";
@@ -20,26 +21,53 @@
     let modifiedRepo: ActionRepository = loadedRepo;
     $: changes = getDiff(loadedRepo, modifiedRepo);
     
-    onMount(async () => {
-        if (id !== null) {
-            loadedRepo = await getActionRepository(id);
-            modifiedRepo = structuredClone(loadedRepo);
-        }
+    let dataPromise: Promise<any> = Promise.resolve();
+    let deletePromise: Promise<any> = Promise.resolve();
+    let savePromise: Promise<any> = Promise.resolve();
+    let createPromise: Promise<any> = Promise.resolve();
+    
+    onMount(() => {
+        dataPromise = (async () => {
+            if (id !== null) {
+                loadedRepo = await getActionRepository(id);
+                modifiedRepo = structuredClone(loadedRepo);
+            }
+        })();
     });
     
-    async function deleteRepo() {
-        await deleteActionRepository(loadedRepo.id);
+    function deleteRepo() {
+        deletePromise = deleteActionRepository(loadedRepo.id);
     }
     
-    async function saveRepo() {
-        await updateActionRepository(loadedRepo.id, changes);
+    function saveRepo() {
+        savePromise = updateActionRepository(loadedRepo.id, changes);
     }
     
-    async function createRepo() {
-        await createActionRepository(modifiedRepo);
+    function createRepo() {
+        createPromise = createActionRepository(modifiedRepo);
     }
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading action repository details..."
+    rejectMessage="Failed to load action repository"
+>
+<Loader
+    promise={deletePromise}
+    pendingMessage="Deleting action repository..."
+    rejectMessage="Failed to delete action repository"
+>
+<Loader
+    promise={savePromise}
+    pendingMessage="Saving changes..."
+    rejectMessage="Failed to save changes"
+>
+<Loader
+    promise={createPromise}
+    pendingMessage="Creating action repository..."
+    rejectMessage="Failed to create action repository"
+>
 <DetailView backRoute="/admin/actions">
     <DetailViewSection title="Action repository">
         <div class="flex flex-col space-y-2">
@@ -66,3 +94,7 @@
         </DetailViewSection>
     {/if}
 </DetailView>
+</Loader>
+</Loader>
+</Loader>
+</Loader>
