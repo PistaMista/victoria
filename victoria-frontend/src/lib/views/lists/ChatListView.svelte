@@ -4,6 +4,7 @@
     import ChatListItem from "$lib/components/lists/items/ChatListItem.svelte";
     import ListViewHeaderSearchBar from "$lib/components/search/ListViewHeaderSearchBar.svelte";
     import ListView from "$lib/views/ListView.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import { PlusOutline } from "flowbite-svelte-icons";
     import { getCurrentUserChats, createNewChat, type SortMode, getChatReceivers } from "$lib/api/chatting";
     import type { Chat } from "$lib/types/chat"
@@ -17,23 +18,27 @@
     let searchQuery: string = "";
     let mounted = false;
     
+    let initPromise: Promise<void> = Promise.resolve();
+    let dataPromise: Promise<void> = Promise.resolve();
+    let createPromise: Promise<void> = Promise.resolve();
+
+    async function init() {
+        receivers = await getChatReceivers();
+    }
+    
     async function openNewChat() {
         let { id } = await createNewChat();
         let stringId = id.toString();
         goto(`/chats/${stringId}`);
     }
     
-    function searchSubmit(val: string) {
-        alert(val);
-    }
-
     onMount(async () => {
         mounted = true;
-        receivers = await getChatReceivers();
+        initPromise = init();
     });
 
     $: if (mounted) {
-        (async () => {
+        dataPromise = (async () => {
             let receiver: string | null = receiverOption?.value;
             let query: string | null = searchQuery ? searchQuery : null;
             let sortBy: SortMode = sortByOption?.value ?? 'recent';        
@@ -42,6 +47,16 @@
     }
 </script>
 
+<Loader
+    promise={initPromise}
+    pendingMessage="Initializing..."
+    rejectMessage="Failed to initialize view."
+>
+<Loader
+    promise={createPromise}
+    pendingMessage="Creating new chat..."
+    rejectMessage="Failed to create new chat."
+>
 <ListView>
     <svelte:fragment slot="header">
         <ListViewHeaderSearchBar
@@ -74,14 +89,22 @@
                 bind:chosenOption={receiverOption}
             />
 
-            <ListViewHeaderButton onclick={openNewChat} aria-label="Create chat"><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
+            <ListViewHeaderButton onclick={() => {createPromise = openNewChat()}} aria-label="Create chat"><PlusOutline class="w-6 h-6"/></ListViewHeaderButton>
         </div>
     </svelte:fragment>
 
     
     <svelte:fragment slot="items">
-        {#each chats as chat}
-            <ChatListItem {chat}/>
-        {/each}
+        <Loader
+            promise={dataPromise}
+            pendingMessage="Loading chats..."
+            rejectMessage="Failed to load chats."
+        >
+            {#each chats as chat}
+                <ChatListItem {chat}/>
+            {/each}
+        </Loader>
     </svelte:fragment>
 </ListView>
+</Loader>
+</Loader>
