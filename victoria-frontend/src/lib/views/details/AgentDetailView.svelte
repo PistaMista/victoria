@@ -7,6 +7,7 @@
     import DeleteButton from "$lib/components/buttons/DeleteButton.svelte";
     import SaveButton from "$lib/components/buttons/SaveButton.svelte";
     import GeneralDropdown, { type Option } from "$lib/components/dropdowns/GeneralDropdown.svelte";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import DetailViewSection from "$lib/components/sections/DetailViewSection.svelte";
     import ParameterSlider from "$lib/components/sliders/ParameterSlider.svelte";
     import Toggle from "$lib/components/toggles/Toggle.svelte";
@@ -48,6 +49,11 @@
     $: modifiedAgent.enabledTriggers = triggers.filter(([_, e]) => e).map(([v, _]) => v.id);
     $: changes = getDiff(loadedAgent, modifiedAgent);
     
+    let initPromise: Promise<any> = Promise.resolve();
+    let deletePromise: Promise<any> = Promise.resolve();
+    let savePromise: Promise<any> = Promise.resolve();
+    let createPromise: Promise<any> = Promise.resolve();
+    
     async function loadAgent() {
         if (id !== null) {
             loadedAgent = await getAgent(id);
@@ -82,16 +88,23 @@
         )
     }
     
-    async function onDelete() {
-        await deleteAgent(modifiedAgent.id);
+    async function init() {
+        await loadAgent();
+        await initModelOptions();
+        await initActionToggles();
+        await initTriggerToggles();
     }
     
-    async function onSave() {
-        await updateAgent(modifiedAgent.id, changes);
+    function onDelete() {
+        deletePromise = deleteAgent(modifiedAgent.id);
     }
     
-    async function onCreate() {
-        await createAgent(modifiedAgent);
+    function onSave() {
+        savePromise = updateAgent(modifiedAgent.id, changes);
+    }
+    
+    function onCreate() {
+        createPromise = createAgent(modifiedAgent);
     }
     
     async function setThumbnail(event: Event) {
@@ -102,14 +115,30 @@
     
     
     onMount(async () => {
-        await loadAgent();
-        await initModelOptions();
-        await initActionToggles();
-        await initTriggerToggles();
+        initPromise = init();
     })
 </script>
 
-
+<Loader
+    promise={initPromise}
+    pendingMessage="Initializing view..."
+    rejectMessage="Failed to initialize view"
+>
+<Loader
+    promise={deletePromise}
+    pendingMessage="Deleting agent..."
+    rejectMessage="Failed to delete agent"
+>
+<Loader
+    promise={savePromise}
+    pendingMessage="Saving changes..."
+    rejectMessage="Failed to save changes"
+>
+<Loader
+    promise={createPromise}
+    pendingMessage="Creating agent..."
+    rejectMessage="Failed to create agent"
+>
 <DetailView title="{modifiedAgent.name} agent">
     <DetailViewSection title="Name">
         <Input aria-label="Name" bind:value={modifiedAgent.name}/>
@@ -204,3 +233,7 @@
     {/if}
 
 </DetailView>
+</Loader>
+</Loader>
+</Loader>
+</Loader>

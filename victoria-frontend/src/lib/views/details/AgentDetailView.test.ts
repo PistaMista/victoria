@@ -6,15 +6,15 @@ import { createAgentHandler, deleteAgentHandler, getAgentHandler, updateAgentHan
 import type { HTMLImageElement } from "happy-dom";
 
 test('agent detail shows basic info about given agent', async () => {
-    const { getByLabelText } = render(AgentDetailView, {
+    const { findByLabelText } = render(AgentDetailView, {
         id: 1
     });
 
-    const nameBox = getByLabelText("Name") as HTMLInputElement;
-    const modelDropdown = getByLabelText("Base model");
-    const promptBox = getByLabelText("System prompt") as HTMLInputElement;
-    const temperatureBox = getByLabelText("Temperature") as HTMLInputElement;
-    const topKBox = getByLabelText("Top K") as HTMLInputElement;
+    const nameBox = await findByLabelText("Name") as HTMLInputElement;
+    const modelDropdown = await findByLabelText("Base model");
+    const promptBox = await findByLabelText("System prompt") as HTMLInputElement;
+    const temperatureBox = await findByLabelText("Temperature") as HTMLInputElement;
+    const topKBox = await findByLabelText("Top K") as HTMLInputElement;
     
     await waitFor(() => {
         expect(getAgentHandler).toBeCalled();
@@ -29,18 +29,18 @@ test('agent detail shows basic info about given agent', async () => {
 
 test('agent detail can edit agent thumbnail', async () => {
     const user = userEvent.setup();
-    const { getByLabelText, findByLabelText } = render(AgentDetailView, {
+    const { findByLabelText } = render(AgentDetailView, {
         id: 1
     });
     const newImage = new File(['lol'], 'image.png', { type: 'image/png' });
     
-    const imagePicker = getByLabelText("Set agent thumbnail");
+    const imagePicker = await findByLabelText("Set agent thumbnail");
     await user.upload(imagePicker, newImage);
     
     const thumbnail = await findByLabelText("Agent thumbnail") as unknown as HTMLImageElement;
     expect(thumbnail.src).toBe("data:image/png;base64,bG9s");
     
-    const saveButton = getByLabelText("Save agent");
+    const saveButton = await findByLabelText("Save agent");
     await user.click(saveButton);
 
     expect(updateAgentHandler).toBeCalled();
@@ -53,7 +53,7 @@ test('agent detail can edit agent thumbnail', async () => {
 
 test('agent detail can edit given agent params', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(AgentDetailView, {
+    const { findByLabelText } = render(AgentDetailView, {
         id: 1
     });
 
@@ -64,26 +64,26 @@ test('agent detail can edit given agent params', async () => {
 
     // Name
     {
-        const nameBox = getByLabelText("Name") as HTMLInputElement;
+        const nameBox = await findByLabelText("Name") as HTMLInputElement;
         await user.clear(nameBox);
         await user.type(nameBox, "John");
     }
 
     // Model
     {
-        const modelDropdown = getByLabelText("Base model");
+        const modelDropdown = await findByLabelText("Base model");
         const button = within(modelDropdown).getByRole('button');
 
         await user.click(button);
 
-        const option = within(modelDropdown).getByLabelText('llama3.1:8b');
+        const option = await within(modelDropdown).findByLabelText('llama3.1:8b');
         await user.click(option);
     }
 
 
     // Temperature
     {
-        const temperatureBox = getByLabelText("Temperature");
+        const temperatureBox = await findByLabelText("Temperature");
         await user.clear(temperatureBox);
         await user.click(temperatureBox);
         await user.keyboard("0.95{Enter}");
@@ -91,11 +91,11 @@ test('agent detail can edit given agent params', async () => {
     
     // Actions
     {
-        const startMonologue = getByLabelText("Start monologue");
+        const startMonologue = await findByLabelText("Start monologue");
         await user.click(startMonologue);
     }
 
-    const saveButton = getByLabelText("Save agent");
+    const saveButton = await findByLabelText("Save agent");
     await user.click(saveButton);
 
     expect(updateAgentHandler).toBeCalled();
@@ -119,11 +119,11 @@ test('agent detail can edit given agent params', async () => {
 
 test('agent detail can delete given agent', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(AgentDetailView, {
+    const { findByLabelText } = render(AgentDetailView, {
         id: 1
     });
     
-    const button = getByLabelText("Delete agent");
+    const button = await findByLabelText("Delete agent");
 
     await user.click(button);
 
@@ -133,31 +133,31 @@ test('agent detail can delete given agent', async () => {
 
 test('agent detail can create a new agent (with no id given)', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(AgentDetailView, {
+    const { findByLabelText } = render(AgentDetailView, {
         id: null
     });
 
     // Name
     {
-        const nameBox = getByLabelText("Name") as HTMLInputElement;
+        const nameBox = await findByLabelText("Name") as HTMLInputElement;
         await user.clear(nameBox);
         await user.type(nameBox, "Victoria");
     }
     
     // Model
     {
-        const modelDropdown = getByLabelText("Base model");
+        const modelDropdown = await findByLabelText("Base model");
         const button = within(modelDropdown).getByRole('button');
 
         await user.click(button);
 
-        const option = within(modelDropdown).getByLabelText('gemma3:12b');
+        const option = await within(modelDropdown).findByLabelText('gemma3:12b');
         await user.click(option);
     }
 
     // Prompt
     {
-        const promptBox = getByLabelText("System prompt");
+        const promptBox = await findByLabelText("System prompt");
         await user.clear(promptBox);
         await user.type(promptBox, "You do it all!");
     }
@@ -165,7 +165,7 @@ test('agent detail can create a new agent (with no id given)', async () => {
 
     // Temperature
     {
-        const temperatureBox = getByLabelText("Temperature");
+        const temperatureBox = await findByLabelText("Temperature");
         await user.clear(temperatureBox);
         await user.click(temperatureBox);
         await user.keyboard("0.92{Enter}");        
@@ -173,19 +173,19 @@ test('agent detail can create a new agent (with no id given)', async () => {
     
     // Triggers
     {
-        const newsBox = getByLabelText("Check news");
-        const discordBox = getByLabelText("Discord message received");
+        const newsBox = await findByLabelText("Check news");
+        const discordBox = await findByLabelText("Discord message received");
         await user.click(newsBox);
         await user.click(discordBox);
     }
     
     // Actions
     {
-        const thinkBox = getByLabelText("Think");
+        const thinkBox = await findByLabelText("Think");
         await user.click(thinkBox);
     }
     
-    const createButton = getByLabelText("Create agent");
+    const createButton = await findByLabelText("Create agent");
 
     await user.click(createButton);
 
