@@ -9,7 +9,6 @@ test('monologue detail view shows summary and title of given monologue', async (
         id: 1
     });
 
-    // TODO: Again, we should show some kind of loading indicator
     await waitFor(() => {
         // Summary
         expect(container).toHaveTextContent("Searching the web for sources");
@@ -20,17 +19,12 @@ test('monologue detail view shows summary and title of given monologue', async (
 
 test('monologue detail allows aborting given monologue', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(MonologueDetailView, {
+    const { findByLabelText } = render(MonologueDetailView, {
         id: 2
     });
 
-    const abortButton = getByLabelText("Abort monologue");
+    const abortButton = await findByLabelText("Abort monologue");
 
-    // TODO: The abort button should not be shown unless the monologue is loaded
-    await waitFor(() => {
-        expect(getMonologueHandler).toBeCalled();
-    });
-    
     await user.click(abortButton);
 
     expect(abortMonologueHandler).toBeCalled();

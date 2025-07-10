@@ -7,24 +7,24 @@
     import { getAgentMonologues } from "$lib/api/agents";
     import type { MonologueListItem } from "$lib/types/monologue";
     import { goto } from "$app/navigation";
+    import Loader from "../placeholders/Loader.svelte";
     
     export let agent: AgentListItem | Agent;
     let monologues: MonologueListItem[] = [];
-    let mounted = false;
+    
+    let monologuePromise: Promise<any> = Promise.resolve();
     
     function goToDetail() {
         goto(`/agents/${agent.id}/edit`);
     }
     
-    onMount(() => {
-        mounted = true;
-    })
-    
-    $: if (mounted) {
-        (async () => {
-            monologues = await getAgentMonologues(agent.id);
-        })();
+    async function loadMonologues() {
+        monologues = await getAgentMonologues(agent.id);
     }
+    
+    onMount(() => {
+        monologuePromise = loadMonologues();
+    })
 </script>
 
 <div class="bg-slate-300 rounded-md p-2 flex flex-col md:w-72 m-1">
@@ -44,14 +44,20 @@
     </div>
     <div class="flex flex-row">
         <div class="bg-orange-200 rounded-md h-14 w-14 p-1"></div>
-        <div class="grow h-24 bg-slate-400 rounded-md ml-1 p-1 overflow-y-scroll">
-            <div class="flex flex-col">
-                {#each monologues as monologue}
-                    <MonologueMiniCard
-                        {monologue}
-                    />
-                {/each}
+        <Loader
+            promise={monologuePromise}
+            pendingMessage="Loading monologues..."
+            rejectMessage="Failed to load monologues"
+        >
+            <div class="grow h-24 bg-slate-400 rounded-md ml-1 p-1 overflow-y-scroll">
+                <div class="flex flex-col">
+                    {#each monologues as monologue}
+                        <MonologueMiniCard
+                            {monologue}
+                        />
+                    {/each}
+                </div>
             </div>
-        </div>
+        </Loader>
     </div>
 </div>

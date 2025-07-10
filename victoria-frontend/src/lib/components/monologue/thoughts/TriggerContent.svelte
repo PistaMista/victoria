@@ -6,17 +6,29 @@
     import { getEvent } from "$lib/api/events";
     import { getTrigger } from "$lib/api/triggers";
     import { goto } from "$app/navigation";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     
     export let content: TriggerInvocation;
     
     let triggerName: string = "";
     
-    onMount(async () => {
+    let dataPromise: Promise<any> = Promise.resolve();
+    
+    async function load() {
         let event: Event = await getEvent(content.parameters.eventId);
         triggerName = (await getTrigger(event.triggerId)).name;
+    }
+    
+    onMount(() => {
+        dataPromise = load();
     })
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading trigger info..."
+    rejectMessage="Failed to load trigger info"
+>
 <div>
     <RocketSolid class="float-left mr-2"/>
     <!-- This will be a link to the detail of the event -->
@@ -26,3 +38,4 @@
         aria-label="Go to triggering event"
     >{triggerName}</button>
 </div>
+</Loader>

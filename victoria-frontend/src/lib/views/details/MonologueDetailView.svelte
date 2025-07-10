@@ -9,6 +9,8 @@
     import type { Agent } from "$lib/types/agent";
     import { abortMonologue, getMonologue } from "$lib/api/monologues";
     import { onMount } from "svelte";
+    import { getAgent } from "$lib/api/agents";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
 
     export let id: number;
     
@@ -24,15 +26,33 @@
 
     let agent: Agent | null = null;
     
-    async function onAbort() {
-        await abortMonologue(id);
+    let dataPromise: Promise<any> = Promise.resolve();
+    let abortPromise: Promise<any> = Promise.resolve();
+    
+    async function load() {
+        monologue = await getMonologue(id);
+        agent = await getAgent(monologue.agentId);
+    }
+    
+    function onAbort() {
+        abortPromise =  abortMonologue(id);
     }
     
     onMount(async () => {
-        monologue = await getMonologue(id);
+        dataPromise = load();
     })
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading monologue details..."
+    rejectMessage="Failed to load monologue"
+>
+<Loader
+    promise={abortPromise}
+    pendingMessage="Aborting monologue..."
+    rejectMessage="Failed to abort monologue"
+>
 <DetailView>
     <DetailViewSection title="Summary">
         <div class="border-b-2 font-semibold">
@@ -70,3 +90,5 @@
         <AbortButton aria-label="Abort monologue" onclick={onAbort}/>
     </DetailViewSection>
 </DetailView>
+</Loader>
+</Loader>

@@ -30,16 +30,11 @@ test('trigger thought content displays name of trigger corresponding to the trig
 
 test('pressing trigger thought link routes to detail of triggering event', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(TriggerContent, {
+    const { findByLabelText } = render(TriggerContent, {
         content: invocation
     });
 
-    // TODO: The link should not be visible until all data finishes loading
-    await waitFor(() => {
-        expect(getTriggerHandler).toBeCalled();
-    })
-    
-    const link = getByLabelText("Go to triggering event");
+    const link = await findByLabelText("Go to triggering event");
     await user.click(link);
 
     expect(goto).toBeCalledWith("/events/1");
