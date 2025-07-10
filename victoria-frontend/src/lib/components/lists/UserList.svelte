@@ -6,11 +6,18 @@
     import type { UserListItem } from "$lib/types/user";
     import { onMount } from "svelte";
     import { listUsers } from "$lib/api/users";
+    import Loader from "../placeholders/Loader.svelte";
     
     let users: UserListItem[] = [];
 
-    onMount(async () => {
+    let dataPromise: Promise<any> = Promise.resolve();
+
+    async function load() {
         users = await listUsers();
+    }
+
+    onMount(() => {
+        dataPromise = load();
     })
 </script>
 
@@ -24,8 +31,14 @@
     </div>
     
     <div class="flex flex-col">
-        {#each users as user}
-            <ItemComponent {user}/>
-        {/each}
+        <Loader
+            promise={dataPromise}
+            pendingMessage="Loading users..."
+            rejectMessage="Failed to load users"
+        >
+            {#each users as user}
+                <ItemComponent {user}/>
+            {/each}
+        </Loader>
     </div>
 </div>
