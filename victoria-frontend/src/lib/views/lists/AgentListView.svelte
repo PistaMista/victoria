@@ -5,6 +5,7 @@
     import ListView from "$lib/views/ListView.svelte";
     import { PlusOutline } from "flowbite-svelte-icons";
     import type { AgentListItem } from "$lib/types/agent";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { getCurrentUserAgents } from "$lib/api/agents";
@@ -12,6 +13,8 @@
     let agents: AgentListItem[] = [];
     let searchQuery: string = "";
     let mounted = false;
+    
+    let dataPromise: Promise<void> = Promise.resolve();
     
     function createAgent() {
         goto('/agents/add');
@@ -22,7 +25,7 @@
     })
     
     $: if (mounted) {
-        (async () => {
+        dataPromise = (async () => {
             let query: string | null = searchQuery ? searchQuery : null;
             agents = await getCurrentUserAgents(query);
         })();
@@ -44,8 +47,14 @@
     </svelte:fragment>
     
     <svelte:fragment slot="items">
-        {#each agents as agent}
-            <AgentCard {agent}/>
-        {/each}
+        <Loader
+            promise={dataPromise}
+            pendingMessage="Loading agents..."
+            rejectMessage="Failed to load agents"
+        >
+            {#each agents as agent}
+                <AgentCard {agent}/>
+            {/each}
+        </Loader>
     </svelte:fragment>
 </ListView>
