@@ -5,6 +5,7 @@
     import type { Event } from "$lib/types/event";
     import { getEvent } from "$lib/api/events";
     import { getTrigger } from "$lib/api/triggers";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
 
     export let id: number;
     
@@ -14,13 +15,23 @@
     };
     let triggerName: string = "";
 
-
-    onMount(async () => {
+    let dataPromise: Promise<any> = Promise.resolve();
+    
+    async function load() {
         loadedEvent = await getEvent(id);
         triggerName = (await getTrigger(loadedEvent.triggerId)).name;
+    }
+
+    onMount(async () => {
+        dataPromise = load();
     })
 </script>
 
+<Loader
+    promise={dataPromise}
+    pendingMessage="Loading event..."
+    rejectMessage="Failed to load event"
+>
 <DetailView>
     <DetailViewSection title="Trigger">
         {triggerName}
@@ -30,3 +41,4 @@
         {loadedEvent.content}
     </DetailViewSection>
 </DetailView>
+</Loader>
