@@ -21,7 +21,6 @@
         let { id } = await createNewChat();
         let stringId = id.toString();
         goto(`/chats/${stringId}`);
-        console.log("routed");
     }
     
     function searchSubmit(val: string) {
