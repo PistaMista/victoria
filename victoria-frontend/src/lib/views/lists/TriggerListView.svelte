@@ -4,6 +4,7 @@
     import ListViewHeaderSearchBar from "$lib/components/search/ListViewHeaderSearchBar.svelte";
     import ListView from "$lib/views/ListView.svelte";
     import { PlusOutline } from "flowbite-svelte-icons";
+    import Loader from "$lib/components/placeholders/Loader.svelte";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { TriggerListItem } from "$lib/types/trigger";
@@ -12,6 +13,8 @@
     let triggers: TriggerListItem[] = [];
     let searchQuery: string = "";
     let mounted: Boolean = false;
+    
+    let dataPromise: Promise<void> = Promise.resolve();
 
     function createTrigger() {
         goto("/admin/triggers/add");
@@ -22,7 +25,7 @@
     })
     
     $: if (mounted) {
-        (async () => {
+        dataPromise = (async () => {
             let query = searchQuery ? searchQuery : null;
             triggers = await getAllTriggers(query);        
         })();
@@ -41,10 +44,16 @@
     </svelte:fragment>
     
     <svelte:fragment slot="items">
-        {#each triggers as trigger}
-            <ItemComponent 
-                {trigger}
-            />
-        {/each}
+        <Loader
+            promise={dataPromise}
+            pendingMessage="Loading triggers..."
+            rejectMessage="Failed to load triggers"
+        >
+            {#each triggers as trigger}
+                <ItemComponent 
+                    {trigger}
+                />
+            {/each}
+        </Loader>
     </svelte:fragment>
 </ListView>
