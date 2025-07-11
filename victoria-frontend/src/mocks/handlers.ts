@@ -3,7 +3,6 @@ import { handlers as exchanges } from "./handlers/exchanges"
 import { handlers as agents } from "./handlers/agents"
 import { handlers as monologues } from "./handlers/monologues"
 import { handlers as events } from "./handlers/events"
-import { handlers as thoughts } from "./handlers/thoughts"
 import { handlers as users } from "./handlers/users"
 import { handlers as action_repos } from "./handlers/action_repos"
 import { handlers as actions } from "./handlers/actions"
@@ -25,8 +24,6 @@ export const handlers = [
     ...monologues,
     /* EVENTS */
     ...events,
-    /* THOUGHTS */
-    ...thoughts,
     /// POST, PUT AND DELETE ENDPOINTS BELOW REQUIRE ADMIN ROLE
     /* USERS */
     ...users,
