@@ -1,6 +1,5 @@
 import { handlers as chats } from "./handlers/chats"
 import { handlers as exchanges } from "./handlers/exchanges"
-import { handlers as messages } from "./handlers/messages"
 import { handlers as agents } from "./handlers/agents"
 import { handlers as monologues } from "./handlers/monologues"
 import { handlers as events } from "./handlers/events"
@@ -20,8 +19,6 @@ export const handlers = [
     ...chats,
     /* EXCHANGES */
     ...exchanges,
-    /* MESSAGES */
-    ...messages,
     /* AGENTS */
     ...agents,
     /* MONOLOGUES */

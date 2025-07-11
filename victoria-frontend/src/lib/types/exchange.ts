@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { Message as MessageSchema } from "./message";
 
 export const Exchange = z.object({
-    userMessageId: z.number(),
-    agentMessageIds: z.array(z.number()),
+    id: z.number(),
+    timestamp: z.number(),
+    userMessage: MessageSchema.nullable(),
     monologueIds: z.array(z.number()),
-    childExchangeIds: z.array(z.number()),
 });
 export type Exchange = z.infer<typeof Exchange>;

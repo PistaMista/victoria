@@ -7,7 +7,6 @@ export type SentMessageInfo = z.infer<typeof SentMessageInfo>;
 
 export const Chat = z.object({
     id: z.number(),
-    rootExchangeId: z.number().nullable(),
     title: z.string(),
     summary: z.string(),
 });

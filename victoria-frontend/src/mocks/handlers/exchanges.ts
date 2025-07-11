@@ -3,52 +3,9 @@ import { Exchange } from "$lib/types/exchange"
 import { Message } from "$lib/types/message"
 import { spy } from "../spy"
 
-export const getExchangeHandler = await spy(
-    ({ params: { id } }) => {
-        switch (id) {
-            case '1':
-                return HttpResponse.json<Exchange>(
-                    {
-                        userMessageId: 1,
-                        agentMessageIds: [1, 2, 3, 4],
-                        monologueIds: [1],
-                        childExchangeIds: [2]
-                    }
-                )
-            case '2':
-                return HttpResponse.json<Exchange>(
-                    {
-                        userMessageId: 2,
-                        agentMessageIds: [1],
-                        monologueIds: [2, 1],
-                        childExchangeIds: [3, 4]
-                    }
-                )
-            case '3':
-                return HttpResponse.json<Exchange>(
-                    {
-                        userMessageId: 3,
-                        agentMessageIds: [1],
-                        monologueIds: [2],
-                        childExchangeIds: []
-                    }
-                )
-            case '4':
-                return HttpResponse.json<Exchange>(
-                    {
-                        userMessageId: 2,
-                        agentMessageIds: [1, 3, 4],
-                        monologueIds: [2],
-                        childExchangeIds: []
-                    }
-                )
-        }
-    }   
-)
-
 export const getMessagesHandler = await spy(
-    async ({params: { sentAfter }}) => {
-        let after: number = Number(sentAfter);
+    async ({request}) => {
+        let after: number = Number(request.url.searchParams.get('after'));
         
         if (after < 5000) {
             return HttpResponse.json<Message[]>([
@@ -61,6 +18,39 @@ export const getMessagesHandler = await spy(
                     }
                 }
             ])
+        } else if (after < 7000) {
+            return HttpResponse.json<Message[]>([
+                {
+                    id: 3,
+                    timestamp: 6500,
+                    content: {
+                        type: 'choice_prompt',
+                        queryId: 1,
+                        choices: [
+                            { value: "lol" }
+                        ]
+                    }
+                },
+                {
+                    id: 4,
+                    timestamp: 7000,
+                    content: {
+                        type: 'action_confirmation',
+                        queryId: 2
+                    }
+                }
+            ])
+        } else if (after < 9000) {
+            return HttpResponse.json<Message[]>([
+                {
+                    id: 3,
+                    timestamp: 9000,
+                    content: {
+                        type: 'image',
+                        imageDataURI: 'data/png;asdakwdkjn'
+                    }
+                }
+            ])
         } else {
             return HttpResponse.json<Message[]>([]);
         }
@@ -69,7 +59,6 @@ export const getMessagesHandler = await spy(
 
 
 export const handlers = [
-    http.get('/api/exchanges/:id', getExchangeHandler),
-    // This is an HTTP long poll for messages sent after a given timestamp
+    // This is an HTTP long poll for agent messages sent after a given timestamp
     http.get('/api/exchanges/:id/messages', getMessagesHandler),
 ]

@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw"
 import { ChatOptions, type Chat, type SentMessageInfo } from "$lib/types/chat"
 import { spy } from "../spy";
+import type { Exchange } from "$lib/types/exchange";
 
 export const listChatsHandler = await spy(({request}) => 
     {
@@ -11,13 +12,11 @@ export const listChatsHandler = await spy(({request}) =>
         const chats = {
             admin: {
                 id: 1,
-                rootExchangeId: 1,
                 title: "System admin",
                 summary: "Chat about system administration."
             },
             learning: {
                 id: 2,
-                rootExchangeId: 2,
                 title: "Language learning",
                 summary: "Discussing ways to learn languages effectively."
             }
@@ -64,7 +63,6 @@ export const getChatHandler = await spy(
         return HttpResponse.json<Chat>(
             {
                 id: Number(id),
-                rootExchangeId: 1,
                 title: "System admin",
                 summary: "A chat about system administration"
             }
@@ -77,7 +75,6 @@ export const chatCreateHandler = await spy(
         return HttpResponse.json<Chat>(
             {
                 id: 3,
-                rootExchangeId: null,
                 title: "New chat",
                 summary: "A chat about nothing in particular (yet)."                
             }
@@ -99,6 +96,61 @@ export const sendMessageHandler = await spy(
             }
         )
     }   
+)
+
+export const getExchangesHandler = await spy(
+    ({request}) => {
+        let after: number = Number(request.url.searchParams.get('after'));
+        
+        if (after < 2500) {
+            return HttpResponse.json<Exchange[]>([
+                {
+                    id: 2,
+                    timestamp: 2500,
+                    userMessage: {
+                        id: 2,
+                        timestamp: 2405,
+                        content: {
+                            type: 'markdown',
+                            markdownText: "Hmmm, *yeees*"
+                        }
+                    },
+                    monologueIds: [1, 2]
+                },
+                {
+                    id: 3,
+                    timestamp: 2700,
+                    userMessage: {
+                        id: 2,
+                        timestamp: 2405,
+                        content: {
+                            type: 'markdown',
+                            markdownText: "Hello?"
+                        }
+                    },
+                    monologueIds: [1, 2]
+                }
+            ]);
+        } else if (after < 3300) {
+            return HttpResponse.json<Exchange[]>([
+                {
+                    id: 3,
+                    timestamp: 3300,
+                    userMessage: {
+                        id: 2,
+                        timestamp: 2405,
+                        content: {
+                            type: 'markdown',
+                            markdownText: "Goodbye."
+                        }
+                    },
+                    monologueIds: [1, 2]
+                }
+            ]);
+        } else {
+            return HttpResponse.json<Exchange[]>([]);
+        }
+    }
 )
 
 export const getChatOptionsHandler = await spy(
@@ -140,6 +192,9 @@ export const handlers = [
     
     // This returns the ID of the created exchange
     http.post('/api/chats/:id/send-message', sendMessageHandler),
+    
+    // This is a long-poll endpoint to get exchanges created after a certain time
+    http.get('/api/chats/:id/exchanges', getExchangesHandler),
 
     http.get('/api/chats/:id/options', getChatOptionsHandler),
     http.put('/api/chats/:id/options', setChatOptionsHandler),
