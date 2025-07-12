@@ -12,6 +12,7 @@ export const getMessagesHandler = await spy(
                 {
                     id: 2,
                     timestamp: 5000,
+                    senderName: "Researcher",
                     content: {
                         type: 'markdown',
                         markdownText: "Agent message!"
@@ -23,6 +24,7 @@ export const getMessagesHandler = await spy(
                 {
                     id: 3,
                     timestamp: 6500,
+                    senderName: "Cook",
                     content: {
                         type: 'choice_prompt',
                         prompt: "Pick a thing",
@@ -35,9 +37,17 @@ export const getMessagesHandler = await spy(
                 {
                     id: 4,
                     timestamp: 7000,
+                    senderName: "John",
                     content: {
                         type: 'action_confirmation',
-                        prompt: "Are you sure you wish to do this?",
+                        invocationThought: {
+                            type: "ActionInvocation",
+                            name: "add_to_calendar",
+                            parameters: {
+                                date: "20",
+                                delete: true
+                            }
+                        },
                         queryId: 2
                     }
                 }
@@ -47,6 +57,7 @@ export const getMessagesHandler = await spy(
                 {
                     id: 3,
                     timestamp: 9000,
+                    senderName: "Gustave",
                     content: {
                         type: 'image',
                         imageDataURI: 'data/png;asdakwdkjn'

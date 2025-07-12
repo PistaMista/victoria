@@ -118,6 +118,7 @@ export const getExchangesHandler = await spy(
                     timestamp: 2500,
                     userMessage: {
                         id: 2,
+                        senderName: "Krystof",
                         timestamp: 2405,
                         content: {
                             type: 'markdown',
@@ -132,6 +133,7 @@ export const getExchangesHandler = await spy(
                     timestamp: 2700,
                     userMessage: {
                         id: 2,
+                        senderName: "Krystof",
                         timestamp: 2405,
                         content: {
                             type: 'markdown',
@@ -149,6 +151,7 @@ export const getExchangesHandler = await spy(
                     timestamp: 3300,
                     userMessage: {
                         id: 2,
+                        senderName: "Krystof",
                         timestamp: 2405,
                         content: {
                             type: 'markdown',

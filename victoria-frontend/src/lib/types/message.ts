@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ActionInvocation } from "./thought";
 
 export const MarkdownContent = z.object({
     type: z.literal('markdown'),
@@ -24,7 +25,7 @@ export type ChoicePromptContent = z.infer<typeof ChoicePromptContent>;
 
 export const ActionConfirmationContent = z.object({
     type: z.literal('action_confirmation'),
-    prompt: z.string(),
+    invocationThought: ActionInvocation,
     queryId: z.number()
 });
 export type ActionConfirmationContent = z.infer<typeof ActionConfirmationContent>;
@@ -32,6 +33,7 @@ export type ActionConfirmationContent = z.infer<typeof ActionConfirmationContent
 export const Message = z.object({
     id: z.number(),
     timestamp: z.number().gte(0),
+    senderName: z.string(),
     content: z.discriminatedUnion('type', [MarkdownContent, ImageContent, ChoicePromptContent, ActionConfirmationContent])
 });
 export type Message = z.infer<typeof Message>;
