@@ -14,7 +14,7 @@ export const getMessagesHandler = await spy(
                     timestamp: 5000,
                     content: {
                         type: 'markdown',
-                        markdownText: "weeee"
+                        markdownText: "Agent message!"
                     }
                 }
             ])
@@ -25,6 +25,7 @@ export const getMessagesHandler = await spy(
                     timestamp: 6500,
                     content: {
                         type: 'choice_prompt',
+                        prompt: "Pick a thing",
                         queryId: 1,
                         choices: [
                             { value: "lol" }
@@ -36,6 +37,7 @@ export const getMessagesHandler = await spy(
                     timestamp: 7000,
                     content: {
                         type: 'action_confirmation',
+                        prompt: "Are you sure you wish to do this?",
                         queryId: 2
                     }
                 }

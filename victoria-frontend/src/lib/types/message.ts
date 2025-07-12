@@ -15,6 +15,7 @@ export type ImageContent = z.infer<typeof ImageContent>;
 export const ChoicePromptContent = z.object({
     type: z.literal('choice_prompt'),
     queryId: z.number(),
+    prompt: z.string(),
     choices: z.array(z.object({
         value: z.any()
     })),
@@ -23,6 +24,7 @@ export type ChoicePromptContent = z.infer<typeof ChoicePromptContent>;
 
 export const ActionConfirmationContent = z.object({
     type: z.literal('action_confirmation'),
+    prompt: z.string(),
     queryId: z.number()
 });
 export type ActionConfirmationContent = z.infer<typeof ActionConfirmationContent>;

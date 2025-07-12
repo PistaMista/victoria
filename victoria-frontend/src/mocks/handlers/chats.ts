@@ -82,6 +82,14 @@ export const chatCreateHandler = await spy(
     }
 );
 
+export const duplicateChatHandler = await spy(
+    // This accepts the "toExchange: id" parameter in the body,
+    // which duplicates the chat only up to the given exchange
+    () => {
+        return HttpResponse.json<number>(3)
+    }   
+)
+
 export const chatDeleteHandler = await spy(
     () => {
         return HttpResponse.json<Boolean>(true)
@@ -106,6 +114,7 @@ export const getExchangesHandler = await spy(
             return HttpResponse.json<Exchange[]>([
                 {
                     id: 2,
+                    chatId: 1,
                     timestamp: 2500,
                     userMessage: {
                         id: 2,
@@ -119,6 +128,7 @@ export const getExchangesHandler = await spy(
                 },
                 {
                     id: 3,
+                    chatId: 1,
                     timestamp: 2700,
                     userMessage: {
                         id: 2,
@@ -135,6 +145,7 @@ export const getExchangesHandler = await spy(
             return HttpResponse.json<Exchange[]>([
                 {
                     id: 3,
+                    chatId: 1,
                     timestamp: 3300,
                     userMessage: {
                         id: 2,
@@ -189,6 +200,9 @@ export const handlers = [
     http.delete('/api/chats/:id', chatDeleteHandler),
 
     http.get('/api/chats/receivers', listChatReceiversHandler),
+    
+    // This duplicates a chat
+    http.post('/api/chats/:id/duplicate', duplicateChatHandler),
     
     // This returns the ID of the created exchange
     http.post('/api/chats/:id/send-message', sendMessageHandler),
