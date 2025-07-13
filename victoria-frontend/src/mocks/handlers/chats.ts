@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw"
+import { delay, http, HttpResponse } from "msw"
 import { ChatOptions, type Chat, type SentMessageInfo } from "$lib/types/chat"
 import { spy } from "../spy";
 import type { Exchange } from "$lib/types/exchange";
@@ -107,8 +107,11 @@ export const sendMessageHandler = await spy(
 )
 
 export const getExchangesHandler = await spy(
-    ({request}) => {
-        let after: number = Number(request.url.searchParams.get('after'));
+    async ({request}) => {
+        let url: URL = new URL(request.url);
+        let after: number = Number(url.searchParams.get('after'));
+        
+        await delay(400);
         
         if (after < 2500) {
             return HttpResponse.json<Exchange[]>([

@@ -5,7 +5,8 @@ import { spy } from "../spy"
 
 export const getMessagesHandler = await spy(
     async ({request}) => {
-        let after: number = Number(request.url.searchParams.get('after'));
+        let url: URL = new URL(request.url);
+        let after: number = Number(url.searchParams.get('after'));
         
         if (after < 5000) {
             return HttpResponse.json<Message[]>([

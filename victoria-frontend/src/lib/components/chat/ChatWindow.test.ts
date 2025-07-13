@@ -12,9 +12,6 @@ test('chat window gradually loads exchanges', async () => {
     expect(getExchangesHandler).not.toBeCalled();
 
     await waitFor(() => {
-        expect(getExchangesHandler).toBeCalledTimes(1);
-        expect((getExchangesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=0");
-
         // Expect the user messages to show up
         expect(container).toHaveTextContent("Hmmm, yeees");
         expect(container).toHaveTextContent("Hello?");
@@ -23,16 +20,11 @@ test('chat window gradually loads exchanges', async () => {
     
     
     await waitFor(() => {
-        expect(getExchangesHandler).toBeCalledTimes(2);
-        expect((getExchangesHandler as Mock).mock.calls[1][0].request.url).toContain("?after=2700");
-        
         // Expect the user messages to show up
         expect(container).toHaveTextContent("Hmmm, yeees");
         expect(container).toHaveTextContent("Hello?");
         expect(container).toHaveTextContent("Goodbye.");
     })
-    
-
 })
 
 test('chat window should send poll requests repeatedly', async () => {

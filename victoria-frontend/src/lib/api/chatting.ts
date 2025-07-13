@@ -1,7 +1,10 @@
 import type { ChatOptions, Chat, SentMessageInfo } from "$lib/types/chat";
 import { Chat as ChatSchema, ChatOptions as ChatOptionsSchema, SentMessageInfo as SentMessageInfoSchema } from "$lib/types/chat";
 import type { Diff } from "$lib/types/diff";
+import type { Exchange } from "$lib/types/exchange";
+import { Exchange as ExchangeSchema } from "$lib/types/exchange";
 import { z } from "zod";
+import { get, type Writable } from "svelte/store";
 
 export type SortMode = 'recent' | 'length' | 'importance';
 
@@ -108,4 +111,30 @@ export async function sendMessageToChat(chatId: number, msg: string): Promise<Se
     }
 
     return SentMessageInfoSchema.parse(json);
+}
+
+export async function startReceivingExchanges(chatId: number, out: Writable<Exchange[]>, abortSig: AbortSignal): Promise<void> {
+    let fetcher = (async () => {
+        const maxTimestamp = get(out).map((val) => (val.timestamp)).reduce((a, b) => Math.max(a, b), 0);
+        const params = new URLSearchParams({
+            after: maxTimestamp.toString()
+        })
+        const res = await fetch(`/api/chats/${chatId}/exchanges?${params.toString()}`);
+        const json = await res.json();
+
+        if (!res.ok) {
+            throw Error(json);
+        }
+        
+        const exchanges = z.array(ExchangeSchema).parse(json);
+        out.update(prev => [...prev, ...exchanges]);
+    });
+
+    let loop: Promise<void> = (async () => {
+        while (!abortSig.aborted) {
+            await fetcher();
+        }
+    })();
+    
+    return loop;
 }
