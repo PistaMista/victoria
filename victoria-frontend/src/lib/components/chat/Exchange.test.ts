@@ -5,6 +5,7 @@ import type { Exchange } from "$lib/types/exchange";
 import { goto } from "$app/navigation";
 import Component from "./Exchange.svelte";
 import { duplicateChatHandler } from "../../../mocks/handlers/chats";
+import { getMessagesHandler } from "../../../mocks/handlers/exchanges";
 
 vi.mock("$app/navigation", () => ({
     goto: vi.fn()
@@ -16,6 +17,7 @@ const testExchange: Exchange = {
     timestamp: 2500,
     userMessage: {
         id: 2,
+        senderName: "Krystof",
         timestamp: 2405,
         content: {
             type: 'markdown',
@@ -88,4 +90,35 @@ test('exchange can have user message set to null (if initiated by the agent)', a
     expect(() => render(Component, {
         exchange: userMessageNullExchange    
     })).not.toThrow();
+})
+
+test('exchange should send poll requests repeatedly', async () => {
+    render(Component, {
+        exchange: testExchange
+    });
+
+    await waitFor(() => {
+        expect(getMessagesHandler).toBeCalledTimes(1);
+        expect((getMessagesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=0");
+    })
+    await waitFor(() => {
+        expect(getMessagesHandler).toBeCalledTimes(2);
+        expect((getMessagesHandler as Mock).mock.calls[1][0].request.url).toContain("?after=5000");
+    })
+    await waitFor(() => {
+        expect(getMessagesHandler).toBeCalledTimes(3);
+        expect((getMessagesHandler as Mock).mock.calls[2][0].request.url).toContain("?after=7000");
+    })
+    await waitFor(() => {
+        expect(getMessagesHandler).toBeCalledTimes(4);
+        expect((getMessagesHandler as Mock).mock.calls[3][0].request.url).toContain("?after=9000");
+    })
+    await waitFor(() => {
+        expect(getMessagesHandler).toBeCalledTimes(5);
+        expect((getMessagesHandler as Mock).mock.calls[4][0].request.url).toContain("?after=9000");
+    })
+    await waitFor(() => {
+        expect(getMessagesHandler).toBeCalledTimes(6);
+        expect((getMessagesHandler as Mock).mock.calls[5][0].request.url).toContain("?after=9000");
+    })
 })

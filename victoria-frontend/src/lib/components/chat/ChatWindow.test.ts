@@ -46,22 +46,22 @@ test('chat window should send poll requests repeatedly', async () => {
     })
     await waitFor(() => {
         expect(getExchangesHandler).toBeCalledTimes(2);
-        expect((getExchangesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=2700");
+        expect((getExchangesHandler as Mock).mock.calls[1][0].request.url).toContain("?after=2700");
     })
     await waitFor(() => {
         expect(getExchangesHandler).toBeCalledTimes(3);
-        expect((getExchangesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=3300");
+        expect((getExchangesHandler as Mock).mock.calls[2][0].request.url).toContain("?after=3300");
     })
     await waitFor(() => {
         expect(getExchangesHandler).toBeCalledTimes(4);
-        expect((getExchangesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=3300");
+        expect((getExchangesHandler as Mock).mock.calls[3][0].request.url).toContain("?after=3300");
     })
     await waitFor(() => {
         expect(getExchangesHandler).toBeCalledTimes(5);
-        expect((getExchangesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=3300");
+        expect((getExchangesHandler as Mock).mock.calls[4][0].request.url).toContain("?after=3300");
     })
     await waitFor(() => {
         expect(getExchangesHandler).toBeCalledTimes(6);
-        expect((getExchangesHandler as Mock).mock.calls[0][0].request.url).toContain("?after=3300");
+        expect((getExchangesHandler as Mock).mock.calls[5][0].request.url).toContain("?after=3300");
     })
 })
