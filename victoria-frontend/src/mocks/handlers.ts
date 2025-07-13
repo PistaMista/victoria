@@ -1,3 +1,4 @@
+import { handlers as auth } from "./handlers/auth"
 import { handlers as chats } from "./handlers/chats"
 import { handlers as exchanges } from "./handlers/exchanges"
 import { handlers as queries } from "./handlers/queries"
@@ -13,6 +14,8 @@ import { handlers as models } from "./handlers/models"
 
 
 export const handlers = [
+    /* AUTHENTICATION */
+    ...auth,
     /// THESE ENDPOINTS ALWAYS WORK ON OBJECTS OWNED
     /// BY THE CURRENTLY SIGNED IN USER
     /* CHATS */
