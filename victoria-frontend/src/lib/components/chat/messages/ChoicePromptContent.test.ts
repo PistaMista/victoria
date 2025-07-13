@@ -1,13 +1,13 @@
 import { expect, test, type Mock } from "vitest";
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/svelte';
+import { queryByLabelText, render, screen, waitFor } from '@testing-library/svelte';
 import type { ChoicePromptContent } from "$lib/types/message";
 import Component from "./ChoicePromptContent.svelte";
-import { answerQueryHandler } from "../../../../mocks/handlers/queries";
+import { answerQueryHandler, getQueryAnswerHandler } from "../../../../mocks/handlers/queries";
 
-const content: ChoicePromptContent = {
+const pendingQuery: ChoicePromptContent = {
     type: "choice_prompt",
-    queryId: 12,
+    queryId: 3,
     prompt: "Which color do you prefer?",
     choices: [
         {value: "blue"},
@@ -16,24 +16,37 @@ const content: ChoicePromptContent = {
     ]
 }
 
-test('choice prompt shows all available options', async () => {
+const answeredQuery: ChoicePromptContent = {
+    type: "choice_prompt",
+    queryId: 5,
+    prompt: "Which color do you prefer?",
+    choices: [
+        {value: "blue"},
+        {value: "red"},
+        {value: true},
+    ]
+}
+
+test('choice prompt shows all available options for pending query', async () => {
     const { container } = render(Component, {
-        content: content
+        content: pendingQuery
     });
 
-    expect(container).toHaveTextContent("Which color do you prefer?");
-    expect(container).toHaveTextContent("blue");
-    expect(container).toHaveTextContent("red");
-    expect(container).toHaveTextContent("true");
+    await waitFor(() => {
+        expect(container).toHaveTextContent("Which color do you prefer?");
+        expect(container).toHaveTextContent("blue");
+        expect(container).toHaveTextContent("red");
+        expect(container).toHaveTextContent("true");
+    })
 })
 
-test('clicking on a choice in choice prompt sends that choice as a response to the invocation query', async () => {
+test('clicking on a choice in choice prompt sends that choice as a response to the pending query', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(Component, {
-        content: content
+    const { findByLabelText } = render(Component, {
+        content: pendingQuery
     });
     
-    const redButton = getByLabelText("red");
+    const redButton = await findByLabelText("\"red\"");
     await user.click(redButton);
     
     expect(answerQueryHandler).toBeCalled();
@@ -41,19 +54,32 @@ test('clicking on a choice in choice prompt sends that choice as a response to t
     expect(body).toBe("red");
 })
 
-test('choice prompt hides the choices after clicking a choice', async () => {
+test('choice prompt shows selected choice for answered query', async () => {
     const user = userEvent.setup();
-    const { getByLabelText } = render(Component, {
-        content: content
+    const { container } = render(Component, {
+        content: answeredQuery
     });
     
-    const blueButton = getByLabelText("blue");
-    const redButton = getByLabelText("red");
-    const trueButton = getByLabelText("true");
+    await waitFor(() => {
+        expect(container).toHaveTextContent("Chosen: \"blue\"");
+    })
+})
 
-    await user.click(trueButton);
+test('choice prompt does not show choices for already answered query', async () => {
+    const user = userEvent.setup();
+    const { queryByLabelText } = render(Component, {
+        content: answeredQuery
+    });
     
-    expect(blueButton).not.toBeInTheDocument();
-    expect(redButton).not.toBeInTheDocument();
-    expect(trueButton).not.toBeInTheDocument();
+    await waitFor(() => {
+        expect(getQueryAnswerHandler).toBeCalled();
+    })
+    
+    const blueButton = queryByLabelText("blue");
+    const redButton = queryByLabelText("red");
+    const trueButton = queryByLabelText("true");
+
+    expect(blueButton).toBeNull();
+    expect(redButton).toBeNull();
+    expect(trueButton).toBeNull();
 })

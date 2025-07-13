@@ -11,6 +11,8 @@ export const getQueryAnswerHandler = await spy(({params: { id }}) => {
             return HttpResponse.json<any>(null);
         case '4':
             return HttpResponse.json<any>([1, 2, 3]);
+        case '5':
+            return HttpResponse.json<any>("blue");
         default:
             return HttpResponse.json<any>(null, { status: 404 });
     }
@@ -18,13 +20,12 @@ export const getQueryAnswerHandler = await spy(({params: { id }}) => {
 
 export const answerQueryHandler = await spy(({params: { id }}) => {
     switch (id) {
-        case '1':
-            return HttpResponse.json<any>({ error: "Already answered" }, { status: 400 });
-        case '2':
-            return HttpResponse.json<any>({ error: "Already answered" }, { status: 400 });
         case '3':
             return HttpResponse.json<any>(true);
+        case '1':
+        case '2':
         case '4':
+        case '5':
             return HttpResponse.json<any>({ error: "Already answered" }, { status: 400 });
         default:
             return HttpResponse.json<any>(null, { status: 404 });
