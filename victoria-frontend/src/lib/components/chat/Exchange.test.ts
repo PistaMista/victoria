@@ -51,7 +51,7 @@ test('exchange shows all text from agent messages of given exchange', async () =
     await waitFor(() => {
         expect(container).toHaveTextContent("Agent message!");
         expect(container).toHaveTextContent("Pick a thing");
-        expect(container).toHaveTextContent("Are you sure you wish to do this?");
+        expect(container).toHaveTextContent("add_to_calendar");
     })
 })
 

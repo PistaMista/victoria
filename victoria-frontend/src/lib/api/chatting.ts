@@ -5,6 +5,7 @@ import type { Exchange } from "$lib/types/exchange";
 import { Exchange as ExchangeSchema } from "$lib/types/exchange";
 import { z } from "zod";
 import { get, type Writable } from "svelte/store";
+import { type Message, Message as MessageSchema } from "$lib/types/message";
 
 export type SortMode = 'recent' | 'length' | 'importance';
 
@@ -119,7 +120,10 @@ export async function startReceivingExchanges(chatId: number, out: Writable<Exch
         const params = new URLSearchParams({
             after: maxTimestamp.toString()
         })
-        const res = await fetch(`/api/chats/${chatId}/exchanges?${params.toString()}`);
+        const res = await fetch(`/api/chats/${chatId}/exchanges?${params.toString()}`, {
+            method: 'GET',
+            signal: abortSig
+        });
         const json = await res.json();
 
         if (!res.ok) {
@@ -137,4 +141,52 @@ export async function startReceivingExchanges(chatId: number, out: Writable<Exch
     })();
     
     return loop;
+}
+
+export async function startReceivingMessages(exchangeId: number, out: Writable<Message[]>, abortSig: AbortSignal): Promise<void> {
+    let fetcher = (async () => {
+        const maxTimestamp = get(out).map((val) => (val.timestamp)).reduce((a, b) => Math.max(a, b), 0);
+        const params = new URLSearchParams({
+            after: maxTimestamp.toString()
+        })
+        const res = await fetch(`/api/exchanges/${exchangeId}/messages?${params.toString()}`, {
+            method: 'GET',
+            signal: abortSig
+        });
+        const json = await res.json();
+
+        if (!res.ok) {
+            throw Error(json);
+        }
+        
+        const messages = z.array(MessageSchema).parse(json);
+        out.update(prev => [...prev, ...messages]);
+    });
+
+    let loop: Promise<void> = (async () => {
+        while (!abortSig.aborted) {
+            await fetcher();
+        }
+    })();
+    
+    return loop;
+}
+
+export async function duplicateChatToExchange(chatId: number, exchangeId: number): Promise<number> {
+    const res = await fetch(`/api/chats/${chatId}/duplicate`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            toExchange: exchangeId
+        })
+    });
+    const json = await res.json();
+
+    if (!res.ok) {
+        throw Error(json);
+    }
+    
+    return z.number().parse(json);
 }

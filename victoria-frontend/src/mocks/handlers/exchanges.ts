@@ -8,6 +8,8 @@ export const getMessagesHandler = await spy(
         let url: URL = new URL(request.url);
         let after: number = Number(url.searchParams.get('after'));
         
+        await delay(400);
+        
         if (after < 5000) {
             return HttpResponse.json<Message[]>([
                 {
