@@ -139,26 +139,28 @@
         </div>
     </DetailViewSection>
     
-    <DetailViewSection title="Delete user">
-        <DeleteButton
-            aria-label="Delete user"
-            onclick={onDelete}
-        />
-    </DetailViewSection>
+    {#if id !== null}
+        <DetailViewSection title="Delete user">
+            <DeleteButton
+                aria-label="Delete user"
+                onclick={onDelete}
+            />
+        </DetailViewSection>
 
-    <DetailViewSection title="Save user">
-        <SaveButton
-            aria-label="Save user"
-            onclick={onSave}
-        />
-    </DetailViewSection>
-
-    <DetailViewSection title="Create user">
-        <CreateButton
-            aria-label="Create user"
-            onclick={onCreate}
-        />
-    </DetailViewSection>
+        <DetailViewSection title="Save user">
+            <SaveButton
+                aria-label="Save user"
+                onclick={onSave}
+            />
+        </DetailViewSection>
+    {:else}
+        <DetailViewSection title="Create user">
+            <CreateButton
+                aria-label="Create user"
+                onclick={onCreate}
+            />
+        </DetailViewSection>
+    {/if}
 </DetailView>
 </Loader>
 </Loader>
