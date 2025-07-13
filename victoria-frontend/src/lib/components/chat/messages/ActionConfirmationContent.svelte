@@ -70,9 +70,15 @@
                 ><CloseOutline/>ABORT</Button>
             </ButtonGroup>
         {:else if answer === true}
-            CONFIRMED
+            <div class="font-bold text-lime-500">
+                <CheckOutline/>
+                CONFIRMED
+            </div>
         {:else if answer === false}
-            ABORTED
+            <div class="font-bold text-red-500">
+                <CloseOutline/>
+                ABORTED
+            </div>
         {/if}
     </Loader>
     </Loader>
