@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw"
 import { spy } from "../spy"
 
-export const getAnsweredHandler = await spy(({params: { id }}) => {
+export const getQueryAnswerHandler = await spy(({params: { id }}) => {
     switch (id) {
         case '1':
             return HttpResponse.json<any>(true);
@@ -12,26 +12,26 @@ export const getAnsweredHandler = await spy(({params: { id }}) => {
         case '4':
             return HttpResponse.json<any>([1, 2, 3]);
         default:
-            return HttpResponse.json<any>(null);
+            return HttpResponse.json<any>(null, { status: 404 });
     }
 })
 
 export const answerQueryHandler = await spy(({params: { id }}) => {
     switch (id) {
         case '1':
-            return HttpResponse.json<any>(true);
+            return HttpResponse.json<any>({ error: "Already answered" }, { status: 400 });
         case '2':
-            return HttpResponse.json<any>(false);
+            return HttpResponse.json<any>({ error: "Already answered" }, { status: 400 });
         case '3':
-            return HttpResponse.json<any>("lol");
+            return HttpResponse.json<any>(true);
         case '4':
-            return HttpResponse.json<any>([1, 2, 3]);
+            return HttpResponse.json<any>({ error: "Already answered" }, { status: 400 });
         default:
-            return HttpResponse.json<any>(null);
+            return HttpResponse.json<any>(null, { status: 404 });
     }
 })
 
 export const handlers = [
-    http.get('/queries/:id/answer', getAnsweredHandler),
-    http.post('/queries/:id/answer', answerQueryHandler)
+    http.get('/api/queries/:id/answer', getQueryAnswerHandler),
+    http.post('/api/queries/:id/answer', answerQueryHandler)
 ]
