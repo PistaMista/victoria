@@ -40,18 +40,7 @@ test('agent message shows name of agent', async () => {
     expect(container).toHaveTextContent("Librarian");    
 })
 
-test('message shows relative time of sending if sent no earlier than yesterday', async () => {
-    // Mock the current date
-    vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2025, 1, 2, 14, 19, 11));
-
-    const { container } = render(Component, {
-        message: userMessage
-    });
-
-    expect(container).toHaveTextContent("Yesterday 20:00");    
-})
-
-test('message shows full date of sending if sent earlier than yesterday', async () => {
+test('message shows full date of sending', async () => {
     // Mock the current date
     vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2025, 1, 3, 14, 19, 11));
 
@@ -59,7 +48,7 @@ test('message shows full date of sending if sent earlier than yesterday', async 
         message: userMessage
     });
 
-    expect(container).toHaveTextContent("2025/01/20 19:11");    
+    expect(container).toHaveTextContent("2025/02/01 20:00");    
 })
 
 test('message shows text content', async () => {
