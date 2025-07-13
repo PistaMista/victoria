@@ -14,6 +14,6 @@ test('markdown message with bold text contains b tag', async () => {
         content: content
     });
 
-    const bold = container.querySelector('b');
+    const bold = container.querySelector('strong');
     expect(bold).toBeInTheDocument();
 })
