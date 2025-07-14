@@ -21,10 +21,10 @@ def static_files(path):
     else:
         return index()
 
-@app.route("/api/chat", methods=[ "POST" ])
-def chat():
-    response = get_next_ai_message(request.json["messages"])    
-    return response
+# @app.route("/api/chat", methods=[ "POST" ])
+# def chat():
+#     response = get_next_ai_message(request.json["messages"])    
+#     return response
 
 def to_message_object(msg):
     match (msg["type"]):
