@@ -5,7 +5,7 @@
 <Loader
     pendingMessage= "Loading items..."
     rejectMessage= "Failed to load items"
-    promise={new Promise((resolve, reject) => { resolve() })} 
+    promise={new Promise((resolve, reject) => { resolve(null) })} 
 >
     CHILD
 </Loader>

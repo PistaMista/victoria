@@ -2,7 +2,7 @@
     import AgentDetailView from "$lib/views/details/AgentDetailView.svelte";
     import { page } from "$app/stores";
 
-    $: id = $page.params.id;
+    $: id = Number($page.params.id);
 </script>
 
 <AgentDetailView

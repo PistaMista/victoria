@@ -2,9 +2,9 @@
     import MonologueDetailView from "$lib/views/details/MonologueDetailView.svelte";
     import { page } from "$app/stores";
 
-    $: id = $page.params.id;
+    $: id = Number($page.params.id);
 </script>
 
 <MonologueDetailView
-    id={Number(id)}
+    {id}
 />
