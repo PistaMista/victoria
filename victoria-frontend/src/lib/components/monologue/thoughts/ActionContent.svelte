@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { ActionInvocation } from "$lib/types/thought";
     import { HammerSolid } from "flowbite-svelte-icons";
-    import { entries } from "happy-dom/lib/PropertySymbol.js";
     
     export let content: ActionInvocation;
 </script>
