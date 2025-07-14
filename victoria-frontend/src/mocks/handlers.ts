@@ -1,10 +1,10 @@
+import { handlers as auth } from "./handlers/auth"
 import { handlers as chats } from "./handlers/chats"
 import { handlers as exchanges } from "./handlers/exchanges"
-import { handlers as messages } from "./handlers/messages"
+import { handlers as queries } from "./handlers/queries"
 import { handlers as agents } from "./handlers/agents"
 import { handlers as monologues } from "./handlers/monologues"
 import { handlers as events } from "./handlers/events"
-import { handlers as thoughts } from "./handlers/thoughts"
 import { handlers as users } from "./handlers/users"
 import { handlers as action_repos } from "./handlers/action_repos"
 import { handlers as actions } from "./handlers/actions"
@@ -14,22 +14,22 @@ import { handlers as models } from "./handlers/models"
 
 
 export const handlers = [
+    /* AUTHENTICATION */
+    ...auth,
     /// THESE ENDPOINTS ALWAYS WORK ON OBJECTS OWNED
     /// BY THE CURRENTLY SIGNED IN USER
     /* CHATS */
     ...chats,
     /* EXCHANGES */
     ...exchanges,
-    /* MESSAGES */
-    ...messages,
+    /* QUERIES */
+    ...queries,
     /* AGENTS */
     ...agents,
     /* MONOLOGUES */
     ...monologues,
     /* EVENTS */
     ...events,
-    /* THOUGHTS */
-    ...thoughts,
     /// POST, PUT AND DELETE ENDPOINTS BELOW REQUIRE ADMIN ROLE
     /* USERS */
     ...users,

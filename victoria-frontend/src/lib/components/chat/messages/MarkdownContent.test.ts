@@ -1,5 +1,19 @@
 import { expect, test } from "vitest";
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
+import Component from "./MarkdownContent.svelte";
+import { MarkdownContent } from "$lib/types/message";
 
-test.todo('markdown message content markdown of message with given id into html')
+const content: MarkdownContent = {
+    type: "markdown",
+    markdownText: "This is **bold**"
+};
+
+test('markdown message with bold text contains b tag', async () => {
+    const { container } = render(Component, {
+        content: content
+    });
+
+    const bold = container.querySelector('strong');
+    expect(bold).toBeInTheDocument();
+})

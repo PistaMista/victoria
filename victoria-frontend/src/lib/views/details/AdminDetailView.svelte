@@ -7,9 +7,9 @@
 
 <DetailView>
     <DetailViewSection title="Administration options">
-        <OptionsRouteButton icon={HammerSolid} text="Actions"/>
-        <OptionsRouteButton icon={RocketSolid} text="Triggers"/>
-        <OptionsRouteButton icon={UserSolid} text="Users"/>
-        <OptionsRouteButton icon={CogSolid} text="Settings"/>
+        <OptionsRouteButton icon={HammerSolid} text="Actions" route="/admin/actions"/>
+        <OptionsRouteButton icon={RocketSolid} text="Triggers" route="/admin/triggers"/>
+        <OptionsRouteButton icon={UserSolid} text="Users" route="/admin/users"/>
+        <OptionsRouteButton icon={CogSolid} text="Settings" route="/admin/settings"/>
     </DetailViewSection>
 </DetailView>

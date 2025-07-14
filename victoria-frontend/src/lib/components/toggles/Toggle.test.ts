@@ -1,0 +1,1 @@
+// There is nothing to test - this is just a wrapped checkbox

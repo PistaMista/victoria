@@ -1,8 +1,19 @@
-<div class="flex flex-col px-2 my-1 border-t-2 border-black hover:bg-slate-400">
+<script lang="ts">
+    import type { ActionRepository } from "$lib/types/action_repo";
+    import { goto } from "$app/navigation";
+    
+    export let repository: ActionRepository;
+    
+    function openRepositoryDetail() {
+        goto(`/admin/actions/${repository.id}/edit`);
+    }
+</script>
+
+<button on:click={openRepositoryDetail} class="flex flex-col px-2 my-1 border-t-2 border-black hover:bg-slate-400">
     <div class="font-bold">
-        Home assistant actions
+        {repository.name}
     </div>
     <div>
-        URL: http://golem:8125/PistaMista/HA-actions.git
+        URL: {repository.url}
     </div>
-</div>
+</button>

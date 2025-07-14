@@ -6,7 +6,8 @@ export default defineConfig({
 	plugins: [sveltekit(), svelteTesting()],
 	test: {
 		environment: 'happy-dom',
-		setupFiles: ['./vitest-setup.js']
+		setupFiles: ['./vitest-setup.js'],
+		clearMocks: true
 	},
 	resolve: process.env.VITEST
 		? {

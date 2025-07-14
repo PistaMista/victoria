@@ -2,4 +2,6 @@
     import AgentDetailView from "$lib/views/details/AgentDetailView.svelte";
 </script>
 
-<AgentDetailView/>
+<AgentDetailView
+    id={null}
+/>

@@ -1,21 +1,20 @@
-<script>
-    import { HammerSolid, ReplyAllSolid} from "flowbite-svelte-icons";
+<script lang="ts">
+    import type { ActionInvocation } from "$lib/types/thought";
+    import { HammerSolid } from "flowbite-svelte-icons";
+    
+    export let content: ActionInvocation;
 </script>
 
 <div class="flex flex-col space-y-2">
-    <div class="border-b-2 border-slate-500 w-full">
+    <div class="w-full">
         <HammerSolid class="float-left mr-2"/>
         <div class="w-full font-semibold">
-            Add to calendar
+            {content.name}
         </div>
         <ul>
-            <li>description: Conference XYZ</li>
-            <li>date: 2025-06-10</li>
-            <li>time: 10:00 AM</li>
+            {#each Object.entries(content.parameters) as [name, val]}
+                <li>{name}: {val.toString()}</li>
+            {/each}
         </ul>
-    </div>
-    <div class="w-full">
-        <ReplyAllSolid class="float-left mr-2"/>
-        Event successfully added to calendar./Exception thrown: SDNJANSJKDNKJN
     </div>
 </div>

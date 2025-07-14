@@ -1,8 +1,10 @@
 import { http, HttpResponse } from "msw"
+import type { Action } from "$lib/types/action"
+import { spy } from "../spy"
 
-export const handlers = [
-    http.get('/api/actions', () => {
-        return HttpResponse.json([
+export const getActionsHandler = await spy(
+    () => {
+        return HttpResponse.json<Array<Action>>([
             {
                 id: 1,
                 repoId: 1,
@@ -22,5 +24,10 @@ export const handlers = [
                 displayName: "Start monologue"
             }
         ])
-    }),
+    }   
+)
+
+export const handlers = [
+    http.get('/api/actions', getActionsHandler), // This lists only permitted actions for the current user
+    http.get('/api/actions/all', getActionsHandler), // This lists ALL existing actions
 ]
