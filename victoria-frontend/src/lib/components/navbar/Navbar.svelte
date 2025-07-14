@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Route } from "$lib/types/route";
     import NavbarItem from "./NavbarItem.svelte";
-    import { Button, Drawer } from "flowbite-svelte";
+    import { Drawer } from "flowbite-svelte";
     import { BarsOutline } from "flowbite-svelte-icons";
     
     export let routes: Array<Route>;
@@ -16,13 +16,13 @@
         {/each}
     </nav>
 
-    <Button 
+    <button 
         aria-label="Open navigation drawer"
         on:click={() => drawerHidden = !drawerHidden} 
         class="md:hidden hover:bg-slate-400 px-1 content-center"
     >
         <BarsOutline/>
-    </Button>
+    </button>
     
     <div class="grow"/>
     
@@ -30,7 +30,7 @@
     <div class="hover:bg-slate-400 w-6 h-6 bg-orange-500 rounded-full m-0.5"/>
 </div>
 
-<Drawer class="hidden md:block" aria-label="Navigation drawer" bind:hidden={drawerHidden}>
+<Drawer aria-label="Navigation drawer" bind:hidden={drawerHidden} placement="left">
     <nav class="flex flex-col">
         {#each routes as route}
             <NavbarItem {route}/>
