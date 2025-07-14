@@ -40,5 +40,5 @@ test('clicking trigger list item routes to detail of given trigger', async () =>
 
     await user.click(button);
 
-    expect(goto).toBeCalledWith("/admin/triggers/3");
+    expect(goto).toBeCalledWith("/admin/triggers/3/edit");
 })

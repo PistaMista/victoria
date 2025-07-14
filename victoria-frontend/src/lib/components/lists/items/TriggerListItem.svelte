@@ -5,7 +5,7 @@
     export let trigger: TriggerListItem;
 
     function openTriggerDetail() {
-        goto(`/admin/triggers/${trigger.id}`);
+        goto(`/admin/triggers/${trigger.id}/edit`);
     }
 </script>
 
