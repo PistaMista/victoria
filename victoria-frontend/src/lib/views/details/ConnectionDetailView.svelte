@@ -86,27 +86,28 @@
         />
     </DetailViewSection>
 
-    <DetailViewSection title="Delete connection">
-        <DeleteButton
-            aria-label="Delete connection"
-            onclick={onDelete}
-        />
-    </DetailViewSection>
-    
-    <DetailViewSection title="Save connection">
-        <SaveButton
-            aria-label="Save connection"
-            onclick={onSave}
-        />
-    </DetailViewSection>
-    
-    
-    <DetailViewSection title="Create connection">
-        <CreateButton
-            aria-label="Create connection"
-            onclick={onCreate}
-        />
-    </DetailViewSection>
+    {#if id !== null}
+        <DetailViewSection title="Delete connection">
+            <DeleteButton
+                aria-label="Delete connection"
+                onclick={onDelete}
+            />
+        </DetailViewSection>
+        
+        <DetailViewSection title="Save connection">
+            <SaveButton
+                aria-label="Save connection"
+                onclick={onSave}
+            />
+        </DetailViewSection>
+    {:else}
+        <DetailViewSection title="Create connection">
+            <CreateButton
+                aria-label="Create connection"
+                onclick={onCreate}
+            />
+        </DetailViewSection>
+    {/if}
 </DetailView>
 </Loader>
 </Loader>
