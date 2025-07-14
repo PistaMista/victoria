@@ -2,7 +2,6 @@ import type { Monologue, MonologueListItem, MonologueStatus } from "$lib/types/m
 import { MonologueListItem as MonologueListItemSchema, Monologue as MonologueSchema } from "$lib/types/monologue";
 import { Thought as ThoughtSchema } from "$lib/types/thought";
 import type { Thought } from "$lib/types/thought";
-import { URLSearchParams } from "happy-dom";
 import { z } from "zod";
 
 export async function getCurrentUserMonologues(
@@ -14,7 +13,7 @@ export async function getCurrentUserMonologues(
     const params = new URLSearchParams();
     
     if (triggerId !== null) {
-        params.append('trigger', triggerId);
+        params.append('trigger', triggerId.toString());
     }
     
     if (status !== null) {
@@ -22,7 +21,7 @@ export async function getCurrentUserMonologues(
     }
     
     if (agentId !== null) {
-        params.append('assignedAgent', agentId);
+        params.append('assignedAgent', agentId.toString());
     }
     
     if (searchQuery !== null) {

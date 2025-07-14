@@ -114,9 +114,9 @@
             {#each monologues as monologue}
                 <ListItemComponent
                     {monologue}
-                />
+                /> 
             {/each}
         </Loader>
-    </svelte:fragment>
+    </svelte:fragment> 
 </ListView>
 </Loader>
