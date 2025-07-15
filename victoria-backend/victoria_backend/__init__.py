@@ -1,7 +1,7 @@
 import os
 from time import sleep
-from .lib.spa_static_files import SPAStaticFiles
-from .api import api_router
+from victoria_backend.lib.spa_static_files import SPAStaticFiles
+from victoria_backend.api import api_router
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
