@@ -2,6 +2,9 @@ let
   config = {
     allowUnfree = true;
   };
+  pkgs-old =
+    import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-24.05.tar.gz")
+      { inherit config; };
   pkgs =
     import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-25.05.tar.gz")
       { inherit config; };
@@ -17,8 +20,7 @@ let
         asvetliakov.vscode-neovim
         usernamehw.errorlens
         svelte.svelte-vscode
-        ms-python.python
-
+	pkgs-old.vscode-extensions.ms-python.python
       ]
       ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
         {
@@ -40,12 +42,12 @@ pkgs.mkShell {
   packages = [
     pkgs.poetry
     pkgs.nodejs_22
+    pkgs.pylyzer
     nvim
     vscode
     (pkgs.python3.withPackages (ps: [
-      ps.flask
-      ps.waitress
-      ps.langchain
+      ps.alembic
+      ps.fastapi-cli
     ]))
   ];
 }
