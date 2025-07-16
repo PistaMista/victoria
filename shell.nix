@@ -39,15 +39,17 @@ let
   };
 in
 pkgs.mkShell {
-  packages = [
+  buildInputs = [
     pkgs.poetry
     pkgs.nodejs_22
     pkgs.pylyzer
     nvim
     vscode
-    (pkgs.python3.withPackages (ps: [
-      ps.alembic
-      ps.fastapi-cli
-    ]))
   ];
+
+  shellHook = ''
+  	poetry install -P victoria-backend
+	VENV="$(poetry env info --path -P victoria-backend 2> /dev/null)"
+	source "$VENV/bin/activate"
+  '';
 }
