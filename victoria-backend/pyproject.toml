@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
 readme = "README.md"
+include = [ "alembic/**" ]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -12,9 +13,7 @@ uvicorn = "^0.35.0"
 httpx = "^0.28.1"
 pytest = "^8.4.1"
 sqlalchemy = "^2.0.41"
-
-
-[tool.poetry.group.dev.dependencies]
+psycopg2-binary = "^2.9.10"
 alembic = "^1.16.4"
 
 [build-system]
@@ -23,3 +22,12 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 victoria-backend = "victoria_backend:main"
+
+
+[tool.alembic]
+script_location = "%(here)s/alembic"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
+prepend_sys_path = [
+    "."
+]
+timezone = "UTC"

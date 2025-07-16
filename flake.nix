@@ -56,7 +56,7 @@
 					runtimeInputs = [ ];
 
 					text = ''
-						export FRONTEND_PATH="${frontend}";
+						export VICTORIA_FRONTEND_PATH="${frontend}";
 						${backend}/bin/victoria-backend "$@";
 					'';
 				};
