@@ -1,0 +1,13 @@
+name: victoria
+
+services:
+  victoria:
+    build: .
+    environment:
+      VICTORIA_ADDRESS: "0.0.0.0"
+      VICTORIA_PORT: "5001"
+    ports:
+      - "11435:5001"
+
+  database:
+    image: postgres
