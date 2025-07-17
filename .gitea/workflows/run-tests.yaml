@@ -1,0 +1,16 @@
+name: Run project tests
+on: [push, pull_request]
+
+jobs:
+  run-tests:
+    runs-on: nixos-nix
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        ssh-key: ${{ secrets.ACTIONS_KEY }}
+      - name: Enter development shell
+        run: nix develop
+      - name: Run frontend tests
+        run: cd victoria-frontend; npm run test
+      - name: Run backend tests
+        run: cd ../victoria-backend; pytest
