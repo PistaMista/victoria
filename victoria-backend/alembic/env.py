@@ -1,10 +1,10 @@
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-from victoria_backend import database_url
+from app import database_url
 from alembic import context
 
-from victoria_backend.model import Base, user
+from app.model import Base, user
 
 config = context.config
 target_metadata = Base.metadata

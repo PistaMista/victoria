@@ -20,7 +20,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-victoria-backend = "victoria_backend:main"
+victoria-backend = "app:main"
 
 
 [tool.alembic]

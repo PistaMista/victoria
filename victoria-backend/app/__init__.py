@@ -1,6 +1,6 @@
 import os
-from victoria_backend.lib.spa_static_files import SPAStaticFiles
-from victoria_backend.api import api_router
+from app.lib.spa_static_files import SPAStaticFiles
+from app.api import api_router
 from fastapi import FastAPI
 from alembic import command
 from alembic.config import Config
@@ -28,4 +28,4 @@ def migrate_db():
 
 def main():
     migrate_db()
-    uvicorn.run("victoria_backend:app", host=address, port=port, reload=True)
+    uvicorn.run("app:app", host=address, port=port, reload=True)
