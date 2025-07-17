@@ -2,40 +2,24 @@ name: Run project tests
 on: [push, pull_request]
 
 env:
-  PATH: "/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   NIX_CONFIG: "experimental-features = nix-command flakes"
 
 jobs:
   run-tests:
-    runs-on: debian-latest
+    runs-on: nixos-nix
     steps:
-      - name: Install dependencies
-        run: apt-get update && apt-get install -y sudo curl
-
-      - name: Set up users for Nix
-        run: useradd nixbld1 && groupadd nixbld && usermod -aG nixbld nixbld1
-
-      - name: Install Nix
-        run: sh <(curl -L https://nixos.org/nix/install) --no-daemon
-
       - name: Check out repository code
         uses: actions/checkout@v4
         ssh-key: ${{ secrets.ACTIONS_KEY }}
 
-      - name: Enter development shell
-        run: nix develop
+      - name: Enter development shell and run tests
+        run: |
+          nix develop --command bash -c '
+            cd victoria-frontend
+            npm install
+            npm run test
 
-      - name: Install frontend package
-        run: cd victoria-frontend; npm install
-
-      - name: Run frontend tests
-        run: npm run test
-
-      - name: Install backend package
-        run: cd ../victoria-backend; poetry install
-      
-      - name: Activate Python virtual environment
-        run: source "$(poetry env info --path -P victoria-backend 2> /dev/null)/bin/activate"
-
-      - name: Run backend tests
-        run: pytest
+            cd ../victoria-backend
+            poetry install
+            poetry run pytest
+          '
