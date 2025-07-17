@@ -133,9 +133,6 @@
             shellHook = ''
               export DB_USER="user"
               export DB_PASS="pass"
-              poetry install -P victoria-backend
-              VENV="$(poetry env info --path -P victoria-backend 2> /dev/null)"
-              source "$VENV/bin/activate"
             '';
           };
       }
