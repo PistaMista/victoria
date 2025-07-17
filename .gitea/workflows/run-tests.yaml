@@ -3,14 +3,26 @@ on: [push, pull_request]
 
 jobs:
   run-tests:
-    runs-on: nixos-nix
+    runs-on: debian-latest
     steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y curl sudo
+
+      - name: Set up users for Nix
+        run: useradd nixbld1 && groupadd nixbld && usermod -aG nixbld nixbld1
+
+      - name: Install Nix
+        run: sh <(curl -L https://nixos.org/nix/install) --no-daemon
+
       - name: Check out repository code
         uses: actions/checkout@v4
         ssh-key: ${{ secrets.ACTIONS_KEY }}
+
       - name: Enter development shell
         run: nix develop
+
       - name: Run frontend tests
         run: cd victoria-frontend; npm run test
+
       - name: Run backend tests
         run: cd ../victoria-backend; pytest
