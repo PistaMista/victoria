@@ -1,5 +1,37 @@
 {
   "nodes": {
+    "dev-pkgs": {
+      "locked": {
+        "lastModified": 1752620740,
+        "narHash": "sha256-f3pO+9lg66mV7IMmmIqG4PL3223TYMlnlw+pnpelbss=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "32a4e87942101f1c9f9865e04dc3ddb175f5f32e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "dev-pkgs-old": {
+      "locked": {
+        "lastModified": 1735563628,
+        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -59,22 +91,6 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1735563628,
-        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-24.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
         "lastModified": 1730157240,
         "narHash": "sha256-P8wF4ag6Srmpb/gwskYpnIsnspbjZlRvu47iN527ABQ=",
         "owner": "NixOS",
@@ -93,7 +109,7 @@
       "inputs": {
         "flake-utils": "flake-utils_2",
         "nix-github-actions": "nix-github-actions",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs",
         "systems": "systems_3",
         "treefmt-nix": "treefmt-nix"
       },
@@ -111,11 +127,29 @@
         "type": "github"
       }
     },
+    "prod-pkgs": {
+      "locked": {
+        "lastModified": 1735563628,
+        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
+        "dev-pkgs": "dev-pkgs",
+        "dev-pkgs-old": "dev-pkgs-old",
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs",
-        "poetry2nix": "poetry2nix"
+        "poetry2nix": "poetry2nix",
+        "prod-pkgs": "prod-pkgs"
       }
     },
     "systems": {
