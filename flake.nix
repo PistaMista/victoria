@@ -34,6 +34,12 @@
 					projectDir = ./victoria-backend;
 					overrides = poetryOverrides;
 					preferWheels = true;
+					
+					# Copy database migration scripts
+					postInstall = ''
+						mkdir -p $out/share/victoria-backend
+						cp -r ${./victoria-backend/alembic} $out/lib/python3.11/site-packages/alembic
+					'';
 				};
 
 				frontend = pkgs.buildNpmPackage {

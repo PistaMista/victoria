@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
 readme = "README.md"
-include = [ "alembic/**" ]
 
 [tool.poetry.dependencies]
 python = "^3.11"

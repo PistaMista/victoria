@@ -4,8 +4,10 @@ from sqlalchemy import pool
 from victoria_backend import database_url
 from alembic import context
 
+from victoria_backend.model import Base, user
+
 config = context.config
-target_metadata = None
+target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", database_url)
 

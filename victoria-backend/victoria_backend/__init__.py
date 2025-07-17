@@ -21,7 +21,9 @@ app.mount("/", SPAStaticFiles(directory=frontend_path))
 
 def migrate_db():
     config = Config()
-    config.set_main_option('script_location', "%(here)s/../alembic")
+    parent_dir = os.path.dirname(__file__)
+    script_location = os.path.join(parent_dir, "../alembic")
+    config.set_main_option('script_location', script_location)
     command.upgrade(config, "head")
 
 def main():
