@@ -4,21 +4,32 @@ version = "0.1.0"
 description = ""
 authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
 readme = "README.md"
+packages = [ 
+    { include = "app" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-langchain = "^0.2.16"
+fastapi = "^0.116.1"
+uvicorn = "^0.35.0"
+httpx = "^0.28.1"
+pytest = "^8.4.1"
+sqlalchemy = "^2.0.41"
+psycopg2-binary = "^2.9.10"
+alembic = "^1.16.4"
 
-
-langchain-ollama = "^0.1.3"
-flask = "^3.0.3"
-argparse = "^1.4.0"
-waitress = "^3.0.0"
-duckduckgo-search = "^6.2.11"
-langgraph = "^0.2.22"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-victoria-backend = "victoria_backend:main"
+victoria-backend = "app:main"
+
+
+[tool.alembic]
+script_location = "%(here)s/alembic"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
+prepend_sys_path = [
+    "."
+]
+timezone = "UTC"
