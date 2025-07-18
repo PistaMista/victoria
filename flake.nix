@@ -18,7 +18,7 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        inherit (poetry2nix.lib.mkPoetry2Nix { inherit prod-pkgs; })
+        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = prod-pkgs; })
           mkPoetryApplication
           defaultPoetryOverrides
           ;
