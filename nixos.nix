@@ -19,19 +19,11 @@ in
 			'';
 			default = 5001;
 		};
-		ollamaAddress = lib.mkOption {
+		databaseUrl = lib.mkOption {
 			type = lib.types.str;
 			description = ''
-				Address of the Ollama server to use.
+				Database URL of the database to use.
 			'';
-			default = "http://localhost:11434";
-		};
-		ollamaModel = lib.mkOption {
-			type = lib.types.str;
-			description = ''
-				The language model to use with Ollama.
-			'';
-			default = "llama-3.1";
 		};
 	};
 
@@ -42,8 +34,7 @@ in
 			environment = {
 				VICTORIA_ADDRESS = toString cfg.listenAddress;
 				VICTORIA_PORT = toString cfg.listenPort;
-				VICTORIA_OLLAMA_ADDRESS = toString cfg.ollamaAddress;
-				VICTORIA_OLLAMA_MODEL = toString cfg.ollamaModel;
+				VICTORIA_DATABASE_URL = toString cfg.databaseUrl;
 			};
 			serviceConfig = {
 				ExecStart = "${victoria}/bin/victoria-backend -a ${toString cfg.listenAddress} -p ${toString cfg.listenPort}";
