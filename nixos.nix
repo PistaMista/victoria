@@ -19,6 +19,20 @@ in
 			'';
 			default = 5001;
 		};
+		user = lib.mkOption {
+			type = lib.types.str;
+			description = ''
+				The user the application runs as.
+			'';
+			default = "victoria";
+		};
+		group = lib.mkOption {
+			type = lib.types.str;
+			description = ''
+				The group the application runs as.
+			'';
+			default = "victoria";
+		};
 		databaseUrl = lib.mkOption {
 			type = lib.types.str;
 			description = ''
@@ -28,6 +42,15 @@ in
 	};
 
 	config = lib.mkIf cfg.enable {
+		users.users = lib.mkIf (cfg.user == "victoria") {
+			victoria = {
+				description = "Victoria service";
+				useDefaultShell = true;
+				group = cfg.group;
+				isSystemUser = true;
+			};
+		};
+
 		systemd.services.victoria = {
 			description = "An all-purpose AI assistant server.";
 			wantedBy = [ "multi-user.target" ];
@@ -37,6 +60,8 @@ in
 				VICTORIA_DATABASE_URL = toString cfg.databaseUrl;
 			};
 			serviceConfig = {
+				User = cfg.user;
+				Group = cfg.group;
 				ExecStart = "${victoria}/bin/victoria-backend -a ${toString cfg.listenAddress} -p ${toString cfg.listenPort}";
 			};
 		};
