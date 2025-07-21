@@ -50,6 +50,10 @@ in
 				isSystemUser = true;
 			};
 		};
+		
+		users.groups = lib.mkIf (cfg.group == "victoria") {
+			victoria = { };
+		};
 
 		systemd.services.victoria = {
 			description = "An all-purpose AI assistant server.";
