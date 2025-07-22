@@ -8,3 +8,5 @@ class Settings(BaseSettings):
     FRONTEND_PATH: Optional[str] = None
     PORT: Optional[int] = None
     ADDRESS: Optional[str] = None
+
+settings = Settings()
