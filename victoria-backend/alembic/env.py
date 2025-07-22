@@ -1,7 +1,6 @@
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
-from app import database_url
+import os
 from alembic import context
 
 from app.model import Base, user
@@ -9,7 +8,10 @@ from app.model import Base, user
 config = context.config
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", database_url)
+try:
+    config.get_main_option("sqlalchemy.url")
+except:
+    config.set_main_option("sqlalchemy.url", os.environ.get("VICTORIA_DATABASE_URL"))
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
