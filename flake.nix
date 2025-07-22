@@ -105,6 +105,7 @@
                   usernamehw.errorlens
                   svelte.svelte-vscode
                   dev-pkgs-old.vscode-extensions.ms-python.python
+                  dev-pkgs-old.vscode-extensions.ms-python.debugpy
                 ]
                 ++ dev-pkgs.vscode-utils.extensionsFromVscodeMarketplace [
                   {
@@ -133,6 +134,8 @@
             shellHook = ''
               export DB_USER="user"
               export DB_PASS="pass"
+              # FOR USE IN TESTING, NOT PRODUCTION!
+              export VICTORIA_JWT_SECRET="d2e74cd1a54c4b8b90f215f5bcd057fbb10b2c23a1615ca49edeee0415f5b055"
             '';
           };
       }
