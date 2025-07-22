@@ -1,36 +1,28 @@
+import pytest
 from sqlalchemy import insert, select
 from app.model.user import User
-from pytest import mark
 from app.model.user import User
 
-def test_invalid_login_responds_with_401_and_error(db_session, client):
+@pytest.mark.parametrize("username,password", [
+    ("John", "mypass123"), # wrong password
+    ("Thomas", "actual"), # wrong username
+    ("Thomas", "mypass123") # both wrong
+])
+def test_invalid_login_responds_with_401_and_error(db_session, client, username, password):
     # Arrange
     user = User(username="John", password_hash="sdasdasd")
     db_session.add(user)
     db_session.flush()
     
     # Act
-    res_invalid_password = client.post('/api/auth/login', json={
-        'username': "John",
-        'password': "mypass123"
-    })
-    res_invalid_username = client.post('/api/auth/login', json={
-        'username': "Thomas",
-        'password': "actual"
-    })
-    res_invalid_both = client.post('/api/auth/login', json={
-        'username': "Thomas",
-        'password': "mypass123"
+    res = client.post('/api/auth/login', json={
+        'username': username,
+        'password': password
     })
 
     # Assert
-    assert res_invalid_password.status_code == 401
-    assert res_invalid_username.status_code == 401
-    assert res_invalid_both.status_code == 401
-    
-    assert res_invalid_password.json() == {"error": "Invalid credentials"}
-    assert res_invalid_username.json() == {"error": "Invalid credentials"}
-    assert res_invalid_both.json() == {"error": "Invalid credentials"}
+    assert res.status_code == 401
+    assert res.json() == {"error": "Invalid credentials"}
 
 def test_valid_login_responds_with_200_and_jwt_token(client, db_session):
     # Arrange
