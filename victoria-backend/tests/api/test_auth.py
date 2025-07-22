@@ -10,7 +10,10 @@ from app.model.user import User
 ])
 def test_invalid_login_responds_with_401_and_error(db_session, client, username, password):
     # Arrange
-    user = User(username="John", password_hash="sdasdasd")
+    user = User(
+        username="John", 
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
+    )
     db_session.add(user)
     db_session.flush()
     
@@ -26,7 +29,10 @@ def test_invalid_login_responds_with_401_and_error(db_session, client, username,
 
 def test_valid_login_responds_with_200_and_jwt_token(client, db_session):
     # Arrange
-    user = User(username="John", password_hash="sdasdasd")
+    user = User(
+        username="John", 
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
+    )
     db_session.add(user)
     db_session.flush()
     
