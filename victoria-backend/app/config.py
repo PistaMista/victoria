@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+import os
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="VICTORIA_")
@@ -8,5 +9,7 @@ class Settings(BaseSettings):
     FRONTEND_PATH: Optional[str] = None
     PORT: Optional[int] = None
     ADDRESS: Optional[str] = None
+    # TODO: Create a setting in the nixos module for a jwt_secret_file
+    JWT_SECRET: str = os.urandom(32).hex()
 
 settings = Settings()

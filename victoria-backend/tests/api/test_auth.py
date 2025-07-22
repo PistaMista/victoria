@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from sqlalchemy import insert, select
 from app.model.user import User
 from app.model.user import User
@@ -27,9 +28,11 @@ def test_invalid_login_responds_with_401_and_error(db_session, client, username,
     assert res.status_code == 401
     assert res.json() == {"error": "Invalid credentials"}
 
-def test_valid_login_responds_with_200_and_jwt_token(client, db_session):
+@patch('time.time', return_value=1753211036)
+def test_valid_login_responds_with_200_and_jwt_token(mock_time, client, db_session):
     # Arrange
     user = User(
+        id=1,
         username="John", 
         password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
     )
@@ -44,7 +47,7 @@ def test_valid_login_responds_with_200_and_jwt_token(client, db_session):
     
     # Assert
     assert res.status_code == 200
-    assert res.json() == "token"
+    assert res.json() == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3N1ZWQiOjE3NTMyMTEwMzYsImV4cGlyZXMiOjE3NTU4MDMwMzZ9.jPFEGbfJMQ63T70_vMPBMtcn8COey3U9JU1Ch3XvXT0"
 
 
 def test_register_creates_new_user_in_database(client, db_session):

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.model.user import User
 from app.schema.user import UserLogin, UserRegister
 from app.schema.error import Error
+from app.lib.auth_token import create_auth_token_for_user
 from bcrypt import checkpw, hashpw, gensalt
 
 router = APIRouter()
@@ -22,9 +23,10 @@ async def login(input: UserLogin, db: Session = Depends(get_db_session)) -> str:
         expected_hash = user.password_hash.encode('utf-8')
 
         if checkpw(actual_pw, expected_hash):
+            token = create_auth_token_for_user(user)
             return JSONResponse(
                 status_code=200,
-                content="lol :D"            
+                content=token
             )
 
     return JSONResponse(
