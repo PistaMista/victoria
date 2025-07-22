@@ -105,6 +105,7 @@
                   usernamehw.errorlens
                   svelte.svelte-vscode
                   dev-pkgs-old.vscode-extensions.ms-python.python
+                  dev-pkgs-old.vscode-extensions.ms-python.debugpy
                 ]
                 ++ dev-pkgs.vscode-utils.extensionsFromVscodeMarketplace [
                   {
