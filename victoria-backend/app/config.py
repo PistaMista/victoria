@@ -4,7 +4,7 @@ from typing import Optional
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="VICTORIA_")
     
-    database_url: Optional[str]
-    frontend_path: Optional[str]
-    port: Optional[int]
-    address: Optional[str]
+    DATABASE_URL: Optional[str] = None
+    FRONTEND_PATH: Optional[str] = None
+    PORT: Optional[int] = None
+    ADDRESS: Optional[str] = None

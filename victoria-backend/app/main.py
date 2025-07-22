@@ -10,12 +10,12 @@ def create_app() -> FastAPI:
     app = FastAPI()
 
     app.include_router(api_router, prefix="/api")
-    if Settings.frontend_path:
-        app.mount("/", SPAStaticFiles(directory=Settings.frontend_path))
+    if Settings.FRONTEND_PATH:
+        app.mount("/", SPAStaticFiles(directory=Settings.FRONTEND_PATH))
         
     return app
 
 def main():
     app = create_app()
-    run_migrations_on_url(Settings.database_url)
+    run_migrations_on_url(Settings.DATABASE_URL)
     uvicorn.run(app, host=address, port=port)
