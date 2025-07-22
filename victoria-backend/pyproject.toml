@@ -18,13 +18,16 @@ sqlalchemy = "^2.0.41"
 psycopg2-binary = "^2.9.10"
 alembic = "^1.16.4"
 pymysql = "^1.1.1"
+testcontainers = "^4.10.0"
+pydantic = "^2.11.7"
+pydantic-settings = "^2.10.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-victoria-backend = "app:main"
+victoria-backend = "app.main:main"
 
 
 [tool.alembic]
