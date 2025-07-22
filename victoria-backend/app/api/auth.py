@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.model.user import User
 from app.schema.user import UserLogin, UserRegister
 from app.schema.error import Error
-from bcrypt import checkpw
+from bcrypt import checkpw, hashpw, gensalt
 
 router = APIRouter()
 
@@ -24,7 +24,7 @@ async def login(input: UserLogin, db: Session = Depends(get_db_session)) -> str:
         if checkpw(actual_pw, expected_hash):
             return JSONResponse(
                 status_code=200,
-                content=""            
+                content="lol :D"            
             )
 
     return JSONResponse(
@@ -35,5 +35,22 @@ async def login(input: UserLogin, db: Session = Depends(get_db_session)) -> str:
         
     
 @router.post("/register")
-async def register(user: UserRegister, db: Session = Depends(get_db_session)):
-    return []
+async def register(input: UserRegister, db: Session = Depends(get_db_session)):
+    existing_user = db.scalars(
+            select(User).where(User.username == input.username)
+        ).first()
+    
+    if not existing_user is None:
+        return JSONResponse(
+            status_code=400,
+            content=Error(error="Username already taken").dict()
+        )
+        
+    new_user = User(
+        username=input.username,
+        password_hash=hashpw(input.password.encode('utf-8'), gensalt()).decode('utf-8')
+    )
+    db.add(new_user)
+    db.flush()
+
+    return JSONResponse(content={})

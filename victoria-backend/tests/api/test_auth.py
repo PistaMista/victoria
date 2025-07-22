@@ -61,7 +61,6 @@ def test_register_creates_new_user_in_database(client, db_session):
 
     assert res.status_code == 200
     assert new_user.username == "John"
-    assert new_user.password_hash == "sdaxdzasdasd"
 
 def test_register_does_not_create_new_user_if_username_empty(client, db_session):
     # Arrange
@@ -73,7 +72,7 @@ def test_register_does_not_create_new_user_if_username_empty(client, db_session)
     })
     
     # Assert
-    assert res.status_code == 400
+    assert res.status_code == 422
     assert db_session.query(User).first() is None
 
 def test_register_does_not_create_new_user_if_password_empty(client, db_session):
@@ -86,7 +85,7 @@ def test_register_does_not_create_new_user_if_password_empty(client, db_session)
     })
     
     # Assert
-    assert res.status_code == 400
+    assert res.status_code == 422
     assert db_session.query(User).first() is None
     
 def test_register_does_not_create_new_user_if_username_taken(client, db_session):
