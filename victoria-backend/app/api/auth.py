@@ -4,7 +4,7 @@ from app.db.session import get_db_session
 from app.lib.user import get_current_user
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.model.user import User
+from app.model.user import User, Role
 from app.schema.user import UserLogin, UserRegister
 from app.schema.error import Error
 from app.lib.auth_token import create_auth_token_for_user
@@ -45,6 +45,9 @@ async def register(input: UserRegister, db: Session = Depends(get_db_session)):
     existing_user = db.scalars(
             select(User).where(User.username == input.username)
         ).first()
+    is_first_user = db.scalars(
+        select(User)
+    ).first() is None
     
     if not existing_user is None:
         raise HTTPException(
@@ -54,7 +57,8 @@ async def register(input: UserRegister, db: Session = Depends(get_db_session)):
         
     new_user = User(
         username=input.username,
-        password_hash=hashpw(input.password.encode('utf-8'), gensalt()).decode('utf-8')
+        password_hash=hashpw(input.password.encode('utf-8'), gensalt()).decode('utf-8'),
+        role=Role.ADMIN if is_first_user else Role.USER
     )
     db.add(new_user)
     db.flush()
@@ -64,5 +68,6 @@ async def register(input: UserRegister, db: Session = Depends(get_db_session)):
 @router.get("/me")
 async def me(user: User = Depends(get_current_user)):
     return JSONResponse(content={
-        "username": user.username
+        "username": user.username,
+        "role": str(user.role)
     })

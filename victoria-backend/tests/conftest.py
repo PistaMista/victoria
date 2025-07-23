@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, Connection
 from sqlalchemy.orm import Session, sessionmaker
 from testcontainers.postgres import PostgresContainer
 from app.config import settings
-from app.model.user import User
+from app.model.user import User, Role
 
 
 postgres = PostgresContainer("postgres")
@@ -71,11 +71,13 @@ def client(app):
 def authed_client(client, db_session):
     user = User(
         username="user", 
-        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
+        role=Role.ADMIN
     )
     user2 = User(
         username="userasdasdasd", 
-        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
+        role=Role.USER
     )
     db_session.add(user)
     db_session.add(user2)
