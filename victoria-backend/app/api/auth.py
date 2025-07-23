@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from app.db.session import get_db_session
-from app.lib.user import get_current_user
+from app.lib.user import get_current_user, get_current_user_as_admin
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.model.user import User, Role
@@ -71,3 +71,7 @@ async def me(user: User = Depends(get_current_user)):
         "username": user.username,
         "role": str(user.role)
     })
+
+@router.get("/me/admin")
+async def me_admin(admin: User = Depends(get_current_user_as_admin)):
+    return JSONResponse(content={})

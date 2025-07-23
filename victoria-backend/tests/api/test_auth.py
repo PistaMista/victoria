@@ -65,26 +65,44 @@ def test_protected_endpoint_responds_with_401_when_not_logged_in(client):
     assert res.status_code == 401
 
 @patch('time.time', return_value=9999999999999999999999999)
-def test_protected_endpoint_responds_with_401_when_token_expired(mock_time, authed_client):
+def test_protected_endpoint_responds_with_401_when_token_expired(mock_time, admin_client):
     # Arrange
 
     # Act
-    res = authed_client.get('/api/auth/me')
+    res = admin_client.get('/api/auth/me')
     
     # Assert
     assert res.status_code == 401
 
 
-def test_me_endpoint_responds_with_200_and_user_info_when_logged_in(authed_client):
+def test_me_endpoint_responds_with_200_and_user_info_when_logged_in(user_client):
     # Arrange
 
     # Act
-    res = authed_client.get('/api/auth/me')
+    res = user_client.get('/api/auth/me')
     
     # Assert
     assert res.status_code == 200
-    assert res.json() == {"username": "user", "role": "admin"}
+    assert res.json() == {"username": "user", "role": "user"}
 
+def test_admin_endpoint_responds_with_403_when_not_admin(user_client):
+    # Arrange
+    
+    # Act
+    res = user_client.get('/api/auth/me/admin')
+    
+    # Assert
+    assert res.status_code == 403
+    
+def test_admin_endpoint_responds_with_200_when_admin(admin_client):
+    # Arrange
+
+    # Act
+    res = admin_client.get('/api/auth/me/admin')
+
+    # Assert
+    assert res.status_code == 200
+    
 
 def test_register_creates_new_user_in_database(client, db_session):
     # Arrange

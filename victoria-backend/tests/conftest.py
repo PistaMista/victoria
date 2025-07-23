@@ -68,14 +68,37 @@ def client(app):
 
 
 @pytest.fixture(scope="function")
-def authed_client(client, db_session):
+def admin_client(client, db_session):
     user = User(
-        username="user", 
+        username="admin", 
         password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
         role=Role.ADMIN
     )
     user2 = User(
-        username="userasdasdasd", 
+        username="user", 
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
+        role=Role.USER
+    )
+    db_session.add(user)
+    db_session.add(user2)
+    db_session.flush()
+    
+    client.post('/api/auth/login', json={
+        "username": "admin",
+        "password": "actual"
+    })
+    
+    return client
+
+@pytest.fixture(scope="function")
+def user_client(client, db_session):
+    user = User(
+        username="admin", 
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
+        role=Role.ADMIN
+    )
+    user2 = User(
+        username="user", 
         password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
         role=Role.USER
     )

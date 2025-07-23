@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Cookie, Depends
 from app.lib.auth_token import decode_token
-from app.model.user import User
+from app.model.user import User, Role
 from app.db.session import get_db_session
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -40,3 +40,12 @@ def get_current_user(token: str = Cookie(None), session: Session = Depends(get_d
         )
     
     return user
+
+def get_current_user_as_admin(user: User = Depends(get_current_user)):
+    if user.role == Role.ADMIN:
+        return user
+    else:
+        raise HTTPException(
+            status_code=403,
+            detail="You need to be an administrator to access this"
+        )
