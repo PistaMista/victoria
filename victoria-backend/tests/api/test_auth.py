@@ -26,7 +26,7 @@ def test_invalid_login_responds_with_401_and_error(db_session, client, username,
 
     # Assert
     assert res.status_code == 401
-    assert res.json() == {"error": "Invalid credentials"}
+    assert res.json() == {"detail": "Invalid credentials"}
 
 @patch('time.time', return_value=1753211036)
 def test_valid_login_responds_with_200_and_sets_jwt_cookie(mock_time, client, db_session):
@@ -50,7 +50,7 @@ def test_valid_login_responds_with_200_and_sets_jwt_cookie(mock_time, client, db
     assert res.status_code == 200
     assert set_cookie_header is not None
     assert "HttpOnly" in set_cookie_header
-    assert "SameSite=Strict" in set_cookie_header
+    assert "SameSite=strict" in set_cookie_header
     assert "token" in client.cookies
     assert client.cookies["token"] == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3N1ZWQiOjE3NTMyMTEwMzYsImV4cGlyZXMiOjE3NTU4MDMwMzZ9.jPFEGbfJMQ63T70_vMPBMtcn8COey3U9JU1Ch3XvXT0"
 
@@ -64,7 +64,7 @@ def test_protected_endpoint_responds_with_401_when_not_logged_in(client):
     assert res.status_code == 401
 
 @patch('time.time', return_value=9999999999999999999999999)
-def test_protected_endpoint_responds_with_401_when_token_expired(authed_client):
+def test_protected_endpoint_responds_with_401_when_token_expired(mock_time, authed_client):
     # Arrange
 
     # Act
