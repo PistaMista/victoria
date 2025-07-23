@@ -29,7 +29,7 @@ def test_invalid_login_responds_with_401_and_error(db_session, client, username,
     assert res.json() == {"error": "Invalid credentials"}
 
 @patch('time.time', return_value=1753211036)
-def test_valid_login_responds_with_200_and_jwt_token(mock_time, client, db_session):
+def test_valid_login_responds_with_200_and_sets_jwt_cookie(mock_time, client, db_session):
     # Arrange
     user = User(
         id=1,
@@ -44,11 +44,34 @@ def test_valid_login_responds_with_200_and_jwt_token(mock_time, client, db_sessi
         "username": "John",
         "password": "actual"
     })
+    set_cookie_header = res.headers.get("set-cookie")
     
     # Assert
     assert res.status_code == 200
-    assert res.json() == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3N1ZWQiOjE3NTMyMTEwMzYsImV4cGlyZXMiOjE3NTU4MDMwMzZ9.jPFEGbfJMQ63T70_vMPBMtcn8COey3U9JU1Ch3XvXT0"
+    assert set_cookie_header is not None
+    assert "HttpOnly" in set_cookie_header
+    assert "SameSite=Strict" in set_cookie_header
+    assert "token" in client.cookies
+    assert client.cookies["token"] == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3N1ZWQiOjE3NTMyMTEwMzYsImV4cGlyZXMiOjE3NTU4MDMwMzZ9.jPFEGbfJMQ63T70_vMPBMtcn8COey3U9JU1Ch3XvXT0"
 
+def test_protected_endpoint_responds_with_401_when_not_logged_in(client):
+    # Arrange
+
+    # Act
+    res = client.get('/api/auth/me')
+    
+    # Assert
+    assert res.status_code == 401
+
+def test_protected_endpoint_responds_with_200_when_logged_in(authed_client):
+    # Arrange
+
+    # Act
+    res = authed_client.get('/api/auth/me')
+    
+    # Assert
+    assert res.status_code == 200
+    assert res.json() == {"username": "user"}
 
 def test_register_creates_new_user_in_database(client, db_session):
     # Arrange

@@ -7,6 +7,7 @@ from sqlalchemy import create_engine, Connection
 from sqlalchemy.orm import Session, sessionmaker
 from testcontainers.postgres import PostgresContainer
 from app.config import settings
+from app.model.user import User
 
 
 postgres = PostgresContainer("postgres")
@@ -64,3 +65,20 @@ def app(db_connection):
 @pytest.fixture(scope="function")
 def client(app):
     return TestClient(app)
+
+
+@pytest.fixture(scope="function")
+def authed_client(client, db_session):
+    user = User(
+        username="user", 
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
+    )
+    db_session.add(user)
+    db_session.flush()
+    
+    client.post('/api/auth/login', json={
+        "username": "John",
+        "password": "actual"
+    })
+    
+    return client
