@@ -73,11 +73,16 @@ def authed_client(client, db_session):
         username="user", 
         password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
     )
+    user2 = User(
+        username="userasdasdasd", 
+        password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8')
+    )
     db_session.add(user)
+    db_session.add(user2)
     db_session.flush()
     
     client.post('/api/auth/login', json={
-        "username": "John",
+        "username": "user",
         "password": "actual"
     })
     
