@@ -63,6 +63,17 @@ def test_protected_endpoint_responds_with_401_when_not_logged_in(client):
     # Assert
     assert res.status_code == 401
 
+@patch('time.time', return_value=9999999999999999999999999)
+def test_protected_endpoint_responds_with_401_when_token_expired(authed_client):
+    # Arrange
+
+    # Act
+    res = authed_client.get('/api/auth/me')
+    
+    # Assert
+    assert res.status_code == 401
+
+
 def test_protected_endpoint_responds_with_200_when_logged_in(authed_client):
     # Arrange
 
@@ -72,6 +83,7 @@ def test_protected_endpoint_responds_with_200_when_logged_in(authed_client):
     # Assert
     assert res.status_code == 200
     assert res.json() == {"username": "user"}
+
 
 def test_register_creates_new_user_in_database(client, db_session):
     # Arrange
