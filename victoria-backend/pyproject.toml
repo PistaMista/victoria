@@ -34,7 +34,7 @@ build-backend = "hatchling.build"
 packages = ["app"]
 
 [tool.alembic]
-script_location = "%(here)s/alembic"
+script_location = "%(here)s/app/alembic"
 file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
 prepend_sys_path = [ "." ]
 timezone = "UTC"
