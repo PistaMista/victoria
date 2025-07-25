@@ -30,6 +30,5 @@ jobs:
             npm run test
 
             cd ../victoria-backend
-            poetry install
-            poetry run pytest
+            uv run pytest
           '

@@ -16,7 +16,7 @@ until docker exec $TEMP_DB_CONTAINER pg_isready -U user > /dev/null 2>&1; do
 done
 
 cd victoria-backend
-poetry run alembic upgrade head && 
-poetry run alembic revision --autogenerate -m "$1"
+uv run alembic upgrade head && 
+uv run alembic revision --autogenerate -m "$1"
 
 docker stop $TEMP_DB_CONTAINER

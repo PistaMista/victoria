@@ -1,7 +1,7 @@
 {
   description = "An all-purpose AI assistance Ollama proxy.";
   inputs = {
-    prod-pkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     dev-pkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     dev-pkgs-old.url = "github:NixOS/nixpkgs/nixos-24.05";
     poetry2nix.url = "github:nix-community/poetry2nix";
@@ -25,7 +25,7 @@
         backendName = "victoria-backend";
         frontendName = "victoria-frontend";
 
-        prod-pkgs = import inputs.prod-pkgs { inherit system; };
+        prod-pkgs = import inputs.nixpkgs { inherit system; };
         dev-pkgs = import inputs.dev-pkgs {
           inherit system;
           config = {
@@ -125,7 +125,7 @@
           in
           dev-pkgs.mkShell {
             buildInputs = [
-              dev-pkgs.poetry
+              dev-pkgs.uv
               dev-pkgs.nodejs_22
               nvim
               vscode
