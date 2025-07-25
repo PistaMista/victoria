@@ -1,41 +1,40 @@
-[tool.poetry]
+[project]
 name = "victoria-backend"
 version = "0.1.0"
 description = ""
-authors = ["Krystof Albrecht <krystofalbrechtus@gmail.com>"]
+authors = [
+    { name = "Krystof Albrecht", email = "krystofalbrechtus@gmail.com" }
+]
 readme = "README.md"
-packages = [ 
-    { include = "app" }
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi ~=0.116.1",
+    "uvicorn ~=0.35.0",
+    "httpx ~=0.28.1",
+    "pytest ~=8.4.1",
+    "sqlalchemy ~=2.0.41",
+    "psycopg2-binary ~=2.9.10",
+    "alembic ~=1.16.4",
+    "pymysql ~=1.1.1",
+    "testcontainers ~=4.10.0",
+    "pydantic ~=2.11.7",
+    "pydantic-settings ~=2.10.1",
+    "bcrypt ~=4.3.0",
+    "pyjwt ~=2.10.1"
 ]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "^0.116.1"
-uvicorn = "^0.35.0"
-httpx = "^0.28.1"
-pytest = "^8.4.1"
-sqlalchemy = "^2.0.41"
-psycopg2-binary = "^2.9.10"
-alembic = "^1.16.4"
-pymysql = "^1.1.1"
-testcontainers = "^4.10.0"
-pydantic = "^2.11.7"
-pydantic-settings = "^2.10.1"
-bcrypt = "^4.3.0"
-pyjwt = "^2.10.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
+[project.scripts]
 victoria-backend = "app.main:main"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.alembic]
-script_location = "%(here)s/alembic"
+script_location = "%(here)s/app/alembic"
 file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
-prepend_sys_path = [
-    "."
-]
+prepend_sys_path = [ "." ]
 timezone = "UTC"

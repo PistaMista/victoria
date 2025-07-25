@@ -1,31 +1,44 @@
 {
   description = "An all-purpose AI assistance Ollama proxy.";
   inputs = {
-    prod-pkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     dev-pkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     dev-pkgs-old.url = "github:NixOS/nixpkgs/nixos-24.05";
-    poetry2nix.url = "github:nix-community/poetry2nix";
     flake-utils.url = "github:numtide/flake-utils";
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
-      poetry2nix,
       flake-utils,
+
+      uv2nix,
+      pyproject-nix,
+      pyproject-build-systems,
       ...
     }@inputs:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = prod-pkgs; })
-          mkPoetryApplication
-          defaultPoetryOverrides
-          ;
-        backendName = "victoria-backend";
-        frontendName = "victoria-frontend";
-
-        prod-pkgs = import inputs.prod-pkgs { inherit system; };
+        prod-pkgs = import inputs.nixpkgs { inherit system; };
         dev-pkgs = import inputs.dev-pkgs {
           inherit system;
           config = {
@@ -39,31 +52,39 @@
         };
         dev-pkgs-old = import inputs.dev-pkgs-old { inherit system; };
 
-        poetryOverrides = defaultPoetryOverrides.extend (
-          final: prev: {
-            langchain-ollama = prev.langchain-ollama.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ prev.poetry ];
-            });
-            argparse = prev.argparse.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
-            });
-          }
-        );
-
-        backend = mkPoetryApplication {
-          projectDir = ./victoria-backend;
-          overrides = poetryOverrides;
-          preferWheels = true;
-
-          # Copy database migration scripts
-          postInstall = ''
-            mkdir -p $out/share/victoria-backend
-            cp -r ${./victoria-backend/alembic} $out/lib/python3.11/site-packages/alembic
-          '';
-        };
+        backend =
+          let
+            workspace = uv2nix.lib.workspace.loadWorkspace {
+              workspaceRoot = ./victoria-backend;
+            };
+            overlay = workspace.mkPyprojectOverlay {
+              sourcePreference = "wheel";
+            };
+            pyprojectOverrides = (
+              final: prev: {
+              }
+            );
+            python = prod-pkgs.python312;
+            pkgSet =
+              (prod-pkgs.callPackage pyproject-nix.build.packages {
+                inherit python;
+              }).overrideScope
+                (
+                  prod-pkgs.lib.composeManyExtensions [
+                    pyproject-build-systems.overlays.default
+                    overlay
+                    pyprojectOverrides
+                  ]
+                );
+            inherit (prod-pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
+          in
+          mkApplication {
+            venv = pkgSet.mkVirtualEnv "application-env" workspace.deps.default;
+            package = pkgSet.victoria-backend;
+          };
 
         frontend = prod-pkgs.buildNpmPackage {
-          name = frontendName;
+          name = "victoria-frontend";
           src = ./victoria-frontend;
           npmDepsHash = "sha256-3+hHRpk7isnvp2730/SXkjZaXWW5meNWHMR/1aK7bis=";
 
@@ -77,7 +98,7 @@
         };
 
         wrapper = prod-pkgs.writeShellApplication {
-          name = backendName;
+          name = "victoria-backend";
 
           runtimeInputs = [ ];
 
@@ -88,8 +109,8 @@
         };
       in
       {
-        packages.${backendName} = wrapper;
-        defaultPackage = self.packages.${system}.${backendName};
+        packages."victoria-backend" = wrapper;
+        defaultPackage = self.packages.${system}."victoria-backend";
         devShell =
           let
             nvim = dev-pkgs.writers.writeBashBin "nvim" ''
@@ -125,7 +146,7 @@
           in
           dev-pkgs.mkShell {
             buildInputs = [
-              dev-pkgs.poetry
+              dev-pkgs.uv
               dev-pkgs.nodejs_22
               nvim
               vscode
