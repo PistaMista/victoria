@@ -61,7 +61,7 @@ async def register(input: UserRegister, db: Session = Depends(get_db_session)):
         role=Role.ADMIN if is_first_user else Role.USER
     )
     db.add(new_user)
-    db.flush()
+    db.commit()
 
     return JSONResponse(content={})
 
