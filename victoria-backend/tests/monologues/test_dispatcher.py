@@ -111,6 +111,40 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert event.monologues[0].thoughts[0].invocation.event.id == 42
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
+def test_dispatcher_does_nothing_for_dispatched_events(db_session):
+    # Arrange
+    trigger = PollTrigger(
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)"
+    )
+    agent = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        allowed_triggers=[trigger],
+        allowed_actions=[]
+    )
+    event = Event(
+        id=42, 
+        content="An email has arrived...", 
+        trigger=trigger, 
+        dispatched=True, # Already dispatched
+        monologues=[]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.add(event)
+    db_session.commit()
+
+    # Act
+    with TestClient(app): # Start and exit the application
+        pass
+
+    # Assert
+    # ...in this case the event has already been processed, so no new monologues should have been created
+    assert len(event.monologues == 0)
+    assert db_session.scalars(select(Monologue)).first() is None
     
 
 def test_dispatcher_starts_thread_when_monologue_is_added_to_db(client, db_session):
