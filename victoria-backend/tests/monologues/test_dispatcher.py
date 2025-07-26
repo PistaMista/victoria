@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 import threading as t
 from app.main import create_app
 
+# TODO: Handle event filtering for agents and test the actual full dispatch logic
+
 def test_dispatcher_starts_when_application_constructed(app):
     # Arrange
     assert t.active_count() == 1
@@ -36,7 +38,7 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(client, d
         id=42, 
         content="An email has arrived...", 
         trigger=trigger, 
-        monologue=None
+        monologues=[]
     )
     db_session.add(event)
     db_session.flush()
@@ -48,14 +50,15 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(client, d
     assert event.monologue.thoughts[0].invocation.event.id == 42
     assert event.monologue.thoughts[0].result == "An email has arrived"
 
-def test_dispatcher_creates_new_monologue_for_existing_events_with_no_monologue(db_session, app):
+def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, app):
     # Arrange
     trigger = PollTrigger(name="Emails", url="http://mycooldomain.com")
     event = Event(
         id=42, 
         content="An email has arrived...", 
         trigger=trigger, 
-        monologue=None
+        dispatched=False,
+        monologues=[]
     )
     db_session.add(trigger)
     db_session.add(event)
@@ -67,7 +70,7 @@ def test_dispatcher_creates_new_monologue_for_existing_events_with_no_monologue(
     
     # Assert
     db_connection.expire(event, ['monologue'])
-    assert event.monologue is not None
+    assert len(event.monologues) == 1
     assert len(event.monologue.thoughts) == 1
     assert event.monologue.thoughts[0].invocation.event.id == 42
     assert event.monologue.thoughts[0].result == "An email has arrived"
@@ -85,7 +88,7 @@ def test_dispatcher_starts_thread_with_new_monologue_when_an_event_is_added_to_d
         id=42, 
         content="An email has arrived...", 
         trigger=trigger, 
-        monologue=None
+        monologues=[]
     )
     db_session.add(event)
     db_session.flush()
