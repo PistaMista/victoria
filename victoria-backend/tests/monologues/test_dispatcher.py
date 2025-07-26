@@ -111,7 +111,7 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert event.monologues[0].thoughts[0].invocation.event.id == 42
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
-def test_dispatcher_does_nothing_for_dispatched_events(db_session):
+def test_dispatcher_does_nothing_for_dispatched_events(db_session, app):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -146,6 +146,79 @@ def test_dispatcher_does_nothing_for_dispatched_events(db_session):
     assert len(event.monologues == 0)
     assert db_session.scalars(select(Monologue)).first() is None
     
+def test_dispatcher_does_nothing_for_new_events_with_no_matching_agent(client, db_session):
+    # Arrange
+    trigger = PollTrigger( # A trigger generates events (by polling a website for example)
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)"
+    )
+    agent = Agent( # An agent processes events
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        # The trigger whitelist is empty - no monologues can start
+        allowed_triggers=[],
+        allowed_actions=[]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.commit()
+    
+    # Act
+    event = Event( # The trigger has generated an event and added it to the DB
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        # The event starts off in the dispatched=False state by default
+        # dispatched=False,
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+
+    # Assert
+    # ...in this case the event is not picked up by any agent (but is marked as dispatched)
+    assert event.dispatched
+    assert len(event.monologues == 0)
+    assert db_session.scalars(select(Monologue)).first() is None
+
+def test_dispatcher_does_nothing_for_existing_undispatched_events_with_no_matching_agent(app, db_session):
+    # Arrange
+    trigger = PollTrigger(
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)"
+    )
+    agent = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        allowed_triggers=[],
+        allowed_actions=[]
+    )
+    event = Event(
+        id=42, 
+        content="An email has arrived...", 
+        trigger=trigger, 
+        dispatched=False,
+        monologues=[]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.add(event)
+    db_session.commit()
+    
+    # Act
+    with TestClient(app): # Start and exit the application
+        pass
+
+    # Assert
+    # ...in this case the event is not picked up by any agent (but is marked as dispatched)
+    assert event.dispatched
+    assert len(event.monologues == 0)
+    assert db_session.scalars(select(Monologue)).first() is None
+
 
 def test_dispatcher_starts_thread_when_monologue_is_added_to_db(client, db_session):
     # Arrange
