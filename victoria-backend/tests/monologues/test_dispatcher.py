@@ -3,8 +3,6 @@ from fastapi.testclient import TestClient
 import threading as t
 from app.main import create_app
 
-# TODO: Handle event filtering for agents and test the actual full dispatch logic
-
 def test_dispatcher_starts_when_application_constructed(app):
     # Arrange
     assert t.active_count() == 1
