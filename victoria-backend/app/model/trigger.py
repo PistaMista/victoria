@@ -1,4 +1,5 @@
 from app.model import Base
+from app.model.allowed_agent_trigger import allowed_agent_trigger_association
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Integer
 
@@ -10,6 +11,7 @@ class Trigger(Base):
     type: Mapped[str] = mapped_column(String(10), nullable=False)
     template: Mapped[str] = mapped_column(Text(), nullable=False)
     spawned_events: Mapped[List["Event"]] = relationship("Event", back_populates="trigger")
+    allowed_on_agents: Mapped[List["Agent"]] = relationship("Agent", secondary=allowed_agent_trigger_association, back_populates="allowed_triggers")
 
     __mapper_args__ = {
         'polymorphic_identity': 'NONE',

@@ -18,10 +18,10 @@ class Monologue(Base):
     status: Mapped[MonologueStatus] = mapped_column(Enum(MonologueStatus, native_enum=False), nullable=False)
 
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), nullable=False)
-    event: Mapped["Event"] = relationship(back_populates="monologues")
+    event: Mapped["Event"] = relationship("Event", back_populates="monologues")
     
-    # agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"), nullable=False)
-    # agent: Mapped["Agent"] = relationship(back_populates="monologues")
+    agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"), nullable=False)
+    agent: Mapped["Agent"] = relationship("Agent", back_populates="monologues")
     
     # thoughts: Mapped[List["Thought"]] = relationship("Thought", back_populates="monologue")
     
