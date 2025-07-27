@@ -15,7 +15,7 @@ class Invocation(Base):
     }
 
 class TriggerInvocation(Invocation):
-    __tablename__ = "trigger_invocation"
+    __tablename__ = "invocation_trigger"
 
     id: Mapped[int] = mapped_column(ForeignKey('invocation.id'), primary_key=True)
 
@@ -27,7 +27,7 @@ class TriggerInvocation(Invocation):
     }
 
 class ThoughtInvocation(Invocation):
-    __tablename__ = "thought_invocation"
+    __tablename__ = "invocation_thought"
 
     id: Mapped[int] = mapped_column(ForeignKey('invocation.id'), primary_key=True)
 
@@ -38,7 +38,7 @@ class ThoughtInvocation(Invocation):
     }
 
 class ActionInvocation(Invocation):
-    __tablename__ = "action_invocation"
+    __tablename__ = "invocation_action"
 
     id: Mapped[int] = mapped_column(ForeignKey('invocation.id'), primary_key=True)
     
@@ -50,7 +50,7 @@ class ActionInvocation(Invocation):
     }
 
 class SuccessInvocation(Invocation):
-    __tablename__ = "success_invocation"
+    __tablename__ = "invocation_success"
 
     id: Mapped[int] = mapped_column(ForeignKey('invocation.id'), primary_key=True)
     reason: Mapped[str] = mapped_column(Text(), nullable=False)
@@ -60,7 +60,7 @@ class SuccessInvocation(Invocation):
     }
 
 class FailureInvocation(Invocation):
-    __tablename__ = "failure_invocation"
+    __tablename__ = "invocation_failure"
 
     id: Mapped[int] = mapped_column(ForeignKey('invocation.id'), primary_key=True)
     reason: Mapped[str] = mapped_column(Text(), nullable=False)

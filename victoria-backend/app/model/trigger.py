@@ -20,7 +20,7 @@ class Trigger(Base):
     }
 
 class PollTrigger(Trigger):
-    __tablename__ = "poll_trigger"
+    __tablename__ = "trigger_poll"
     
     id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
 
@@ -32,7 +32,7 @@ class PollTrigger(Trigger):
     }
 
 class ChatTrigger(Trigger):
-    __tablename__ = "chat_trigger"
+    __tablename__ = "trigger_chat"
     
     id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
 
@@ -43,7 +43,7 @@ class ChatTrigger(Trigger):
     }
 
 class WebhookTrigger(Trigger):
-    __tablename__ = "webhook_trigger"
+    __tablename__ = "trigger_webhook"
     
     id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
 
@@ -54,7 +54,7 @@ class WebhookTrigger(Trigger):
     }
 
 class TimerTrigger(Trigger):
-    __tablename__ = "timer_trigger"
+    __tablename__ = "trigger_timer"
     
     id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
 
