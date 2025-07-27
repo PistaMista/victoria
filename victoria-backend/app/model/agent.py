@@ -12,4 +12,4 @@ class Agent(Base):
     prompt: Mapped[str] = mapped_column(Text(), nullable=False)
     
     allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_agent_trigger_association, back_populates="allowed_on_agents")
-    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="monologues")
+    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="agent")
