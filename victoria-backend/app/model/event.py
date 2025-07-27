@@ -1,6 +1,7 @@
 from app.model import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Integer, ForeignKey, Boolean
+from typing import List
 
 class Event(Base):
     __tablename__ = "event"

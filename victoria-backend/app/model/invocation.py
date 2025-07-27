@@ -6,7 +6,6 @@ class Invocation(Base):
     __tablename__ = "invocation"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    thought_id: Mapped[int] = mapped_column(ForeignKey("thought.id"), nullable=False)
     thought: Mapped["Thought"] = relationship("Thought", back_populates="invocation")
     type: Mapped[str] = mapped_column(String(10), nullable=False)
     
@@ -32,7 +31,7 @@ class ThoughtInvocation(Invocation):
 
     id: Mapped[int] = mapped_column(ForeignKey('invocation.id'), primary_key=True)
 
-    thought: Mapped[str] = mapped_column(Text(), nullable=False)
+    content: Mapped[str] = mapped_column(Text(), nullable=False)
     
     __mapper_args__ = {
         'polymorphic_identity': 'THOUGHT'

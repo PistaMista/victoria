@@ -2,6 +2,7 @@ from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model import Base
 from app.model.allowed_agent_trigger import allowed_agent_trigger_association
+from typing import List
 
 class Agent(Base):
     __tablename__ = "agent"

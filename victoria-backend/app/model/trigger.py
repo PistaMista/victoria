@@ -2,6 +2,7 @@ from app.model import Base
 from app.model.allowed_agent_trigger import allowed_agent_trigger_association
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Integer
+from typing import List
 
 class Trigger(Base):
     __tablename__ = "trigger"
@@ -41,7 +42,7 @@ class WebhookTrigger(Trigger):
     }
 
 class TimerTrigger(Trigger):
-    interval: Mapped[int] = mapped_column(Integer(), nullable=False)
+    interval: Mapped[int] = mapped_column(use_existing_column=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'TIMER'

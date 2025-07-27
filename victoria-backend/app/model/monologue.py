@@ -2,6 +2,7 @@ import enum
 from sqlalchemy import String, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model import Base
+from typing import List
 
 class MonologueStatus(enum.Enum):
     PENDING = 0
