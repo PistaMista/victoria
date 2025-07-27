@@ -9,7 +9,7 @@ class Trigger(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     type: Mapped[str] = mapped_column(String(10), nullable=False)
     template: Mapped[str] = mapped_column(Text(), nullable=False)
-    # spawned_events: Mapped[List["Event"]] = relationship("Event", back_populates="trigger")
+    spawned_events: Mapped[List["Event"]] = relationship("Event", back_populates="trigger")
 
     __mapper_args__ = {
         'polymorphic_identity': 'NONE',
