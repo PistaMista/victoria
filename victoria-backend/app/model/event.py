@@ -10,4 +10,4 @@ class Event(Base):
     trigger: Mapped["Trigger"] = relationship(back_populates="spawned_events")
     content: Mapped[str] = mapped_column(Text(), nullable=False)
     dispatched: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    # monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="event")
+    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="event")
