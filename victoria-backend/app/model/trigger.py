@@ -1,7 +1,7 @@
 from app.model import Base
 from app.model.allowed_agent_trigger import allowed_agent_trigger_association
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, Integer
+from sqlalchemy import String, Text, Integer, ForeignKey
 from typing import List
 
 class Trigger(Base):
@@ -20,6 +20,10 @@ class Trigger(Base):
     }
 
 class PollTrigger(Trigger):
+    __tablename__ = "poll_trigger"
+    
+    id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
+
     url: Mapped[str] = mapped_column(String(300), nullable=False)
     interval: Mapped[int] = mapped_column(Integer(), nullable=False)
 
@@ -28,6 +32,10 @@ class PollTrigger(Trigger):
     }
 
 class ChatTrigger(Trigger):
+    __tablename__ = "chat_trigger"
+    
+    id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
+
     receiver: Mapped[str] = mapped_column(String(50), nullable=False)
 
     __mapper_args__ = {
@@ -35,6 +43,10 @@ class ChatTrigger(Trigger):
     }
 
 class WebhookTrigger(Trigger):
+    __tablename__ = "webhook_trigger"
+    
+    id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
+
     endpoint: Mapped[str] = mapped_column(String(70), nullable=False)
 
     __mapper_args__ = {
@@ -42,6 +54,10 @@ class WebhookTrigger(Trigger):
     }
 
 class TimerTrigger(Trigger):
+    __tablename__ = "timer_trigger"
+    
+    id: Mapped[int] = mapped_column(ForeignKey('trigger.id'), primary_key=True)
+
     interval: Mapped[int] = mapped_column(use_existing_column=True)
 
     __mapper_args__ = {
