@@ -32,6 +32,7 @@ def db_engine(db_container):
     yield engine
     engine.dispose()
 
+
 @pytest.fixture(scope="function")
 def db_connection(db_engine):
     connection = db_engine.connect()
@@ -39,6 +40,19 @@ def db_connection(db_engine):
     yield connection
     transaction.rollback()
     connection.close()
+
+@pytest.fixture(scope="function")
+def db_gen_func(db_connection):
+    def gen_db():
+        Session = sessionmaker(db_connection)
+        session = Session()
+        
+        try:
+            yield session
+        finally:
+            session.close()
+    
+    return gen_db
 
 @pytest.fixture(scope="function")
 def db_session(db_connection):

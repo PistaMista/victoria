@@ -1,39 +1,20 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import sessionmaker
 import threading as t
 from sqlalchemy import select
-from app.main import create_app
 from app.model.agent import Agent
 from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import TriggerInvocation, ThoughtInvocation, SuccessInvocation
 from app.model.trigger import PollTrigger
+from app.monologues.dispatcher import Dispatcher
 
-def test_dispatcher_starts_when_application_constructed(app):
+def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_session, db_connection):
     # Arrange
-    assert t.active_count() == 1
-
-    # Act
-    with TestClient(app):
-    
-        # Assert
-        assert t.active_count() == 3
-        assert 'dispatcher' in [x.name for x in t.enumerate()]
-
-def test_dispatcher_stops_when_application_destroyed(app):
-    # Arrange
-
-    # Act
-    with TestClient(app):
-        assert t.active_count() == 3
-    
-    # Assert
-    assert t.active_count() == 1
-    assert 'dispatcher' not in [x.name for x in t.enumerate()]
-
-def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(client, db_session):
-    # Arrange
+    get_db = sessionmaker(db_connection)
+    dispatcher = Dispatcher(get_db_func=get_db)
     trigger = PollTrigger( # A trigger generates events (by polling a website for example)
         name="Emails", 
         url="http://mycooldomain.com",
@@ -53,6 +34,7 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(client, d
     db_session.commit()
 
     # Act
+    dispatcher.start()
     event = Event( # The trigger has generated an event and added it to the DB
         id=42, 
         content="An email has arrived: Hello, this is...", 
@@ -62,6 +44,7 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(client, d
     )
     db_session.add(event)
     db_session.commit()
+    dispatcher.stop()
     
     # Assert
     # ...in the case of a new event that has been added, while the dispatcher is running:
