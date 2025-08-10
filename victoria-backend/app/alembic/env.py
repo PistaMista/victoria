@@ -11,7 +11,8 @@ from app.config import settings
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+# if settings.DATABASE_URL:
+#     config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support

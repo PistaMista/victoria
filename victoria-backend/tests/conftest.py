@@ -1,12 +1,12 @@
 import pytest
 from app.main import create_app
-# from app.services.db import DatabaseService
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, Connection
 from sqlalchemy.orm import Session, sessionmaker
 from testcontainers.postgres import PostgresContainer
 from app.config import settings
 from app.model.user import User, Role
+from app.services.db import DatabaseService
 
 
 postgres = PostgresContainer("postgres")

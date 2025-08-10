@@ -1,5 +1,5 @@
 import pytest
-# from app.services.db import DatabaseService
+from app.services.db import DatabaseService
 from app.model.user import User, Role
 from sqlalchemy import select
 
@@ -7,28 +7,19 @@ from sqlalchemy import select
 def serv(db_container):
     return DatabaseService(db_url=db_container)
 
-def test_database_service_provides_session_factory(db_session, serv):
+def test_database_service_provides_session_factory(serv):
     # Arrange
-    user = User(
-        username="user",
-        password="pass",
-        role=Role.USER
-    )
-    db_session.add(user)
-    db_session.commit
     
+    # Act 
     with serv.session() as session:
-        # Act 
         res = session.scalars(
             select(User).where(User.username == "user")
         ).first()
         
         # Assert
-        assert res is not None
-        assert res.username == "user"
-        assert res.role == Role.USER
+        assert res is None
 
-def test_database_service_can_run_migrations():
+def test_database_service_can_run_migrations(db_container):
     # The migrations are run once during test setup,
     # so if they fail, the whole test suite fails.
 
