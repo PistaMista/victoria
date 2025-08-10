@@ -1,4 +1,5 @@
 import pytest
+from unittest import mock
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
 import threading as t
@@ -9,12 +10,16 @@ from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import TriggerInvocation, ThoughtInvocation, SuccessInvocation
 from app.model.trigger import PollTrigger
-from app.monologues.dispatcher import Dispatcher
+# from app.monologues.dispatcher import Dispatcher
 
-def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_session, db_connection):
+@pytest.fixture(scope="function")
+def dispatcher(db_factory):
+    db_mock = mock.Mock(spec=DatabaseService)
+    db_mock.get_session_factory.return_value = db_factory
+    serv = DispatcherService(db_service=db_mock)
+
+def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_session, dispatcher):
     # Arrange
-    get_db = sessionmaker(db_connection)
-    dispatcher = Dispatcher(get_db_func=get_db)
     trigger = PollTrigger( # A trigger generates events (by polling a website for example)
         name="Emails", 
         url="http://mycooldomain.com",
@@ -59,7 +64,7 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_sessio
     assert event.monologues[0].thoughts[0].invocation.event.id == 42
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
-def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, app):
+def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, dispatcher):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -87,8 +92,8 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     db_session.commit()
 
     # Act
-    with TestClient(app): # Start and exit the application
-        pass
+    dispatcher.start()
+    dispatcher.stop()
     
     # Assert
     # ...in the case when the application starts up with undispatched events, they are dispatched
@@ -100,7 +105,7 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert event.monologues[0].thoughts[0].invocation.event.id == 42
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
-def test_dispatcher_does_nothing_for_dispatched_events(db_session, app):
+def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -128,15 +133,15 @@ def test_dispatcher_does_nothing_for_dispatched_events(db_session, app):
     db_session.commit()
 
     # Act
-    with TestClient(app): # Start and exit the application
-        pass
+    dispatcher.start()
+    dispatcher.stop()
 
     # Assert
     # ...in this case the event has already been processed, so no new monologues should have been created
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
     
-def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_agent(client, db_session):
+def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_agent(dispatcher, db_session):
     # Arrange
     trigger = PollTrigger( # A trigger generates events (by polling a website for example)
         name="Emails", 
@@ -157,6 +162,7 @@ def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_a
     db_session.commit()
     
     # Act
+    dispatcher.start()
     event = Event( # The trigger has generated an event and added it to the DB
         id=42, 
         content="An email has arrived: Hello, this is...", 
@@ -166,6 +172,7 @@ def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_a
     )
     db_session.add(event)
     db_session.commit()
+    dispatcher.stop()
 
     # Assert
     # ...in this case the event is not picked up by any agent (but is marked as dispatched)
@@ -173,7 +180,7 @@ def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_a
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
 
-def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_with_no_matching_agent(app, db_session):
+def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_with_no_matching_agent(dispatcher, db_session):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -201,8 +208,8 @@ def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_
     db_session.commit()
     
     # Act
-    with TestClient(app): # Start and exit the application
-        pass
+    dispatcher.start()
+    dispatcher.stop()
 
     # Assert
     # ...in this case the event is not picked up by any agent (but is marked as dispatched)
@@ -211,7 +218,7 @@ def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_
     assert db_session.scalars(select(Monologue)).first() is None
 
 
-def test_dispatcher_starts_thread_when_monologue_is_added_to_db(client, db_session):
+def test_dispatcher_starts_thread_when_monologue_is_added_to_db(dispatcher, db_session):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -238,6 +245,7 @@ def test_dispatcher_starts_thread_when_monologue_is_added_to_db(client, db_sessi
     db_session.commit()
 
     # Act
+    dispatcher.start()
     trigger_invocation = TriggerInvocation(
         event=event
     )
@@ -275,7 +283,7 @@ def test_dispatcher_starts_thread_when_monologue_is_added_to_db(client, db_sessi
     assert thread._args[0].thoughts[0].result == "An email has arrived..."
 
 
-def test_dispatcher_starts_thread_for_existing_unfinished_monologues(db_session, app):
+def test_dispatcher_starts_thread_for_existing_unfinished_monologues(db_session, dispatcher):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -334,22 +342,23 @@ def test_dispatcher_starts_thread_for_existing_unfinished_monologues(db_session,
     db_session.commit()
     
     # Act
-    with TestClient(app):
-        # Assert
-        assert t.active_count() == 4
-        
-        thread = next((x for x in t.enumerate() if x.name == 'monologue_42'), None)    
-        assert thread is not None
-        assert thread._args[0].status == MonologueStatus.RUNNING
-        assert len(thread._args[0].thoughts) == 2
-        assert thread._args[0].thoughts[0].invocation.event.id == 42
-        assert thread._args[0].thoughts[0].invocation.event.content == "An email has arrived..."
-        assert thread._args[0].thoughts[0].result == "An email has arrived..."
+    dispatcher.start()
 
-        assert thread._args[0].thoughts[1].invocation.content == "I should notify the user of the new email"
-        assert thread._args[0].thoughts[1].result == "I should notify the user of the new email"
+    # Assert
+    assert t.active_count() == 4
+    
+    thread = next((x for x in t.enumerate() if x.name == 'monologue_42'), None)    
+    assert thread is not None
+    assert thread._args[0].status == MonologueStatus.RUNNING
+    assert len(thread._args[0].thoughts) == 2
+    assert thread._args[0].thoughts[0].invocation.event.id == 42
+    assert thread._args[0].thoughts[0].invocation.event.content == "An email has arrived..."
+    assert thread._args[0].thoughts[0].result == "An email has arrived..."
+
+    assert thread._args[0].thoughts[1].invocation.content == "I should notify the user of the new email"
+    assert thread._args[0].thoughts[1].result == "I should notify the user of the new email"
         
-def test_dispatcher_does_nothing_for_finished_monologues(db_session, app):
+def test_dispatcher_does_nothing_for_finished_monologues(db_session, dispatcher):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -407,9 +416,10 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, app):
     db_session.commit()
 
     # Act
-    with TestClient(app):
-        # Assert
-        assert t.active_count() == 3
-        
-        thread = next((x for x in t.enumerate() if x.name == 'monologue_42'), None)    
-        assert thread is None
+    dispatcher.start()
+
+    # Assert
+    assert t.active_count() == 3
+    
+    thread = next((x for x in t.enumerate() if x.name == 'monologue_42'), None)    
+    assert thread is None
