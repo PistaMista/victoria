@@ -10,6 +10,9 @@ from dependency_injector import providers
 from app.config import settings
 from app.model.user import User, Role
 from app.services.db import DatabaseService
+from app.services.auth import AuthService
+from app.services.user import UserService
+from app.services.monologues.dispatcher import DispatcherService
 
 
 postgres = PostgresContainer("postgres")
@@ -70,8 +73,44 @@ def app(db_connection):
     return app
 
 @pytest.fixture(scope="function")
+def db_mock():
+    return mock.Mock(spec=DatabaseService)
+
+@pytest.fixture(scope="function")
+def dispatcher_mock():
+    return mock.Mock(spec=DispatcherService)
+
+@pytest.fixture(scope="function")
+def user_mock():
+    return mock.Mock(spec=UserService)
+
+@pytest.fixture(scope="function")
+def auth_mock():
+    return mock.Mock(spec=AuthService)
+
+@pytest.fixture(scope="function")
+def mock_app(
+    db_mock,
+    dispatcher_mock,
+    user_mock,
+    auth_mock
+):
+    app = create_app()
+    
+    app.container.db.override(db_mock)
+    app.container.dispatcher.override(dispatcher_mock)
+    app.container.user.override(user_mock)
+    app.container.auth.override(auth_mock)
+    
+    return app
+
+@pytest.fixture(scope="function")
 def client(app):
     return TestClient(app)
+    
+@pytest.fixture(scope="function")
+def mock_client(mock_app):
+    return TestClient(mock_app)
 
 
 @pytest.fixture(scope="function")
