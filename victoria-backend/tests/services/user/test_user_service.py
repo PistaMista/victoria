@@ -97,7 +97,7 @@ def test_user_service_reports_when_any_user_is_registered(serv, db_session):
     # Act / Assert
     assert serv.is_any_user_registered()
 
-def test_user_service_gets_user(serv, db_session, db_factory):
+def test_user_service_gets_user_by_id(serv, db_session, db_factory):
     # Arrange
     existing_user = User(
         id=1,
@@ -110,6 +110,23 @@ def test_user_service_gets_user(serv, db_session, db_factory):
     
     # Act / Assert
     user = serv.get_user_by_id(1)
+    assert user.username == "exists"
+    assert user.password_hash == "dasdasdasd"
+    assert user.role == Role.ADMIN
+
+def test_user_service_gets_user_by_name(serv, db_session, db_factory):
+    # Arrange
+    existing_user = User(
+        id=1,
+        username="exists",
+        password_hash="dasdasdasd",
+        role=Role.ADMIN
+    )
+    db_session.add(existing_user)
+    db_session.commit()
+    
+    # Act / Assert
+    user = serv.get_user_by_name("exists")
     assert user.username == "exists"
     assert user.password_hash == "dasdasdasd"
     assert user.role == Role.ADMIN

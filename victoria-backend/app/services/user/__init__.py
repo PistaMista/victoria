@@ -41,6 +41,14 @@ class UserService:
 
             return user
     
+    def get_user_by_name(self, username: str) -> Optional[User]:
+        with self._db.session() as db:
+            user = db.scalar(
+                select(User).where(User.username == username)
+            )
+            
+            return user
+    
     def delete_user_by_id(self, id: int):
         with self._db.session() as db:
             user = db.scalar(
