@@ -63,18 +63,11 @@ class TestDatabaseService(DatabaseService):
 def app(db_connection):
     app = create_app()
     
-    # def db_session_override():
-    #     session = Session(db_connection)
-    #     try:
-    #         yield session
-    #     finally:
-    #         session.close()
-
-    with app.container.db.override(providers.Singleton(
+    app.container.db.override(providers.Singleton(
         TestDatabaseService,
         session_factory=sessionmaker(db_connection)
-    )):
-        yield app
+    ))
+    return app
 
 @pytest.fixture(scope="function")
 def client(app):
