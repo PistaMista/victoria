@@ -6,7 +6,7 @@ from app.model.agent import Agent
 from app.model.monologue import Monologue
 from app.model.user import User, Role
 from app.services.user import UserService
-from app.services.auth import AuthService, InvalidLoginError, ExpiredLoginError, AdminRequiredError
+from app.services.auth import AuthService, InvalidLoginError, ExpiredLoginError, AdminRequiredError, NotLoggedInError
 
 
 @pytest.fixture(scope="function")
@@ -102,6 +102,17 @@ def test_auth_service_rejects_expired_session_token(time, auth_serv):
     with pytest.raises(ExpiredLoginError):
         auth_serv.get_as_non_admin_user(token)
     
+
+def test_auth_service_rejects_None_token(auth_serv):
+    # Arrange
+
+    # Act / Assert
+    with pytest.raises(NotLoggedInError):
+        auth_serv.get_as_non_admin_user(None)
+
+    with pytest.raises(NotLoggedInError):
+        auth_serv.get_as_admin_user(None)
+
 
 def test_auth_service_rejects_nonadmin_token_when_verifying_admin_token(auth_serv):
     # Arrange

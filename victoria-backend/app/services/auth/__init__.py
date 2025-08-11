@@ -35,7 +35,10 @@ class AuthService:
 
         raise InvalidLoginError()
     
-    def _get_as_any_user(self, token: str) -> User:
+    def _get_as_any_user(self, token: Optional[str]) -> User:
+        if token is None:
+            raise NotLoggedInError()
+
         now = int(time.time())
         token = jwt.decode(token, self._jwt_secret, algorithms=["HS256"])
         user = self._user.get_user_by_id(token["user_id"])
@@ -57,14 +60,6 @@ class AuthService:
         return user
             
 
-
-        
-
-
-
-        
-        
-
 class InvalidLoginError(Exception):
     def __init__(self):
         super().__init__("invalid login credentials")
@@ -72,6 +67,10 @@ class InvalidLoginError(Exception):
 class ExpiredLoginError(Exception):
     def __init__(self):
         super().__init__("expired login")
+
+class NotLoggedInError(Exception):
+    def __init__(self):
+        super().__init__("not logged in")
 
 class AdminRequiredError(Exception):
     def __init__(self):

@@ -1,9 +1,12 @@
 import pytest
+from typing import Callable
+from unittest import mock
 from app.main import create_app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, Connection
 from sqlalchemy.orm import Session, sessionmaker
 from testcontainers.postgres import PostgresContainer
+from dependency_injector import providers
 from app.config import settings
 from app.model.user import User, Role
 from app.services.db import DatabaseService
@@ -51,20 +54,27 @@ def db_session(db_connection):
     yield session
     session.close()
 
+
+class TestDatabaseService(DatabaseService):
+    def __init__(self, session_factory: Callable[[], Session]):
+        self._session_factory = session_factory
+
 @pytest.fixture(scope="function")
 def app(db_connection):
     app = create_app()
     
-    def db_session_override():
-        session = Session(db_connection)
-        try:
-            yield session
-        finally:
-            session.close()
+    # def db_session_override():
+    #     session = Session(db_connection)
+    #     try:
+    #         yield session
+    #     finally:
+    #         session.close()
 
-    app.dependency_overrides[get_db_session] = db_session_override
-    
-    return app
+    with app.container.db.override(providers.Singleton(
+        TestDatabaseService,
+        session_factory=sessionmaker(db_connection)
+    )):
+        yield app
 
 @pytest.fixture(scope="function")
 def client(app):

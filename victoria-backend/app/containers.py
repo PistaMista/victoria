@@ -30,5 +30,7 @@ class Container(containers.DeclarativeContainer):
     )
     auth = providers.Factory(
         AuthService,
-        user_service=user
+        user_service=user,
+        jwt_secret=config.JWT_SECRET,
+        login_lifetime=2592000
     )
