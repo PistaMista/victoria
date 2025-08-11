@@ -1,5 +1,5 @@
-# from app.services.user import UserService, UserExistsError
-# from app.services.db import DatabaseService
+from app.services.user import UserService, UserExistsError
+from app.services.db import DatabaseService
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import select
 from app.model.user import User, Role
@@ -7,19 +7,22 @@ import pytest
 from unittest import mock
 
 @pytest.fixture(scope="function")
-def serv(db_factory):
-    db_mock = mock.Mock(spec=DatabaseService)
-    db_mock.get_session_factory.return_value = db_factory
-    serv = UserService(db_service=db_mock)
+def serv(db_factory, db_container):
+    db = DatabaseService(db_url=db_container)
+    
+    with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
+        yield UserService(db_service=db)
+
 
 
 def test_user_service_creates_user(serv, db_session):
     # Arrange
     
     # Act
-    serv.create_normal_user(
+    serv.create_user(
         username="John",
-        password="hello"
+        password="hello",
+        role=Role.USER
     )
     
     # Assert
@@ -29,16 +32,16 @@ def test_user_service_creates_user(serv, db_session):
 
     assert user is not None
     assert user.username == "John"
-    assert user.hashed_password == ""
     assert user.role == Role.USER
 
 def test_user_service_creates_admin_user(serv, db_session):
     # Arrange
     
     # Act
-    serv.create_admin_user(
+    serv.create_user(
         username="John",
-        password="hello"
+        password="hello",
+        role=Role.ADMIN
     )
     
     # Assert
@@ -48,7 +51,6 @@ def test_user_service_creates_admin_user(serv, db_session):
 
     assert user is not None
     assert user.username == "John"
-    assert user.hashed_password == ""
     assert user.role == Role.ADMIN
 
 def test_user_service_throws_exception_when_creating_user_with_taken_username(serv, db_session):
@@ -63,15 +65,17 @@ def test_user_service_throws_exception_when_creating_user_with_taken_username(se
     
     # Act / Assert
     with pytest.raises(UserExistsError):
-        serv.create_normal_user(
+        serv.create_user(
             username="exists",
-            password="asdadkjanskjdn"
+            password="asdadkjanskjdn",
+            role = Role.USER
         )
     
     with pytest.raises(UserExistsError):
-        serv.create_admin_user(
+        serv.create_user(
             username="exists",
-            password="asndkanskjdn"
+            password="asndkanskjdn",
+            role = Role.ADMIN
         )
 
 def test_user_service_reports_when_no_users_are_registered(serv, db_factory):
