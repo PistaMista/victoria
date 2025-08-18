@@ -26,3 +26,5 @@ class Monologue(Base):
     
     thoughts: Mapped[List["Thought"]] = relationship("Thought", back_populates="monologue")
     
+    def is_finished(self):
+        return self.status in [MonologueStatus.SUCCESS, MonologueStatus.FAILURE]
