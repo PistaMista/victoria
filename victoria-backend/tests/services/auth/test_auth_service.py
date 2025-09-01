@@ -103,7 +103,8 @@ def test_auth_service_rejects_expired_session_token(time, auth_serv):
         auth_serv.get_as_non_admin_user(token)
     
 
-def test_auth_service_rejects_None_token(auth_serv):
+@mock.patch('time.time', return_value=1753211036)
+def test_auth_service_rejects_None_token(time, auth_serv):
     # Arrange
 
     # Act / Assert
@@ -114,7 +115,8 @@ def test_auth_service_rejects_None_token(auth_serv):
         auth_serv.get_as_admin_user(None)
 
 
-def test_auth_service_rejects_nonadmin_token_when_verifying_admin_token(auth_serv):
+@mock.patch('time.time', return_value=1753211036)
+def test_auth_service_rejects_nonadmin_token_when_verifying_admin_token(time, auth_serv):
     # Arrange
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpc3N1ZWQiOjE3NTMyMTEwMzYsImV4cGlyZXMiOjE3NTU4MDMwMzZ9.SklQhNa7KwHStLH-FEpxtTJd-Ue1qtOMV-m5DswmtQ4"
     
