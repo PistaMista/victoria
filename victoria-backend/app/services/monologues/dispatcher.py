@@ -13,16 +13,12 @@ class DispatcherService:
         db_service: DatabaseService,
         runner_service: RunnerService
     ):
-        self._monologue_threads: [threading.Thread] = []
         self._db = db_service
         self._runner = runner_service
 
     def stop(self):
         event.remove(Session, 'after_commit', self.after_commit)
         event.remove(Session, 'before_commit', self.before_commit)
-
-        for t in self._monologue_threads:
-            t.join(timeout=1.0)
 
     def start(self):
         event.listen(Session, 'before_commit', self.before_commit)
