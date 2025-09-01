@@ -456,20 +456,31 @@ def test_runner_starts_first_queued_thread_after_a_thread_finishes(db_serv, db_s
     db_session.commit()
     
     # Act / Assert
-    runner.start_monologue_process(7)
-    runner.start_monologue_process(8)
+    try:
+        runner.start_monologue_process(7)
+        runner.start_monologue_process(8)
 
-    mock_thread1._mock.start.assert_called_once()
-    mock_thread2._mock.start.assert_not_called()
-    
-    event1.set()
-    mock_thread1.join()
+        mock_thread1._mock.start.assert_called_once()
+        mock_thread2._mock.start.assert_not_called()
+        
+        event1.set()
+        mock_thread1.join()
+        
+        assert mon1.is_finished()
 
-    mock_thread1._mock.start.assert_called_once()
-    mock_thread2._mock.start.assert_called_once()
-    
-    event2.set()
-    mock_thread2.join()
+        mock_thread1._mock.start.assert_called_once()
+        mock_thread2._mock.start.assert_called_once()
+        
+        assert mon2.status == MonologueStatus.RUNNING
+        
+        event2.set()
+        mock_thread2.join()
+    finally:
+        event1.set()
+        event2.set()
+        
+        mock_thread1.join()
+        mock_thread2.join()
 
     
     

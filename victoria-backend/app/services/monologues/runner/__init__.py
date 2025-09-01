@@ -54,9 +54,19 @@ class RunnerService:
         
         self._running_threads.remove(t)
         if self._queued_threads:
-            t = self._queued_threads.pop(0)
-            t.start()
-            self._running_threads.append(t)
+            new_t = self._queued_threads.pop(0)
+
+            with self._db.session() as db:
+                monologue = db.scalar(
+                    select(Monologue).where(Monologue.id == new_t._id)
+                )
+                if not monologue is None:
+                    monologue.status = MonologueStatus.RUNNING
+                    db.commit()
+                
+
+            new_t.start()
+            self._running_threads.append(new_t)
             
 
 class AlreadyRunningError(Exception):
