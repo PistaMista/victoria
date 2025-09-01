@@ -14,11 +14,18 @@ from app.services.db import DatabaseService
 from app.services.monologues.dispatcher import DispatcherService
 
 @pytest.fixture(scope="function")
-def dispatcher(db_container, db_factory):
+def runner():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def dispatcher(db_container, runner, db_factory):
     db = DatabaseService(db_url=db_container)
     
     with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
-        yield DispatcherService(db_service=db)
+        yield DispatcherService(
+            db_service=db,
+            runner_service=runner
+        )
 
 def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_session, dispatcher):
     # Arrange
@@ -220,7 +227,7 @@ def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_
     assert db_session.scalars(select(Monologue)).first() is None
 
 
-def test_dispatcher_starts_thread_when_monologue_is_added_to_db(dispatcher, db_session):
+def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added_to_db(dispatcher, runner, db_session):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -247,42 +254,37 @@ def test_dispatcher_starts_thread_when_monologue_is_added_to_db(dispatcher, db_s
     db_session.commit()
 
     # Act
-    with mock.patch("threading.Thread") as MockThread:
-        instance = MockThread.return_value
-        instance.start.return_value = None
-
-        dispatcher.start()
-        trigger_invocation = TriggerInvocation(
-            event=event
-        )
-        trigger_thought = Thought(
-            invocation=trigger_invocation,
-            result="An email has arrived..."
-        )
-        monologue = Monologue(
-            id=42,
-            title="Process incoming email",
-            summary="Thinking",
-            event=event,
-            agent=agent,
-            status=MonologueStatus.PENDING,
-            thoughts=[
-                trigger_thought
-            ]
-        )
-        event.monologues = [ monologue ]
-        db_session.add(trigger_invocation)
-        db_session.add(trigger_thought)
-        db_session.add(monologue)
-        db_session.commit()
-        
-        # Assert
-        # ...a fresh thread is started for new monologues
-        monologue_id = MockThread.call_args.kwargs["args"]
-        assert monologue_id == 42
+    dispatcher.start()
+    trigger_invocation = TriggerInvocation(
+        event=event
+    )
+    trigger_thought = Thought(
+        invocation=trigger_invocation,
+        result="An email has arrived..."
+    )
+    monologue = Monologue(
+        id=42,
+        title="Process incoming email",
+        summary="Thinking",
+        event=event,
+        agent=agent,
+        status=MonologueStatus.PENDING,
+        thoughts=[
+            trigger_thought
+        ]
+    )
+    event.monologues = [ monologue ]
+    db_session.add(trigger_invocation)
+    db_session.add(trigger_thought)
+    db_session.add(monologue)
+    db_session.commit()
+    
+    # Assert
+    # ...a fresh thread is started for new monologues
+    runner.start_monologue_process.assert_called_once_with(42)
 
 
-def test_dispatcher_starts_thread_for_existing_unfinished_monologues(db_session, dispatcher):
+def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(db_session, runner, dispatcher):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -342,17 +344,12 @@ def test_dispatcher_starts_thread_for_existing_unfinished_monologues(db_session,
     db_session.commit()
     
     # Act
-    with mock.patch("threading.Thread") as MockThread:
-        instance = MockThread.return_value
-        instance.start.return_value = None
+    dispatcher.start()
         
-        dispatcher.start()
+    # Assert
+    runner.start_monologue_process.assert_called_once_with(45)
         
-        # Assert
-        monologue_id = MockThread.call_args.kwargs["args"]
-        assert monologue_id == 45
-        
-def test_dispatcher_does_nothing_for_finished_monologues(db_session, dispatcher):
+def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dispatcher):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -410,11 +407,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, dispatcher)
     db_session.commit()
 
     # Act
-    with mock.patch("threading.Thread") as MockThread:
-        instance = MockThread.return_value
-        instance.start.return_value = None
-        
-        dispatcher.start()
-        
-        # Assert
-        MockThread.assert_not_called()
+    dispatcher.start()
+    
+    # Assert
+    runner.start_monologue_process.assert_not_called()

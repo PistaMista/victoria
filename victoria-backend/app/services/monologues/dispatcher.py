@@ -1,6 +1,3 @@
-import threading
-from typing import Generator
-from contextlib import contextmanager
 from sqlalchemy import event, select, or_
 from sqlalchemy.orm import sessionmaker, Session
 from app.model.event import Event
@@ -8,11 +5,17 @@ from app.model.invocation import TriggerInvocation
 from app.model.thought import Thought
 from app.model.monologue import Monologue, MonologueStatus
 from app.services.db import DatabaseService
+from app.services.monologues.runner import RunnerService
 
 class DispatcherService:
-    def __init__(self, db_service: DatabaseService):
+    def __init__(
+        self, 
+        db_service: DatabaseService,
+        runner_service: RunnerService
+    ):
         self._monologue_threads: [threading.Thread] = []
         self._db = db_service
+        self._runner = runner_service
 
     def stop(self):
         event.remove(Session, 'after_commit', self.after_commit)
@@ -107,13 +110,5 @@ class DispatcherService:
                 return
             
             monologue.status = MonologueStatus.RUNNING
-            thread = threading.Thread(
-                target=monologue_thread, 
-                name=f"monologue_{monologue.id}",
-                args=(monologue.id)
-            )
-            thread.start()
+            self._runner.start_monologue_process(monologue.id)
             db.commit()
-
-def monologue_thread():
-    threading.Event().wait()
