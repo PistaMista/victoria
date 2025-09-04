@@ -51,6 +51,7 @@ def sample_monologue(db_session):
     )
     verbatim_invocation = Invocation(
         action=think_action,
+        function_name="think",
         params={
             "content": "I should notify the user of the new email"
         }
@@ -62,6 +63,7 @@ def sample_monologue(db_session):
     )
     action_invocation = Invocation(
         action=send_message_action,
+        function_name="send_message",
         params={
             "exchange_id": 3,
             "message": "A new email has arrived"
@@ -248,6 +250,7 @@ def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, 
     )
     invocation = Invocation(
         action=action,
+        function_name="mega_func",
         params={
             "the_mega_param": "foobar"
         }

@@ -9,7 +9,9 @@ class Invocation(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     thought: Mapped["Thought"] = relationship("Thought", back_populates="invocation")
     
-    action_id: Mapped[int] = mapped_column(ForeignKey("action.id"), nullable=False)
+    # If action_id is null, then this Invocation was not recognized as a valid action
+    action_id: Mapped[int] = mapped_column(ForeignKey("action.id"), nullable=True)
     action: Mapped["Action"] = relationship("Action")
     
+    function_name: Mapped[str] = mapped_column(String(80), nullable=False)
     params: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)

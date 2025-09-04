@@ -315,6 +315,7 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
     )
     verbatim_invocation = Invocation(
         action=think_action,
+        function_name="think",
         params={
             "content": "I should notify the user of the new email"
         }
@@ -384,6 +385,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
     )
     success_invocation = Invocation(
         action=success_action,
+        function_name="mark_as_success",
         params={
             "reason": "The user has been notified"
         }   

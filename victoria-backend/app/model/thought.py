@@ -9,6 +9,7 @@ class Thought(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    # If there is no invocation assigned, it means that this Thought is not a result of the Agent's actions (e.g. comes from a Trigger)
     invocation_id: Mapped[int] = mapped_column(ForeignKey("invocation.id"), nullable=True)
     invocation: Mapped["Invocation"] = relationship("Invocation", back_populates="thought")
     monologue_id: Mapped[int] = mapped_column(ForeignKey("monologue.id"), nullable=False)
