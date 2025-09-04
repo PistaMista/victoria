@@ -1,0 +1,232 @@
+import pytest
+from unittest import mock
+
+@pytest.fixture(scope="function")
+def sample_monologue(db_session):
+    trigger = PollTrigger(
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived...",
+        interval=600
+    )
+    action = Action(
+        id=10,
+        function_name="send_message"
+    )
+    agent = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        allowed_triggers=[trigger],
+        allowed_actions=[action]
+    )
+    event = Event(
+        id=42, 
+        content="An email has arrived...", 
+        trigger=trigger, 
+        dispatched=True,
+        monologues=[]
+    )
+    trigger_invocation = TriggerInvocation(
+        event=event
+    )
+    trigger_thought = Thought(
+        invocation=trigger_invocation,
+        result="An email has arrived..."
+    )
+    verbatim_invocation = ThoughtInvocation(
+        content="I should notify the user of the new email"
+    )
+    verbatim_thought = Thought(
+        invocation=verbatim_invocation,
+        result="I should notify the user of the new email"
+    )
+    action_invocation = ActionInvocation(
+        function_name="send_message",
+        param_json='{{ "exchange_id": 3, "message": "A new email has arrived" }}'
+    )
+    action_thought = Thought(
+        invocation=action_invocation,
+        result="Message sent successfully"
+    )
+    monologue = Monologue(
+        id=45,
+        title="Handle incoming email",
+        summary="Thinking",
+        event=event,
+        agent=agent,
+        status=MonologueStatus.PENDING,
+        thoughts=[
+            trigger_thought,
+            verbatim_thought,
+            action_thought
+        ]
+    )
+    event.monologues = [ monologue ]
+    
+    db_session.add(monologue)
+    db_session.commit()
+    
+    return monologue
+
+@pytest.fixture(scope="function")
+def db_serv(db_factory, db_container):
+    db = DatabaseService(db_url=db_container)
+    
+    with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
+        yield db
+
+def test_monologue_service_can_change_monologue_status(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+    
+    # Act
+    service.set_monologue_status(sample_monologue.id, MonologueStatus.FAILURE)
+    
+    # Assert
+    assert sample_monologue.status == MonologueStatus.FAILURE
+    
+
+def test_monologue_service_can_change_monologue_title(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+    
+    # Act
+    service.set_monologue_title(sample_monologue.id, "FOR THOSE WHO COME AFTER!")
+    
+    # Assert
+    assert sample_monologue.title == "FOR THOSE WHO COME AFTER!"
+
+def test_monologue_service_can_change_monologue_summary(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+    
+    # Act
+    service.set_monologue_summary(sample_monologue.id, "summarized something")
+    
+    # Assert
+    assert sample_monologue.summary == "summarized something"
+    
+def test_monologue_service_can_get_monologue_thoughts(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+    
+    # Act
+    res = service.get_monologue_thoughts(sample_monologue.id)
+    
+    # Assert
+    assert res == sample_monologue.thoughts
+    
+
+def test_monologue_service_can_get_monologue_thoughts_as_llm_chat_history(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+    
+    # Act
+    res = service.get_monologue_thoughts_as_llm_chat_history(sample_monologue.id)
+
+    # Assert
+    assert res == [
+        # NOTE: this list does not involve the system prompt
+        UserMessage("An email has arrived..."),
+        AssistantMessage('{{ "action": "think", "params": {{ "thought": "I should notify the user of the new email" }} }}'),
+        UserMessage("I should notify the user of the new email"),
+        AssistantMessage('{{ "action": "send_message", "params" {{ "exchange_id": 3, "message": A new email has arrived" }} }}'),
+        UserMessage("Message sent successfully")
+        # NOTE: whether success or failure thoughts appear in the chat history is undefined
+    ]
+
+
+# NOTE: Shouldn't this be done by an agent service? No, since there are monologue specific things which affect which
+# actions can be taken.
+def test_monologue_service_can_get_monologue_system_prompt(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    mock_action_serv.get_tool_description.return_value = """
+    send_message:
+    A VERY INFORMATIVE TOOL DESCRIPTION
+    """
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+    
+    # Act
+    res = service.get_monologue_system_prompt(sample_monologue.id)
+    
+    # Assert
+    assert res == """
+    Manage the user's calendar and tasks
+    
+    send_message:
+    A VERY INFORMATIVE TOOL DESCRIPTION
+    """
+
+def test_monologue_service_can_get_monologue(db_serv, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+    
+    # Act
+    res = service.get_monologue_by_id(sample_monologue.id)
+
+    # Assert
+    assert res == sample_monologue
+    
+    
+def test_monologue_service_throws_when_manipulating_nonexistent_monologue():
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    mock_action_serv.get_tool_description.return_value = """
+    send_message:
+    A VERY INFORMATIVE TOOL DESCRIPTION
+    """
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+
+    # Act / Assert
+    with pytest.raises(NonexistentMonologueError):
+        service.get_monologue_thoughts(99)
+
+    with pytest.raises(NonexistentMonologueError):
+        service.get_monologue_thoughts_as_llm_chat_history(99)
+
+    with pytest.raises(NonexistentMonologueError):
+        service.get_monologue_system_prompt(99)
+
+    with pytest.raises(NonexistentMonologueError):
+        service.set_monologue_status(99, MonologueStatus.PENDING)
+
+    with pytest.raises(NonexistentMonologueError):
+        service.set_monologue_title(99, "")
+
+    with pytest.raises(NonexistentMonologueError):
+        service.set_monologue_summary(99, "")
+
+    with pytest.raises(NonexistentMonologueError):
+        service.get_monologue_by_id(99)
