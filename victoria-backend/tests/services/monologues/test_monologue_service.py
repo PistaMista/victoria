@@ -234,10 +234,54 @@ def test_monologue_service_can_get_monologue_details(db_serv, sample_monologue):
     assert res.title == sample_monologue.title
     assert res.summary == sample_monologue.summary
     assert res.status == sample_monologue.status
+
+def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()    
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+    
+    action = Action(
+        function_name="mega_func"
+    )
+    invocation = Invocation(
+        action=action,
+        params={
+            "the_mega_param": "foobar"
+        }
+    )
+    thought = Thought(
+        timestamp=datetime.fromtimestamp(50),
+        invocation=invocation,
+        result="Suboptimal"
+    )
+    
+    db_session.add(action)
+    db_session.commit()
+    
+    # NOTE: The objects associated to the Thought must not be attached to any other session
+    db_session.expunge(action)
+    
+    # Act
+    service.append_thought_to_monologue(sample_monologue.id, thought)
+    
+    # Assert
+    db_session.refresh(sample_monologue)
+    assert sample_monologue.thoughts[3].invocation.action.function_name == "mega_func"
+    assert sample_monologue.thoughts[3].invocation.params["the_mega_param"] == "foobar"
+    assert sample_monologue.thoughts[3].result == "Suboptimal"
+    assert sample_monologue.thoughts[3].timestamp == datetime.fromtimestamp(50)
+
     
     
 def test_monologue_service_throws_when_manipulating_nonexistent_monologue(db_serv, sample_monologue):
     # Arrange
+    thought = Thought(
+        invocation=None,
+        result="Lol"
+    )
     mock_action_serv = mock.MagicMock()
     mock_action_serv.get_tool_description.return_value = """
     send_message:
@@ -269,3 +313,6 @@ def test_monologue_service_throws_when_manipulating_nonexistent_monologue(db_ser
 
     with pytest.raises(NonexistentMonologueError):
         service.get_monologue_by_id(99)
+    
+    with pytest.raises(NonexistentMonologueError):
+        service.append_thought_to_monologue(99, thought)

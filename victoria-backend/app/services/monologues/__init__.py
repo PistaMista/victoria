@@ -116,6 +116,20 @@ class MonologueService:
                 raise NonexistentMonologueError(id)
             
             return monologue
+    
+    def append_thought_to_monologue(self, id: int, thought: Thought):
+        with self._db.session() as db:
+            monologue = db.scalar(
+                select(Monologue)
+                .where(Monologue.id == id)
+            )
+            
+            if monologue is None:
+                raise NonexistentMonologueError(id)
+            
+            monologue.thoughts.append(thought)
+            db.commit()
+            
         
 class NonexistentMonologueError(Exception):
     def __init__(self, id: int):
