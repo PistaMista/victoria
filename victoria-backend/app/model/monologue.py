@@ -24,7 +24,7 @@ class Monologue(Base):
     agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"), nullable=False)
     agent: Mapped["Agent"] = relationship("Agent", back_populates="monologues")
     
-    thoughts: Mapped[List["Thought"]] = relationship("Thought", back_populates="monologue")
+    thoughts: Mapped[List["Thought"]] = relationship("Thought", back_populates="monologue", order_by="Thought.timestamp")
     
     def is_finished(self):
         return self.status in [MonologueStatus.SUCCESS, MonologueStatus.FAILURE]
