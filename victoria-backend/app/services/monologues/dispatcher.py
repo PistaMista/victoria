@@ -1,7 +1,6 @@
 from sqlalchemy import event, select, or_
 from sqlalchemy.orm import sessionmaker, Session
 from app.model.event import Event
-from app.model.invocation import TriggerInvocation
 from app.model.thought import Thought
 from app.model.monologue import Monologue, MonologueStatus
 from app.services.db import DatabaseService
@@ -72,11 +71,8 @@ class DispatcherService:
 
             matching_agents = event.trigger.allowed_on_agents
             for agent in matching_agents:
-                trigger_invocation = TriggerInvocation(
-                    event=event
-                )
                 trigger_thought = Thought(
-                    invocation=trigger_invocation,
+                    invocation=None,
                     result=event.content
                 )
                 new_monologue = Monologue(
@@ -89,7 +85,6 @@ class DispatcherService:
                         trigger_thought
                     ]
                 )
-                db.add(trigger_invocation)
                 db.add(trigger_thought)
                 db.add(new_monologue)
                 

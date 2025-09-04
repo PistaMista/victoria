@@ -9,7 +9,7 @@ from app.model.agent import Agent
 from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
-from app.model.invocation import TriggerInvocation, ThoughtInvocation, SuccessInvocation
+from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 
 
@@ -47,11 +47,8 @@ def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session):
         dispatched=True,
         monologues=[]
     )
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
     monologue = Monologue(
@@ -105,11 +102,8 @@ def test_runner_marks_running_monologues_as_running(db_serv, db_session):
         dispatched=True,
         monologues=[]
     )
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
     monologue = Monologue(
@@ -162,11 +156,8 @@ def test_runner_marks_queued_monologues_as_pending(db_serv, db_session):
         dispatched=True,
         monologues=[]
     )
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
     monologue = Monologue(
@@ -285,11 +276,8 @@ def test_runner_cannot_start_running_monologue(db_serv, db_session):
         dispatched=True,
         monologues=[]
     )
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
     monologue = Monologue(

@@ -8,7 +8,8 @@ from app.model.agent import Agent
 from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
-from app.model.invocation import TriggerInvocation, ThoughtInvocation, SuccessInvocation
+from app.model.action import Action
+from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from app.services.db import DatabaseService
 from app.services.monologues.dispatcher import DispatcherService
@@ -70,7 +71,7 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_sessio
     assert event.monologues[0].agent.id == 75
     # 4. the monologue starts off with the event as the first thought
     assert len(event.monologues[0].thoughts) == 1
-    assert event.monologues[0].thoughts[0].invocation.event.id == 42
+    assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
 def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, dispatcher):
@@ -111,7 +112,7 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert len(event.monologues) == 1
     assert event.monologues[0].agent.id == 75
     assert len(event.monologues[0].thoughts) == 1
-    assert event.monologues[0].thoughts[0].invocation.event.id == 42
+    assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived..."
 
 def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher):
@@ -255,11 +256,8 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
 
     # Act
     dispatcher.start()
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="An email has arrived..."
     )
     monologue = Monologue(
@@ -274,7 +272,6 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
         ]
     )
     event.monologues = [ monologue ]
-    db_session.add(trigger_invocation)
     db_session.add(trigger_thought)
     db_session.add(monologue)
     db_session.commit()
@@ -306,15 +303,18 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
         dispatched=True,
         monologues=[]
     )
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="An email has arrived..."
     )
-    verbatim_invocation = ThoughtInvocation(
-        content="I should notify the user of the new email"
+    think_action = Action(
+        function_name="think"
+    )
+    verbatim_invocation = Invocation(
+        action=think_action,
+        params={
+            "content": "I should notify the user of the new email"
+        }
     )
     verbatim_thought = Thought(
         invocation=verbatim_invocation,
@@ -336,7 +336,6 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
     
     db_session.add(trigger)
     db_session.add(event)
-    db_session.add(trigger_invocation)
     db_session.add(trigger_thought)
     db_session.add(verbatim_invocation)
     db_session.add(verbatim_thought)
@@ -371,15 +370,18 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
         dispatched=True,
         monologues=[]
     )
-    trigger_invocation = TriggerInvocation(
-        event=event
-    )
     trigger_thought = Thought(
-        invocation=trigger_invocation,
+        invocation=None,
         result="An email has arrived..."
     )
-    success_invocation = SuccessInvocation(
-        reason="The user has been notified"
+    success_action = Action(
+        function_name="mark_as_success"
+    )
+    success_invocation = Invocation(
+        action=success_action,
+        params={
+            "reason": "The user has been notified"
+        }   
     )
     success_thought = Thought(
         invocation=success_invocation,
@@ -399,7 +401,6 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
     
     db_session.add(trigger)
     db_session.add(event)
-    db_session.add(trigger_invocation)
     db_session.add(trigger_thought)
     db_session.add(success_invocation)
     db_session.add(success_invocation)
