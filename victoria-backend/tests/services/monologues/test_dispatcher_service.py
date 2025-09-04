@@ -13,6 +13,7 @@ from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from app.services.db import DatabaseService
 from app.services.monologues.dispatcher import DispatcherService
+from datetime import datetime
 
 @pytest.fixture(scope="function")
 def runner():
@@ -257,6 +258,7 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
     # Act
     dispatcher.start()
     trigger_thought = Thought(
+        timestamp=datetime.fromtimestamp(1),
         invocation=None,
         result="An email has arrived..."
     )
@@ -304,6 +306,7 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
         monologues=[]
     )
     trigger_thought = Thought(
+        timestamp=datetime.fromtimestamp(1),
         invocation=None,
         result="An email has arrived..."
     )
@@ -317,6 +320,7 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
         }
     )
     verbatim_thought = Thought(
+        timestamp=datetime.fromtimestamp(2),
         invocation=verbatim_invocation,
         result="I should notify the user of the new email"
     )
@@ -371,6 +375,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
         monologues=[]
     )
     trigger_thought = Thought(
+        timestamp=datetime.fromtimestamp(2),
         invocation=None,
         result="An email has arrived..."
     )
@@ -384,6 +389,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
         }   
     )
     success_thought = Thought(
+        timestamp=datetime.fromtimestamp(2),
         invocation=success_invocation,
         result="I should notify the user of the new email"
     )

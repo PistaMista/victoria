@@ -11,6 +11,7 @@ from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
+from datetime import datetime
 
 
 @pytest.fixture(scope="function")
@@ -48,6 +49,7 @@ def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session):
         monologues=[]
     )
     trigger_thought = Thought(
+        timestamp=datetime.now(),
         invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
@@ -103,6 +105,7 @@ def test_runner_marks_running_monologues_as_running(db_serv, db_session):
         monologues=[]
     )
     trigger_thought = Thought(
+        timestamp=datetime.now(),
         invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
@@ -157,6 +160,7 @@ def test_runner_marks_queued_monologues_as_pending(db_serv, db_session):
         monologues=[]
     )
     trigger_thought = Thought(
+        timestamp=datetime.now(),
         invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
@@ -277,6 +281,7 @@ def test_runner_cannot_start_running_monologue(db_serv, db_session):
         monologues=[]
     )
     trigger_thought = Thought(
+        timestamp=datetime.now(),
         invocation=None,
         result="News entry added: A cure for cancer discovered..."
     )
