@@ -77,8 +77,8 @@ class MonologueService:
         for t in thoughts:
             if t.invocation is not None:
                 msg_obj = {
-                    "action": t.invocation.action.function_name,
-                    "params": t.invocation.params
+                    "action_name": t.invocation.action.function_name,
+                    "arguments": t.invocation.params
                 }
 
                 res.append(AssistantMessage(json.dumps(msg_obj)))     

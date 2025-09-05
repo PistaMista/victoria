@@ -188,9 +188,9 @@ def test_monologue_service_can_get_monologue_thoughts_as_llm_chat_history(db_ser
     assert res == [
         # NOTE: this list does not involve the system prompt
         UserMessage("An email has arrived..."),
-        AssistantMessage('{"action": "think", "params": {"content": "I should notify the user of the new email"}}'),
+        AssistantMessage('{"action_name": "think", "arguments": {"content": "I should notify the user of the new email"}}'),
         UserMessage("I should notify the user of the new email"),
-        AssistantMessage('{"action": "send_message", "params": {"exchange_id": 3, "message": "A new email has arrived"}}'),
+        AssistantMessage('{"action_name": "send_message", "arguments": {"exchange_id": 3, "message": "A new email has arrived"}}'),
         UserMessage("Message sent successfully")
         # NOTE: whether success or failure thoughts appear in the chat history is undefined
     ]
