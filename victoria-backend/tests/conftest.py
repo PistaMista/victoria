@@ -98,7 +98,7 @@ def mock_app(
     app = create_app()
     
     app.container.db.override(db_mock)
-    app.container.dispatcher.override(dispatcher_mock)
+    # app.container.dispatcher.override(dispatcher_mock)
     app.container.user.override(user_mock)
     app.container.auth.override(auth_mock)
     
