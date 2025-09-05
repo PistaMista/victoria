@@ -1,13 +1,18 @@
 import pytest
+from typing import Callable
+from unittest import mock
 from app.main import create_app
-from app.db.session import get_db_session
-from app.db import run_db_migrations
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, Connection
 from sqlalchemy.orm import Session, sessionmaker
 from testcontainers.postgres import PostgresContainer
+from dependency_injector import providers
 from app.config import settings
 from app.model.user import User, Role
+from app.services.db import DatabaseService
+from app.services.auth import AuthService
+from app.services.user import UserService
+from app.services.monologues.dispatcher import DispatcherService
 
 
 postgres = PostgresContainer("postgres")
@@ -22,8 +27,8 @@ def db_container(request):
     request.addfinalizer(remove_container)
     
     db_url = postgres.get_connection_url()
-    settings.DATABASE_URL = db_url
-    run_db_migrations()
+    database_service = DatabaseService(db_url=db_url)
+    database_service.run_db_migrations()
     return db_url
 
 @pytest.fixture(scope="session")
@@ -31,6 +36,7 @@ def db_engine(db_container):
     engine = create_engine(db_container)
     yield engine
     engine.dispose()
+
 
 @pytest.fixture(scope="function")
 def db_connection(db_engine):
@@ -41,30 +47,70 @@ def db_connection(db_engine):
     connection.close()
 
 @pytest.fixture(scope="function")
+def db_factory(db_connection):
+    return sessionmaker(db_connection)
+
+@pytest.fixture(scope="function")
 def db_session(db_connection):
     Session = sessionmaker(db_connection)
     session = Session()
     yield session
     session.close()
 
+
+class TestDatabaseService(DatabaseService):
+    def __init__(self, session_factory: Callable[[], Session]):
+        self._session_factory = session_factory
+
 @pytest.fixture(scope="function")
 def app(db_connection):
     app = create_app()
     
-    def db_session_override():
-        session = Session(db_connection)
-        try:
-            yield session
-        finally:
-            session.close()
+    app.container.db.override(providers.Singleton(
+        TestDatabaseService,
+        session_factory=sessionmaker(db_connection)
+    ))
+    return app
 
-    app.dependency_overrides[get_db_session] = db_session_override
+@pytest.fixture(scope="function")
+def db_mock():
+    return mock.Mock(spec=DatabaseService)
+
+@pytest.fixture(scope="function")
+def dispatcher_mock():
+    return mock.Mock(spec=DispatcherService)
+
+@pytest.fixture(scope="function")
+def user_mock():
+    return mock.Mock(spec=UserService)
+
+@pytest.fixture(scope="function")
+def auth_mock():
+    return mock.Mock(spec=AuthService)
+
+@pytest.fixture(scope="function")
+def mock_app(
+    db_mock,
+    dispatcher_mock,
+    user_mock,
+    auth_mock
+):
+    app = create_app()
+    
+    app.container.db.override(db_mock)
+    # app.container.dispatcher.override(dispatcher_mock)
+    app.container.user.override(user_mock)
+    app.container.auth.override(auth_mock)
     
     return app
 
 @pytest.fixture(scope="function")
 def client(app):
     return TestClient(app)
+    
+@pytest.fixture(scope="function")
+def mock_client(mock_app):
+    return TestClient(mock_app)
 
 
 @pytest.fixture(scope="function")

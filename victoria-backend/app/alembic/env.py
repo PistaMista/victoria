@@ -4,14 +4,15 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from app.model import Base, user
+from app.model import Base, user, trigger, thought, monologue, invocation, event, allowed_agent_trigger, allowed_agent_action, agent, action
 from app.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+# if settings.DATABASE_URL:
+#     config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
