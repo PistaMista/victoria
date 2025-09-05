@@ -10,11 +10,11 @@ import uvicorn
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start the monologue dispatcher when the app starts
-    dispatcher = app.container.dispatcher()
-    dispatcher.start()
+    # dispatcher = app.container.dispatcher()
+    # dispatcher.start()
     yield
     # Stop the monologue dispatcher when the app stops
-    dispatcher.stop()
+    # dispatcher.stop()
 
 def create_app() -> FastAPI:
     container = Container()

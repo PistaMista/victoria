@@ -20,10 +20,10 @@ class Container(containers.DeclarativeContainer):
         DatabaseService,
         db_url=config.DATABASE_URL
     )
-    dispatcher = providers.Singleton(
-        DispatcherService,
-        db_service=db
-    )
+    # dispatcher = providers.Singleton(
+    #     DispatcherService,
+    #     db_service=db
+    # )
     user = providers.Factory(
         UserService,
         db_service=db
