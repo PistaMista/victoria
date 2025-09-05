@@ -117,6 +117,18 @@ class MonologueService:
             
             return monologue
     
+    def get_monologue_agent_id(self, id: int):
+        with self._db.session() as db:
+            monologue = db.scalar(
+                select(Monologue)
+                .where(Monologue.id == id)
+            )
+            
+            if monologue is None:
+                raise NonexistentMonologueError(id)
+            
+            return monologue.agent.id
+    
     def append_thought_to_monologue(self, id: int, thought: Thought):
         with self._db.session() as db:
             monologue = db.scalar(

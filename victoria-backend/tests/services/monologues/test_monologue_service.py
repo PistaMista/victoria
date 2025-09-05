@@ -237,6 +237,21 @@ def test_monologue_service_can_get_monologue_details(db_serv, sample_monologue):
     assert res.summary == sample_monologue.summary
     assert res.status == sample_monologue.status
 
+def test_monologue_service_can_get_monologue_agent_id(db_serv, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+
+    # Act
+    res = service.get_monologue_agent_id(sample_monologue.id)
+
+    # Assert
+    assert res == 75
+    
+
 def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, sample_monologue):
     # Arrange
     mock_action_serv = mock.MagicMock()    
@@ -319,3 +334,6 @@ def test_monologue_service_throws_when_manipulating_nonexistent_monologue(db_ser
     
     with pytest.raises(NonexistentMonologueError):
         service.append_thought_to_monologue(99, thought)
+
+    with pytest.raises(NonexistentMonologueError):
+        service.get_monologue_agent_id(99)
