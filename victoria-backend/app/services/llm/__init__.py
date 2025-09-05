@@ -1,4 +1,7 @@
 
+class LLMService:
+    pass
+
 class Message:
     def __init__(self, content: str):
         self._content: str = content
