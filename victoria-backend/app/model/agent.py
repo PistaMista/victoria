@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model import Base
 from app.model.allowed_agent_trigger import allowed_agent_trigger_association
@@ -11,6 +11,9 @@ class Agent(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     prompt: Mapped[str] = mapped_column(Text(), nullable=False)
+    
+    model_id: Mapped[int] = mapped_column(ForeignKey("language_model.id"), nullable=True)
+    model: Mapped["LanguageModel"] = relationship("LanguageModel")
     
     allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_agent_trigger_association, back_populates="allowed_on_agents")
     allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_agent_action_association, back_populates="allowed_on_agents")
