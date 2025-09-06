@@ -31,7 +31,7 @@ def test_llm_service_can_add_a_new_ollama_connection(mock_get, db_serv, db_sessi
     # Assert
     connections = db_session.scalars(
         select(LLMConnection)
-    )
+    ).all()
     
     assert len(connections) == 1
     assert connections[0].name == "Homelab"
@@ -100,7 +100,7 @@ def test_llm_service_imports_models_from_added_ollama_connection(mock_get, db_se
     models = db_session.scalars(
         select(LanguageModel)
         .order_by(LanguageModel.name)
-    )
+    ).all()
     
     assert len(models) == 2
 
@@ -169,7 +169,7 @@ def test_llm_service_imports_models_from_existing_connections_on_startup(mock_ge
     # Arrange
     connection = OllamaConnection(
         name="Megacenter",
-        url="http://www.megacenter.com:11434"
+        url="http://localhost:11434"
     )
     
     db_session.add(connection)
@@ -226,7 +226,7 @@ def test_llm_service_imports_models_from_existing_connections_on_startup(mock_ge
     models = db_session.scalars(
         select(LanguageModel)
         .order_by(LanguageModel.name)
-    )
+    ).all()
     
     assert len(models) == 2
 
@@ -244,16 +244,24 @@ def test_llm_service_overrides_models_in_database_with_models_from_existing_conn
     # Arrange
     connection = OllamaConnection(
         name="Megacenter",
-        url="http://www.megacenter.com:11434"        
+        url="http://localhost:11434"        
     )
-    model = LanguageModel(
+    replaced_model = LanguageModel(
+        id=4,
         name="gemma3:12b",
+        enabled=True,
+        connection=connection
+    )
+    untouched_model = LanguageModel(
+        id=42,
+        name="deepseek-r1:latest",
         enabled=True,
         connection=connection
     )
     
     db_session.add(connection)
-    db_session.add(model)
+    db_session.add(replaced_model)
+    db_session.add(untouched_model)
     db_session.commit()
 
     mock_res = mock_get.return_value
@@ -307,10 +315,12 @@ def test_llm_service_overrides_models_in_database_with_models_from_existing_conn
     models = db_session.scalars(
         select(LanguageModel)
         .order_by(LanguageModel.name)
-    )
+    ).all()
     
     assert len(models) == 2
 
+    assert models[0] == untouched_model
+    assert models[0].id == 42
     assert models[0].name == "deepseek-r1:latest"
     assert models[0].connection == connection
 
@@ -322,7 +332,7 @@ def test_llm_service_keeps_models_in_database_on_ollama_communication_failure(mo
     # Arrange
     connection = OllamaConnection(
         name="Megacenter",
-        url="http://www.megacenter.com:11434"        
+        url="http://localhost:11434"        
     )
     model = LanguageModel(
         name="gemma3:12b",
@@ -346,7 +356,7 @@ def test_llm_service_keeps_models_in_database_on_ollama_communication_failure(mo
     models = db_session.scalars(
         select(LanguageModel)
         .order_by(LanguageModel.name)
-    )
+    ).all()
     
     assert len(models) == 1
 
@@ -378,7 +388,7 @@ def test_llm_service_can_remove_an_ollama_connection(mock_get, db_serv, db_sessi
     )
     
     # Act
-    serv.remove_ollama_connection(10)
+    serv.remove_connection(10)
     
     # Assert
     connections = db_session.scalars(
@@ -413,7 +423,7 @@ def test_llm_service_throws_when_removing_nonexistent_connection(mock_get, db_se
     
     # Act / Assert
     with pytest.raises(NonexistentConnectionError):
-        serv.remove_ollama_connection(15)
+        serv.remove_connection(15)
     
     connections = db_session.scalars(
         select(LLMConnection)
@@ -447,7 +457,7 @@ def test_llm_service_removes_models_imported_from_a_removed_connection(mock_get,
     )
     
     # Act
-    serv.remove_ollama_connection(10)
+    serv.remove_connection(10)
     
     # Assert
     models = db_session.scalars(
