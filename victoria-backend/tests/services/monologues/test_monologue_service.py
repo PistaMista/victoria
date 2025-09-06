@@ -23,11 +23,17 @@ def sample_monologue(db_session):
     )
     send_message_action = Action(
         id=390,
-        function_name="send_message"
+        function_name="send_message",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
     )
     think_action = Action(
         id=391,
-        function_name="think"
+        function_name="think",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
     )
     agent = Agent(
         id=75,
@@ -261,7 +267,10 @@ def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, 
     )
     
     action = Action(
-        function_name="mega_func"
+        function_name="mega_func",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
     )
     invocation = Invocation(
         action=action,

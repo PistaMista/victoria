@@ -311,7 +311,10 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
         result="An email has arrived..."
     )
     think_action = Action(
-        function_name="think"
+        function_name="think",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
     )
     verbatim_invocation = Invocation(
         action=think_action,
@@ -381,7 +384,10 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
         result="An email has arrived..."
     )
     success_action = Action(
-        function_name="mark_as_success"
+        function_name="mark_as_success",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
     )
     success_invocation = Invocation(
         action=success_action,
