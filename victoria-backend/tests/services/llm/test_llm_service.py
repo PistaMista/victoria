@@ -466,8 +466,8 @@ def test_llm_service_removes_models_imported_from_a_removed_connection(mock_get,
     
     assert models.first() is None
 
-@mock.patch('app.services.llm.requests.get')
 @mock.patch('app.services.llm.requests.post')
+@mock.patch('app.services.llm.requests.get')
 def test_llm_service_uses_ollama_api_correctly_for_chat_completion(mock_get, mock_post, db_serv, db_session):
     # Arrange
     connection = OllamaConnection(
@@ -538,7 +538,7 @@ def test_llm_service_uses_ollama_api_correctly_for_chat_completion(mock_get, moc
                 },
                 {
                     "role": "user",
-                    "content": "Give me a recipe for fish and chips"
+                    "content": "Give me a recipe for fish and chips."
                 }
             ]
         }
@@ -546,8 +546,8 @@ def test_llm_service_uses_ollama_api_correctly_for_chat_completion(mock_get, moc
     assert res == AssistantMessage("Here is a recipe...")
 
     
-@mock.patch('app.services.llm.requests.get')
 @mock.patch('app.services.llm.requests.post')
+@mock.patch('app.services.llm.requests.get')
 def test_llm_service_throws_on_communication_failure_during_chat_completion(mock_get, mock_post, db_serv, db_session):
     # Arrange
     connection = OllamaConnection(
@@ -583,8 +583,8 @@ def test_llm_service_throws_on_communication_failure_during_chat_completion(mock
         ])
 
 
-@mock.patch('app.services.llm.requests.get')
 @mock.patch('app.services.llm.requests.post')
+@mock.patch('app.services.llm.requests.get')
 def test_llm_service_throws_when_using_nonexistent_model_for_chat_completion(mock_get, mock_post, db_serv, db_session):
     # Arrange
     connection = OllamaConnection(
@@ -635,8 +635,8 @@ def test_llm_service_throws_when_using_nonexistent_model_for_chat_completion(moc
             UserMessage("Give me a recipe for fish and chips.")
         ])
     
-@mock.patch('app.services.llm.requests.get')
 @mock.patch('app.services.llm.requests.post')
+@mock.patch('app.services.llm.requests.get')
 def test_llm_service_throws_when_using_disabled_model_for_chat_completion(mock_get, mock_post, db_serv, db_session):
     # Arrange
     connection = OllamaConnection(

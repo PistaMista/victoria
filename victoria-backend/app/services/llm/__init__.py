@@ -49,10 +49,37 @@ class LLMService:
             db.commit()
 
     def get_chat_completion(self, model_id: int, messages: List["Message"]) -> "AssistantMessage":
-        pass
+        with self._db.session() as db:
+            model = db.scalar(
+                select(LanguageModel).where(LanguageModel.id == model_id)
+            )
+            
+            if model is None:
+                raise NonexistentModelError(model_id)
+            
+            if not model.enabled:
+                raise DisabledModelError(model_id)
+
+            connection = model.connection
+            
+            if isinstance(connection, OllamaConnection):
+                return self._get_ollama_chat_completion(model.name, connection.url, messages)
+            else:
+                raise UnrecognizedConnectionTypeError(connection.id)
+            
     
-    def _get_ollama_chat_completion(self, model_id: int, messages: List["Message"]) -> "AssistantMessage":
-        pass
+    def _get_ollama_chat_completion(self, model_name: str, url: str, messages: List["Message"]) -> "AssistantMessage":
+        try:
+            res = requests.post(f"{url}/api/chat", json={
+                "model": model_name,
+                "stream": False,
+                "messages": [msg.to_json() for msg in messages]
+            })
+            json = res.json()
+
+            return AssistantMessage(json["message"]["content"])
+        except (requests.RequestException, requests.HTTPError):
+            raise OllamaCommunicationError()
 
     def _refresh_ollama_connection_models(self, id: int):
         with self._db.session() as db:
@@ -107,19 +134,38 @@ class Message:
     
     def __eq__(self, o: object) -> bool:
         return type(self) is type(o) and self._content == o._content
+    
+    def to_json(self) -> dict:
+        return {
+            "role": "unknown",
+            "content": self._content
+        }
 
 class SystemMessage(Message):
-    pass
+    def to_json(self) -> dict:
+        res = super().to_json()
+        res["role"] = "system"
+        return res
 
 class AssistantMessage(Message):
-    pass
+    def to_json(self) -> dict:
+        res = super().to_json()
+        res["role"] = "assistant"
+        return res
 
 class UserMessage(Message):
-    pass
+    def to_json(self) -> dict:
+        res = super().to_json()
+        res["role"] = "user"
+        return res
 
 class NonexistentConnectionError(Exception):
     def __init__(self, id: int):
         super().__init__(f"the connection with id {id} does not exist")
+
+class UnrecognizedConnectionTypeError(Exception):
+    def __init__(self, id: int):
+        super().__init__(f"the connection with id {id} has an unsupported type")
 
 class NonexistentModelError(Exception):
     def __init__(self, id: int):
