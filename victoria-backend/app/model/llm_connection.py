@@ -11,7 +11,7 @@ class LLMConnection(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     type: Mapped[str] = mapped_column(String(10), nullable=False)
 
-    models: Mapped[List["LanguageModel"]] = relationship("LanguageModel", back_populates="connection")
+    models: Mapped[List["LanguageModel"]] = relationship("LanguageModel", back_populates="connection", cascade='all,delete')
 
     __mapper_args__ = {
         'polymorphic_identity': 'NONE',
