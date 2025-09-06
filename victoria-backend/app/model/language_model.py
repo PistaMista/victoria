@@ -11,4 +11,4 @@ class LanguageModel(Base):
     
     # The connection the model was imported from
     connection_id: Mapped[int] = mapped_column(ForeignKey("llm_connection.id"), nullable=False)
-    connection: Mapped["Connection"] = relationship("Connection", back_populates="models")
+    connection: Mapped["LLMConnection"] = relationship("LLMConnection", back_populates="models")
