@@ -1,15 +1,17 @@
 import pytest
 from unittest import mock
 from typing import List
+from app.services.action import TOOL_REGISTRY
+from app.services.action.tool import tool, UnannotatedActionParamError, InvalidActionParamTypeError
 
-def test_tool_decorator_decorated_functions_is_still_callable():
+def test_tool_decorator_decorated_function_is_still_callable():
     # Arrange
     TOOL_REGISTRY.clear()
     outer_func = mock.MagicMock()
     
     # Act
     @tool
-    def inner_func(p1, p2):
+    def inner_func(p1: str, p2: str):
         outer_func(p1, p2)
     
     inner_func("lol", "wee")
@@ -50,8 +52,8 @@ def test_tool_decorator_registers_action_with_proper_parameters():
         "count": "int",
         "amount": "float",
         "enabled": "bool",
-        "float_list": "List[float]",
-        "int_list": "List[int]"
+        "float_list": "typing.List[float]",
+        "int_list": "typing.List[int]"
     }
 
     # Teardown
@@ -68,7 +70,15 @@ def test_tool_decorator_registers_action_so_that_it_is_executable():
     def my_mega_func(description: str, count: int):
         outer_func(description, count)
         
-    namespace = {}
+    # Currently, the imported action function only has access to selected objects passed into its
+    # namespace by the ActionService. It cannot use any other objects defined in the script its contained
+    # in.
+    #
+    # TODO: Make it so that the imported action can use any symbols that are well-defined within the containing script.
+    namespace = {
+        "tool": lambda x: x,
+        "outer_func": outer_func
+    }
     exec(TOOL_REGISTRY[0].function_source_code, namespace)
     namespace["my_mega_func"]("desc", 42)
     
@@ -96,9 +106,13 @@ def test_tool_decorator_registers_complex_action():
     @tool
     def factorial(x: int):
         """Calculates the factorial of x."""
+        if x <= 0:
+            return 1
         return x * factorial(x - 1)
     
-    namespace = {}
+    namespace = {
+        "tool": lambda f: f
+    }
     exec(TOOL_REGISTRY[0].function_source_code, namespace)
     res = namespace["factorial"](4)
 
@@ -154,7 +168,7 @@ def test_tool_decorator_throws_when_registering_action_with_unannotated_paramete
             return a - b
 
     # Assert
-    assert TOOL_REGISTRY.empty()
+    assert not TOOL_REGISTRY
 
 def test_tool_decorator_throws_when_registering_action_with_invalid_parameter_types():
     # Only POSITION_OR_KEYWORD and VAR_KEYWORD are allowed
@@ -181,4 +195,4 @@ def test_tool_decorator_throws_when_registering_action_with_invalid_parameter_ty
             return a - b
 
     # Assert
-    assert TOOL_REGISTRY.empty()
+    assert not TOOL_REGISTRY
