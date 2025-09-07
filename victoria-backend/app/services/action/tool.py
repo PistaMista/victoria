@@ -17,8 +17,7 @@ def serialize_type(t):
     else:
         return repr(t)
 
-
-def tool(func):
+def convert_to_action(func) -> Action:
     func_name = func.__name__
     raw_source = inspect.getsource(func)
     cleaned_source = textwrap.dedent(raw_source)
@@ -44,8 +43,13 @@ def tool(func):
         function_source_code=cleaned_source,
         function_docstring=doc
     )
-    TOOL_REGISTRY.append(action)
 
+    return action
+    
+
+def tool(func):
+    action = convert_to_action(func)
+    TOOL_REGISTRY.append(action)
     return func
 
 class UnannotatedActionParamError(Exception):
