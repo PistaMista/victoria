@@ -1,8 +1,7 @@
 import pytest
 from unittest import mock
 from typing import List
-from app.services.action import TOOL_REGISTRY
-from app.services.action.tool import tool, UnannotatedActionParamError, InvalidActionParamTypeError
+from app.services.action.tool import TOOL_REGISTRY, tool, UnannotatedActionParamError, InvalidActionParamTypeError
 
 def test_tool_decorator_decorated_function_is_still_callable():
     # Arrange

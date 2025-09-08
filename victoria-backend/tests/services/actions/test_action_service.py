@@ -256,7 +256,7 @@ def test_action_service_imports_actions_from_simple_action_git_repository(mock_c
 """
 import requests
 
-def tool(func)
+def tool(func):
     return func
 
 # The tool decorator is just used as a marker, it does nothing
@@ -299,7 +299,7 @@ def test_action_service_imports_actions_from_complex_action_git_repository(mock_
 """
 import requests
 
-def tool(func)
+def tool(func):
     return func
 
 @tool

@@ -8,7 +8,8 @@ from app.model.trigger import Trigger
 from app.model.monologue import Monologue
 from app.model.language_model import LanguageModel
 from app.model.llm_connection import LLMConnection
-from app.services.action import TOOL_REGISTRY
+
+TOOL_REGISTRY = []
 
 def serialize_type(t):
     if t in vars(builtins).values():

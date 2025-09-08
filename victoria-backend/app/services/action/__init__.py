@@ -1,11 +1,16 @@
 from app.services.db import DatabaseService
+from app.services.action.tool import convert_to_action
 from app.model.action import Action
 from app.model.invocation import Invocation
 from app.model.action_repository import ActionRepository
 from sqlalchemy import select
 from typing import List
-
-TOOL_REGISTRY = []
+from git import Repo
+import tempfile
+import shutil
+import os
+import ast
+import typing
 
 class ActionService:
     
@@ -43,7 +48,10 @@ class ActionService:
         pass
 
     def import_actions_from_git_url(self, url: str) -> List[Action]:
-        pass
+        repo_files = self._clone_git_repository(url)
+        actions = self._import_actions_from_local_directory(repo_files)
+        shutil.rmtree(repo_files)
+        return actions
     
     def set_action_repository_actions(self, repo_id: int, actions: List[Action]):
         # FIXME: We should not rely solely on the function name to identify a function within a repository,
@@ -98,11 +106,59 @@ class ActionService:
                 pass
 
     def _import_actions_from_local_directory(self, path: str) -> List[Action]:
-        pass
+        actions = []
+        for dirpath, dirnames, filenames in os.walk(path):
+            for filename in filenames:
+                if filename.endswith(".py"):
+                    py_path = os.path.join(dirpath, filename)
+                    actions.extend(
+                        self._import_actions_from_python_file(py_path)
+                    )
+        
+        return actions
+    
+    def _import_actions_from_python_file(self, path: str):
+        actions = []
+        source = ""
+
+        with open(path, 'r') as f:
+            source = f.read()
+
+        module = ast.parse(source)
+        tool_defs = [
+            x for x in module.body 
+            if isinstance(x, ast.FunctionDef) 
+            and any(d.id == "tool" for d in x.decorator_list)
+        ]
+        
+        for tool_def in tool_defs:
+            namespace = {
+                'tool': lambda x: x,
+                'typing': typing,
+            }
+            namespace.update(vars(typing))
+            
+            tool_module = ast.Module(body=[tool_def])
+            
+            exec(
+                compile(
+                    source=tool_module, 
+                    filename=path, 
+                    mode='exec'
+                ),
+                namespace
+            )
+            func = namespace[tool_def.name]
+            action = convert_to_action(func)
+            actions.append(action)
+
+        return actions
 
     def _clone_git_repository(self, url: str) -> str:
         """Clones the given Git repository and returns the path to the clone directory."""
-        pass
+        temp_dir = tempfile.mkdtemp("victoria-action-import")
+        Repo.clone_from(url, temp_dir)
+        return temp_dir
 
 class NonexistentActionRepositoryError(Exception):
     def __init__(self, id: int):
