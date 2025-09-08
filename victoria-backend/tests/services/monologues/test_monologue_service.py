@@ -217,7 +217,7 @@ def test_monologue_service_can_get_monologue_system_prompt(db_serv, db_session, 
 A VERY INFORMATIVE TOOL DESCRIPTION!"""
     think_desc = """think:
 ANOTHER INFORMATIVE TOOL DESCRIPTION"""
-    mock_action_serv.get_tool_description.side_effect = lambda id: {
+    mock_action_serv.get_action_description.side_effect = lambda id: {
         390: send_desc,
         391: think_desc
     }.get(id)
