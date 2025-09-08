@@ -191,11 +191,22 @@ def test_action_service_can_set_actions_for_action_repository(db_serv, db_sessio
     db_session.commit()
     
     # Act
-    serv.set_action_repository_actions(600, [think_action])
+    new_action = Action(
+        function_name="new",
+        function_param_schema={},
+        function_docstring="",
+        function_source_code=""
+    )
+    serv.set_action_repository_actions(600, [new_action])
     
     # Arrange
     db_session.refresh(repo_gitea)
-    assert repo_gitea.actions == [think_action]
+    assert repo_gitea.actions == [new_action]
+    
+    actions = db_session.scalars(
+        select(Action)
+    ).all()
+    assert actions == [new_action]
     
 
 @mock.patch("tests.services.actions.test_action_service.ActionService._clone_git_repository")
