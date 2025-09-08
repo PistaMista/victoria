@@ -162,6 +162,42 @@ def test_action_service_does_not_set_repository_actions_if_reimport_throws(mock_
     db_session.refresh(repo_gitea)
     assert repo_gitea.actions == [think_action, end_action]
 
+def test_action_service_can_set_actions_for_action_repository(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+    think_action = Action(
+        function_name="think",
+        function_param_schema={},
+        function_docstring="Some docs idk",
+        function_source_code=""
+    )
+    end_action = Action(
+        function_name="end_workflow",
+        function_param_schema={
+            "successful": "bool"
+        },
+        function_docstring="Some docs idk",
+        function_source_code=""
+    )
+    repo_gitea = ActionRepository(
+        id=600,
+        name="Gitea",
+        url="gitea",
+        actions=[think_action, end_action]
+    )
+    db_session.add(repo_gitea)
+    db_session.commit()
+    
+    # Act
+    serv.set_action_repository_actions(600, [think_action])
+    
+    # Arrange
+    db_session.refresh(repo_gitea)
+    assert repo_gitea.actions == [think_action]
+    
+
 @mock.patch("tests.services.actions.test_action_service.ActionService._clone_git_repository")
 def test_action_service_imports_actions_from_simple_action_git_repository(mock_clone, db_serv, tmp_path):
     # Arrange
