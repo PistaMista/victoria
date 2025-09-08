@@ -1,8 +1,8 @@
 import enum
-from sqlalchemy import String, ForeignKey, Enum
+from sqlalchemy import String, ForeignKey, Enum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model import Base
-from typing import List
+from typing import List, Dict, Any
 
 class MonologueStatus(enum.Enum):
     PENDING = 0
@@ -17,6 +17,7 @@ class Monologue(Base):
     title: Mapped[str] = mapped_column(String(80), nullable=True)
     summary: Mapped[str] = mapped_column(String(120), nullable=True)
     status: Mapped[MonologueStatus] = mapped_column(Enum(MonologueStatus, native_enum=False), nullable=False)
+    context: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=True)
 
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), nullable=False)
     event: Mapped["Event"] = relationship("Event", back_populates="monologues")
