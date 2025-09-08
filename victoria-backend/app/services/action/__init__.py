@@ -51,7 +51,7 @@ class ActionService:
             )
             
             if repo is None:
-                raise NonexistentActionRepositoryError(repo_id)
+                raise NonexistentActionRepositoryError(id)
             
             db.delete(repo)
             db.commit()
@@ -98,7 +98,26 @@ class ActionService:
         pass
 
     def get_action_description(self, action_id: int) -> str:
-        pass
+        with self._db.session() as db:
+            action = db.scalar(
+                select(Action).where(Action.id == action_id)
+            )
+            
+            if action is None:
+                raise NonexistentActionError(action_id)
+            
+            # This is not supposed to be strictly valid JSON,
+            # just something easier to parse for the LLM.
+            desc = "{\n"
+            desc += f'    "action_name": "{action.function_name}",\n'
+            desc += f'    "description": "{action.function_docstring}",\n'
+            desc += '    "parameters": {\n'
+            for name, typ in action.function_param_schema.items():
+                desc += f'        "{name}": {typ},\n'
+            desc += '    }\n'
+            desc += '}'
+            
+            return desc
 
     def _reimport_actions_for_existing_repositories(self):
         repos = []

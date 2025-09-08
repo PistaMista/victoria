@@ -473,7 +473,7 @@ def test_action_service_can_get_action_descriptions(db_serv, db_session):
     "action_name": "think",
     "description": "Returns its parameter. Use to append a thought verbatim to the workflow.",
     "parameters": {
-        "content": str
+        "content": str,
     }
 }"""
     assert desc2 == \
@@ -482,7 +482,7 @@ def test_action_service_can_get_action_descriptions(db_serv, db_session):
     "description": "Ends the workflow either with success or failure for the given reason.",
     "parameters": {
         "successful": bool,
-        "reason": str
+        "reason": str,
     }
 }"""
 
@@ -935,6 +935,9 @@ def factorial(x: int):
 
 def test_action_service_throws_when_trying_to_manipulate_nonexistent_repo(db_serv, db_session):
     # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
     repo = ActionRepository(
         id=42,
         name="Gitea",
@@ -944,10 +947,6 @@ def test_action_service_throws_when_trying_to_manipulate_nonexistent_repo(db_ser
     db_session.add(repo)
     db_session.commit()
 
-    mock_import_actions.side_effect = ConnectionError() # So that ActionService does not try to reimport the actions
-    serv = ActionService(
-        database_service=db_serv
-    )
     
     # Act / Assert
     with pytest.raises(NonexistentActionRepositoryError):
@@ -959,6 +958,9 @@ def test_action_service_throws_when_trying_to_manipulate_nonexistent_repo(db_ser
 
 def test_action_service_throws_when_trying_to_manipulate_nonexistent_action(db_serv, db_session):
     # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
     repo = ActionRepository(
         id=42,
         name="Gitea",
@@ -968,10 +970,6 @@ def test_action_service_throws_when_trying_to_manipulate_nonexistent_action(db_s
     db_session.add(repo)
     db_session.commit()
 
-    mock_import_actions.side_effect = ConnectionError() # So that ActionService does not try to reimport the actions
-    serv = ActionService(
-        database_service=db_serv
-    )
     
     # Act / Assert
     with pytest.raises(NonexistentActionError):
