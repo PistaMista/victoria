@@ -2,6 +2,7 @@ from app.services.db import DatabaseService
 from app.model.action import Action
 from app.model.invocation import Invocation
 from app.model.action_repository import ActionRepository
+from sqlalchemy import select
 from typing import List
 
 TOOL_REGISTRY = []
@@ -13,6 +14,7 @@ class ActionService:
         database_service: DatabaseService
     ):
         self._db: DatabaseService = database_service
+        self._reimport_actions_for_existing_repositories()
 
 
     def add_action_repository(self, name: str, url: str):
@@ -30,8 +32,12 @@ class ActionService:
             
             repo_id = repo.id
         
-        actions = self.import_actions_from_git_url(url)
-        self.set_action_repository_actions(repo_id, actions)
+        try:
+            actions = self.import_actions_from_git_url(url)
+            self.set_action_repository_actions(repo_id, actions)
+        except:
+            # TODO: Store an error somewhere indicating that the last import action failed
+            pass
     
     def remove_action_repository(self, id: int):
         pass
@@ -50,6 +56,21 @@ class ActionService:
 
     def get_action_description(self, action_id: int) -> str:
         pass
+
+    def _reimport_actions_for_existing_repositories(self):
+        repos = []
+        with self._db.session() as db:
+            repos = db.scalars(
+                select(ActionRepository)
+            ).all()
+        
+        for repo in repos:
+            try:
+                actions = self.import_actions_from_git_url(repo.url)
+                self.set_action_repository_actions(repo.id, actions)
+            except:
+                # TODO: Store an error somewhere indicating that the import failed
+                pass
 
     def _import_actions_from_local_directory(self, path: str) -> List[Action]:
         pass
