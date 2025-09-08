@@ -16,7 +16,22 @@ class ActionService:
 
 
     def add_action_repository(self, name: str, url: str):
-        pass
+        """Adds an action repository with the given name and url."""
+        repo_id = 0
+        with self._db.session() as db:
+            repo = ActionRepository(
+                name=name,
+                url=url
+            )
+            
+            db.add(repo)
+            db.commit()
+            db.refresh(repo)
+            
+            repo_id = repo.id
+        
+        actions = self.import_actions_from_git_url(url)
+        self.set_action_repository_actions(repo_id, actions)
     
     def remove_action_repository(self, id: int):
         pass
