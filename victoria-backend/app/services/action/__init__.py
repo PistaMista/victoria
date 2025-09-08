@@ -45,7 +45,17 @@ class ActionService:
             pass
     
     def remove_action_repository(self, id: int):
-        pass
+        with self._db.session() as db:
+            repo = db.scalar(
+                select(ActionRepository).where(ActionRepository.id == id)
+            )
+            
+            if repo is None:
+                raise NonexistentActionRepositoryError(repo_id)
+            
+            db.delete(repo)
+            db.commit()
+            
 
     def import_actions_from_git_url(self, url: str) -> List[Action]:
         repo_files = self._clone_git_repository(url)
