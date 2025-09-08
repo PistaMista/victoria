@@ -12,4 +12,4 @@ class ActionRepository(Base):
     name: Mapped[str] = mapped_column(String(80), nullable=False)
     url: Mapped[str] = mapped_column(String(300), nullable=False)
     
-    actions: Mapped[List["Action"]] = relationship("Action", back_populates="repository")
+    actions: Mapped[List["Action"]] = relationship("Action", back_populates="repository", cascade="all,delete")

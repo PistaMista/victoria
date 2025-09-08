@@ -13,7 +13,7 @@ class Action(Base):
     function_source_code: Mapped[str] = mapped_column(Text(), nullable=False)
     function_docstring: Mapped[str] = mapped_column(Text(), nullable=False)
     
-    repository_id: Mapped[int] = mapped_column(ForeignKey("action_repository.id"), nullable=False)
+    repository_id: Mapped[int] = mapped_column(ForeignKey("action_repository.id", ondelete='CASCADE'), nullable=False)
     repository: Mapped["ActionRepository"] = relationship("ActionRepository", back_populates="actions")
 
     allowed_on_agents: Mapped[List["Agent"]] = relationship("Agent", secondary=allowed_agent_action_association, back_populates="allowed_actions")
