@@ -168,12 +168,14 @@ def test_action_service_can_set_actions_for_action_repository(db_serv, db_sessio
         database_service=db_serv
     )
     think_action = Action(
+        id=1,
         function_name="think",
         function_param_schema={},
         function_docstring="Some docs idk",
         function_source_code=""
     )
     end_action = Action(
+        id=1337,
         function_name="end_workflow",
         function_param_schema={
             "successful": "bool"
@@ -191,22 +193,50 @@ def test_action_service_can_set_actions_for_action_repository(db_serv, db_sessio
     db_session.commit()
     
     # Act
+    # FIXME: We should not rely solely on the function name to identify a function within a repository,
+    # it should be the full module path to avoid collisions.
     new_action = Action(
         function_name="new",
-        function_param_schema={},
-        function_docstring="",
+        function_param_schema={
+            "iterations": "int"
+        },
+        function_docstring="LOL",
         function_source_code=""
     )
-    serv.set_action_repository_actions(600, [new_action])
+    existing_action = Action(
+        function_name="end_workflow",
+        function_param_schema={
+            "new_param": "int"
+        },
+        function_docstring="A new version of end_workflow",
+        function_source_code=""
+    )
+    serv.set_action_repository_actions(600, [new_action, existing_action])
     
     # Arrange
     db_session.refresh(repo_gitea)
-    assert repo_gitea.actions == [new_action]
-    
+    assert len(repo_gitea.actions) == 2
     actions = db_session.scalars(
         select(Action)
+        .order_by(Action.function_name)
     ).all()
-    assert actions == [new_action]
+
+    assert len(actions) == 2
+    # This is an entirely new action, so it won't have the same id as an existing one
+    assert actions[1].id != 1
+    assert actions[1].function_name == "new"
+    assert actions[1].function_param_schema == {
+        "iterations": "int"
+    }
+    assert actions[1].function_docstring == "LOL"
+    assert actions[1].function_source_code == ""
+
+    # existing_action is not added as a new action, since it has the same function_name as end_action
+    # so this is the same id as the id of end_action
+    assert actions[0].id == 1337
+    # New code and docstring
+    assert actions[0].function_source_code == ""
+    assert actions[0].function_docstring == "A new version of end_workflow"
     
 
 @mock.patch("tests.services.actions.test_action_service.ActionService._clone_git_repository")

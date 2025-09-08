@@ -46,7 +46,32 @@ class ActionService:
         pass
     
     def set_action_repository_actions(self, repo_id: int, actions: List[Action]):
-        pass
+        # FIXME: We should not rely solely on the function name to identify a function within a repository,
+        # it should be the full module path to avoid name collisions.
+        with self._db.session() as db:
+            repo = db.scalar(
+                select(ActionRepository).where(ActionRepository.id == repo_id)
+            )
+            
+            if repo is None:
+                raise NonexistentActionRepositoryError(repo_id)
+            
+            for existing in repo.actions:
+                for i, new in enumerate(actions):
+                    if new.function_name == existing.function_name:
+                        actions.pop(i)
+                        
+                        existing.function_param_schema = new.function_param_schema
+                        existing.function_docstring = new.function_docstring
+                        existing.function_source_code = new.function_source_code
+                        break
+                else:
+                    db.delete(existing)
+            
+            for new in actions:
+                repo.actions.append(new)
+            
+            db.commit()
 
     def parse_invocation(self, invocation_text: str) -> Invocation:
         pass
