@@ -856,7 +856,7 @@ def factorial(x: int):
     res = serv.execute_invocation(invocation)
     assert res == "24"
     
-def test_action_service_executes_invalid_invocation_with_error_result_as_string():
+def test_action_service_executes_invalid_invocation_with_error_result_as_string(db_serv, db_session):
     # Arrange
     serv = ActionService(
         database_service=db_serv

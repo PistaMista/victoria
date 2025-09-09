@@ -8,6 +8,7 @@ from typing import List
 from git import Repo
 from pydantic import TypeAdapter, ValidationError
 from pydoc import locate
+import requests
 import re
 import json
 import tempfile
@@ -155,7 +156,37 @@ class ActionService:
         return result
     
     def execute_invocation(self, invocation: Invocation) -> str:
-        pass
+        errors = []
+        
+        if invocation.function_name is not None:
+            if not invocation.function_name_semantically_valid:
+                errors.append("The action name you provided does not refer to a valid action. Please check the list of valid actions.")
+        else:
+            errors.append("Could not parse action name out of your JSON response, please check the format.")
+        
+        if invocation.params is not None:
+            if not invocation.params_semantically_valid:
+                errors.append("The arguments you provided are not semantically valid. Please check their names and types.")
+        else:
+            errors.append("Could not parse action arguments out of your JSON response, please check the format.")
+            
+        
+        if errors:
+            errors_str = "\n".join(errors)
+            return f"Errors:\n{errors_str}"
+        
+        try:
+            namespace = {
+                'tool': lambda x: x,
+                'requests': requests
+            }
+            exec(
+                invocation.action.function_source_code,
+                namespace
+            )
+            return str(namespace[invocation.action.function_name](**invocation.params))
+        except Exception as e:
+            return str(e)
 
     def get_action_description(self, action_id: int) -> str:
         with self._db.session() as db:
