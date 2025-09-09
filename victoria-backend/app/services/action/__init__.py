@@ -6,6 +6,10 @@ from app.model.action_repository import ActionRepository
 from sqlalchemy import select
 from typing import List
 from git import Repo
+from pydantic import TypeAdapter, ValidationError
+from pydoc import locate
+import re
+import json
 import tempfile
 import shutil
 import os
@@ -92,7 +96,63 @@ class ActionService:
             db.commit()
 
     def parse_invocation(self, invocation_text: str) -> Invocation:
-        pass
+        result = Invocation(
+            action=None,
+            function_name=None,
+            params=None,
+            function_name_semantically_valid=False,
+            params_semantically_valid=False
+        )
+        
+        # Parse JSON
+        try:
+            trimmed = re.match(r"[^{]*({[\s\S]*})[^}]*", invocation_text).group(1)
+            parsed = json.loads(trimmed)
+
+            result.function_name = parsed.get("action_name", None)
+            result.params = parsed.get("arguments", None)
+        except:
+            pass
+        
+        # Retrieve action with same name
+        # FIXME: This is a vulnerability! Multiple users may have an action with the same
+        # name, but the one which is first in the database will always be used!
+        # The function_name is not unique!
+        # Maybe use action IDs instead?
+        if result.function_name is not None:
+            with self._db.session() as db:
+                action = db.scalar(
+                    select(Action)
+                    .where(Action.function_name == result.function_name)
+                )
+                
+                if action is not None:
+                    result.action = action
+                    result.function_name_semantically_valid = True
+        
+        if result.action is not None and isinstance(result.params, dict):
+            # Validate params
+            args = result.params.items()
+            params = result.action.function_param_schema.items()
+            
+            if len(args) == len(params):
+                for (arg_name, arg_val), (param_name, param_type) in zip(args, params):
+                    if arg_name != param_name:
+                        break
+                    
+                    type_class = locate(param_type)
+                    if type_class is None:
+                        break
+                    
+                    try:
+                        type_adapter = TypeAdapter(type_class)
+                        type_adapter.validate_python(arg_val)
+                    except ValidationError:
+                        break
+                else:
+                    result.params_semantically_valid = True
+        
+        return result
     
     def execute_invocation(self, invocation: Invocation) -> str:
         pass

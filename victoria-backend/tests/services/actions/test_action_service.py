@@ -530,7 +530,7 @@ def test_action_service_parses_valid_invocation_json(db_serv, db_session):
     }
     """)
 
-    assert res.action == end_action
+    assert res.action.id == end_action.id
     assert res.function_name == "end_workflow"
     assert res.params == {
         "successful": True,
@@ -587,7 +587,7 @@ def test_action_service_parses_valid_invocation_json_with_any_leading_or_trailin
     ```
     """)
 
-    assert res.action == end_action
+    assert res.action.id == end_action.id
     assert res.function_name == "end_workflow"
     assert res.params == {
         "successful": True,
@@ -715,7 +715,7 @@ def test_action_service_parses_semantically_invalid_invocation_json_with_missing
     """)
 
     assert isinstance(res, Invocation)
-    assert res.action == end_action
+    assert res.action.id == end_action.id
     assert res.function_name == "end_workflow"
     assert res.params == {
         "successful": True
@@ -759,7 +759,7 @@ def test_action_service_parses_semantically_invalid_invocation_json_with_extrane
     """)
 
     assert isinstance(res, Invocation)
-    assert res.action == end_action
+    assert res.action.id == end_action.id
     assert res.function_name == "end_workflow"
     assert res.params == {
         "successful": True,
@@ -804,7 +804,7 @@ def test_action_service_parses_semantically_invalid_invocation_json_with_invalid
     """)
 
     assert isinstance(res, Invocation)
-    assert res.action == end_action
+    assert res.action.id == end_action.id
     assert res.function_name == "end_workflow"
     assert res.params == {
         "successful": True,
