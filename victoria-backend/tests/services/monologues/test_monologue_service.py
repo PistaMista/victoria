@@ -11,6 +11,7 @@ from app.model.event import Event
 from app.model.thought import Thought
 from app.model.invocation import Invocation
 from app.model.action import Action
+from app.model.action_repository import ActionRepository
 from datetime import datetime
 
 @pytest.fixture(scope="function")
@@ -21,13 +22,25 @@ def sample_monologue(db_session):
         template="An email has arrived...",
         interval=600
     )
+    action_repo = ActionRepository(
+        name="Default",
+        url="https://www.github.com/SOME_ACTION_REPO"
+    )
     send_message_action = Action(
         id=390,
-        function_name="send_message"
+        function_name="send_message",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring="",
+        repository=action_repo
     )
     think_action = Action(
         id=391,
-        function_name="think"
+        function_name="think",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring="",
+        repository=action_repo
     )
     agent = Agent(
         id=75,
@@ -204,7 +217,7 @@ def test_monologue_service_can_get_monologue_system_prompt(db_serv, db_session, 
 A VERY INFORMATIVE TOOL DESCRIPTION!"""
     think_desc = """think:
 ANOTHER INFORMATIVE TOOL DESCRIPTION"""
-    mock_action_serv.get_tool_description.side_effect = lambda id: {
+    mock_action_serv.get_action_description.side_effect = lambda id: {
         390: send_desc,
         391: think_desc
     }.get(id)
@@ -259,9 +272,12 @@ def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, 
         database_service=db_serv,
         action_service=mock_action_serv
     )
-    
     action = Action(
-        function_name="mega_func"
+        function_name="mega_func",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring="",
+        repository=sample_monologue.thoughts[2].invocation.action.repository
     )
     invocation = Invocation(
         action=action,

@@ -9,6 +9,7 @@ from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.action import Action
+from app.model.action_repository import ActionRepository
 from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from app.services.db import DatabaseService
@@ -305,13 +306,21 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
         dispatched=True,
         monologues=[]
     )
+    action_repo = ActionRepository(
+        name="Default",
+        url="some_url"
+    )
     trigger_thought = Thought(
         timestamp=datetime.fromtimestamp(1),
         invocation=None,
         result="An email has arrived..."
     )
     think_action = Action(
-        function_name="think"
+        function_name="think",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring="",
+        repository=action_repo
     )
     verbatim_invocation = Invocation(
         action=think_action,
@@ -375,13 +384,21 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
         dispatched=True,
         monologues=[]
     )
+    action_repo = ActionRepository(
+        name="Default",
+        url="lol.com"
+    )
     trigger_thought = Thought(
         timestamp=datetime.fromtimestamp(2),
         invocation=None,
         result="An email has arrived..."
     )
     success_action = Action(
-        function_name="mark_as_success"
+        function_name="mark_as_success",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring="",
+        repository=action_repo
     )
     success_invocation = Invocation(
         action=success_action,

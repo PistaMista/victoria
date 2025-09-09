@@ -100,7 +100,7 @@ class MonologueService:
             allowed_actions = monologue.agent.allowed_actions
             
             for action in allowed_actions:
-                desc = self._action.get_tool_description(action.id)
+                desc = self._action.get_action_description(action.id)
                 prompt += "\n\n" + desc
                 
             return prompt
