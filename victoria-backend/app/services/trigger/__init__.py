@@ -2,7 +2,7 @@ from app.services.db import DatabaseService
 from typing import Dict, Any 
 from itertools import chain
 from sqlalchemy import select
-from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger
+from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
 from app.model.event import Event
 import requests
 import re
@@ -78,6 +78,17 @@ class TriggerService:
 
             for trigger in matching:
                 self.generate_event(trigger.id, {"message": message})
+
+    def receive_webhook_payload(self, endpoint: str, content: str):
+        with self._db.session() as db:
+            matching = db.scalars(
+                select(WebhookTrigger)
+                .where(WebhookTrigger.endpoint == endpoint)
+            )
+
+            for trigger in matching:
+                self.generate_event(trigger.id, {"payload": content})
+
 
     def generate_event(self, trigger_id: int, variables: Dict[str, Any]):
         trigger = None

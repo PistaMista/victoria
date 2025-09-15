@@ -324,11 +324,13 @@ def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_ma
 def test_trigger_service_webhook_trigger_receives_webhook_payload_and_generates_events(mock_generate, db_serv, db_session):
     # Arrange
     webhook_trigger_1 = WebhookTrigger(
+        id=1,
         name="Webhook",
         template="Incoming HTTP request: $(payload)",
         endpoint="/test/modify"
     )
     webhook_trigger_2 = WebhookTrigger(
+        id=2,
         name="Webhook",
         template="REQUEST: $(payload)",
         endpoint="/test/modify"
@@ -346,20 +348,22 @@ def test_trigger_service_webhook_trigger_receives_webhook_payload_and_generates_
     serv.receive_webhook_payload("/test/modify", "foobar")
 
     # Assert
-    mock_generate.assert_any_call("Incoming HTTP request: $(payload)", {"payload": "load"})
-    mock_generate.assert_any_call("Incoming HTTP request: $(payload)", {"payload": "foobar"})
-    mock_generate.assert_any_call("REQUEST: $(payload)", {"payload": "load"})
-    mock_generate.assert_any_call("REQUEST: $(payload)", {"payload": "foobar"})
+    mock_generate.assert_any_call(1, {"payload": "load"})
+    mock_generate.assert_any_call(1, {"payload": "foobar"})
+    mock_generate.assert_any_call(2, {"payload": "load"})
+    mock_generate.assert_any_call(2, {"payload": "foobar"})
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
 def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matching_endpoint(mock_generate, db_serv, db_session):
     # Arrange
     webhook_trigger_1 = WebhookTrigger(
+        id=1,
         name="Webhook",
         template="Incoming HTTP request: $(payload)",
         endpoint="/test/modify"
     )
     webhook_trigger_2 = WebhookTrigger(
+        id=2,
         name="Webhook",
         template="REQUEST: $(payload)",
         endpoint="/test/create"
@@ -377,6 +381,6 @@ def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matc
     serv.receive_webhook_payload("/test/modify", "foobar")
 
     # Assert
-    mock_generate.assert_called_times(2)
-    mock_generate.assert_any_call("Incoming HTTP request: $(payload)", {"payload": "load"})
-    mock_generate.assert_any_call("Incoming HTTP request: $(payload)", {"payload": "foobar"})
+    assert mock_generate.call_count == 2
+    mock_generate.assert_any_call(1, {"payload": "load"})
+    mock_generate.assert_any_call(1, {"payload": "foobar"})
