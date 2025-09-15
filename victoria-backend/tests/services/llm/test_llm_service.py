@@ -41,7 +41,7 @@ def test_llm_service_can_add_a_new_ollama_connection(mock_get, db_serv, db_sessi
 def test_llm_service_imports_models_from_added_ollama_connection(mock_get, db_serv, db_session):
     # Arrange
     mock_res = mock_get.return_value
-    mock_res.status_code == 200
+    mock_res.status_code = 200
     mock_res.json.return_value = {
       "models": [
         {
@@ -116,7 +116,7 @@ def test_llm_service_imports_models_from_added_ollama_connection(mock_get, db_se
 def test_llm_service_fails_to_add_ollama_connection_on_ollama_error_status_code(mock_get, db_serv, db_session):
     # Arrange
     mock_res = mock_get.return_value
-    mock_res.status_code == 400
+    mock_res.status_code = 400
     mock_res.raise_for_status.side_effect = HTTPError()
     serv = LLMService(
         database_service=db_serv
@@ -176,7 +176,7 @@ def test_llm_service_imports_models_from_existing_connections_on_startup(mock_ge
     db_session.commit()
 
     mock_res = mock_get.return_value
-    mock_res.status_code == 200
+    mock_res.status_code = 200
     mock_res.json.return_value = {
       "models": [
         {
@@ -265,7 +265,7 @@ def test_llm_service_overrides_models_in_database_with_models_from_existing_conn
     db_session.commit()
 
     mock_res = mock_get.return_value
-    mock_res.status_code == 200
+    mock_res.status_code = 200
     mock_res.json.return_value = {
       "models": [
         {
