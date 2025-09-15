@@ -2,7 +2,7 @@ from app.services.db import DatabaseService
 from typing import Dict, Any 
 from itertools import chain
 from sqlalchemy import select
-from app.model.trigger import Trigger, TimerTrigger, PollTrigger
+from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger
 from app.model.event import Event
 import requests
 import re
@@ -68,6 +68,16 @@ class TriggerService:
     
     def _execute_timer_trigger(self, trigger: TimerTrigger):
         self.generate_event(trigger.id, {})
+    
+    def receive_chat_message(self, receiver: str, message: str):
+        with self._db.session() as db:
+            matching = db.scalars(
+                select(ChatTrigger)
+                .where(ChatTrigger.receiver == receiver)
+            )
+
+            for trigger in matching:
+                self.generate_event(trigger.id, {"message": message})
 
     def generate_event(self, trigger_id: int, variables: Dict[str, Any]):
         trigger = None

@@ -253,11 +253,13 @@ def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, 
 def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_events(mock_generate, db_serv, db_session):
     # Arrange
     chat_trigger_1 = ChatTrigger(
+        id=1,
         name="Chat 1",
         template="New message from user: $(message)",
         receiver="general"
     )
     chat_trigger_2 = ChatTrigger(
+        id=2,
         name="Chat 2",
         template="NEW TASK GIVEN: $(message)",
         receiver="general"
@@ -275,10 +277,10 @@ def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_e
     serv.receive_chat_message("general", "Goodbye")
 
     # Assert
-    mock_generate.assert_any_call("New message from user: $(message)", {"message": "Hello there"})
-    mock_generate.assert_any_call("NEW TASK GIVEN: $(message)", {"message": "Hello there"})
-    mock_generate.assert_any_call("New message from user: $(message)", {"message": "Goodbye"})
-    mock_generate.assert_any_call("NEW TASK GIVEN: $(message)", {"message": "Goodbye"})
+    mock_generate.assert_any_call(1, {"message": "Hello there"})
+    mock_generate.assert_any_call(2, {"message": "Hello there"})
+    mock_generate.assert_any_call(1, {"message": "Goodbye"})
+    mock_generate.assert_any_call(2, {"message": "Goodbye"})
 
     # Teardown
     serv.stop_trigger_timers()
@@ -287,11 +289,13 @@ def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_e
 def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_matching_chat_receiver(mock_generate, db_serv, db_session):
     # Arrange
     chat_trigger_1 = ChatTrigger(
+        id=1,
         name="Chat 1",
         template="New message from user: $(message)",
         receiver="general"
     )
     chat_trigger_2 = ChatTrigger(
+        id=2,
         name="Chat 2",
         template="NEW TASK GIVEN: $(message)",
         receiver="technical"
@@ -309,9 +313,9 @@ def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_ma
     serv.receive_chat_message("general", "Goodbye")
 
     # Assert
-    mock_generate.assert_called_times(2)
-    mock_generate.assert_any_call("New message from user: $(message)", {"message": "Hello there"})
-    mock_generate.assert_any_call("New message from user: $(message)", {"message": "Goodbye"})
+    assert mock_generate.call_count == 2
+    mock_generate.assert_any_call(1, {"message": "Hello there"})
+    mock_generate.assert_any_call(1, {"message": "Goodbye"})
 
     # Teardown
     serv.stop_trigger_timers()
