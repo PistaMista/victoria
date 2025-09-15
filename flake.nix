@@ -148,8 +148,6 @@
             buildInputs = [
               dev-pkgs.uv
               dev-pkgs.nodejs_22
-              nvim
-              vscode
             ];
 
             shellHook = ''
