@@ -2,7 +2,7 @@ import pytest
 import time
 from unittest import mock
 from sqlalchemy import select
-from app.services.trigger import TriggerService
+from app.services.trigger import TriggerService, NonexistentTriggerError
 from app.services.db import DatabaseService
 from app.model.event import Event
 from app.model.trigger import TimerTrigger, PollTrigger, WebhookTrigger, ChatTrigger
@@ -14,7 +14,7 @@ def db_serv(db_factory, db_container):
     with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
         yield db
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_timers")
+@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers")
 def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(mock_start_timers, db_serv):
     # Arrange
 
