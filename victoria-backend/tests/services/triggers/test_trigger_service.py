@@ -203,12 +203,12 @@ def test_trigger_service_timer_trigger_generates_events_periodically(mock_genera
 
     # Assert
     time.sleep(1.5)
-    mock_generate.assert_called_times(1)
-    mock_generate.assert_called_with("Event!", {})
+    assert mock_generate.call_count == 1
+    mock_generate.assert_called_with(42, {})
 
     time.sleep(1.0)
-    mock_generate.assert_called_times(2)
-    mock_generate.assert_called_with("Event!", {})
+    assert mock_generate.call_count == 2
+    mock_generate.assert_called_with(42, {})
 
     # Teardown
     serv.stop_trigger_timers()
@@ -218,6 +218,7 @@ def test_trigger_service_timer_trigger_generates_events_periodically(mock_genera
 def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, mock_get, db_serv, db_session):
     # Arrange
     poll_trigger = PollTrigger(
+        id=42,
         name="Poll",
         template="Website: $(content) $(lol)",
         url="http://seznam.cz",
@@ -237,13 +238,13 @@ def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, 
 
     # Assert
     time.sleep(1.5)
-    mock_generate.assert_called_times(1)
-    mock_generate.assert_called_with("Website: $(content) $(lol)", {"content": "Content!"})
+    assert mock_generate.call_count == 1
+    mock_generate.assert_called_with(42, {"content": "Content!"})
 
     mock_res.text = "New"
     time.sleep(1.0)
-    mock_generate.assert_called_times(2)
-    mock_generate.assert_called_with("Website: $(content) $(lol)", {"content": "New"})
+    assert mock_generate.call_count == 2
+    mock_generate.assert_called_with(42, {"content": "New"})
 
     # Teardown
     serv.stop_trigger_timers()
