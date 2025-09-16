@@ -25,11 +25,12 @@ class TriggerService:
             timed = chain(polls, timers)
 
             for trigger in timed:
-                timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
-                    "trigger": trigger
-                })
-                self._trigger_timers[trigger.id] = timer
-                timer.start()
+                if trigger.id not in self._trigger_timers:
+                    timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
+                        "trigger": trigger
+                    })
+                    self._trigger_timers[trigger.id] = timer
+                    timer.start()
 
     def stop_trigger_timers(self):
         for timer in self._trigger_timers.values():
