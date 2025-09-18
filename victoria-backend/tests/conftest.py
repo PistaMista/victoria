@@ -81,48 +81,48 @@ def app(db_connection):
 
 @pytest.fixture(scope="function")
 def db_mock():
-    return mock.Mock(spec=DatabaseService)
+    return mock.MagicMock()
 
 
 @pytest.fixture(scope="function")
 def user_mock():
-    return mock.Mock(spec=UserService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def auth_mock():
-    return mock.Mock(spec=AuthService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def monologue_mock():
-    return mock.Mock(spec=MonologueService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def dispatcher_mock():
-    return mock.Mock(spec=DispatcherService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def runner_mock():
-    return mock.Mock(spec=RunnerService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def thread_factory_mock():
-    return mock.Mock(spec=AgenticMonologueThread)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def chat_mock():
-    return mock.Mock(spec=ChatService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def action_mock():
-    return mock.Mock(spec=ActionService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def trigger_mock():
-    return mock.Mock(spec=TriggerService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def agent_mock():
-    return mock.Mock(spec=AgentService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def mock_app(
