@@ -1,9 +1,9 @@
-from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy import String, Text, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model import Base
 from app.model.allowed_agent_trigger import allowed_agent_trigger_association
 from app.model.allowed_agent_action import allowed_agent_action_association
-from typing import List
+from typing import List, Dict, Any
 
 class Agent(Base):
     __tablename__ = "agent"
@@ -14,6 +14,8 @@ class Agent(Base):
     
     model_id: Mapped[int] = mapped_column(ForeignKey("language_model.id"), nullable=True)
     model: Mapped["LanguageModel"] = relationship("LanguageModel")
+
+    model_params: Mapped[Dict[str, Any]] = mapped_column(JSON(), nullable=False, default={})
     
     allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_agent_trigger_association, back_populates="allowed_on_agents")
     allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_agent_action_association, back_populates="allowed_on_agents")
