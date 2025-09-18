@@ -123,3 +123,8 @@ def test_auth_service_rejects_nonadmin_token_when_verifying_admin_token(time, au
     # Act / Assert
     with pytest.raises(AdminRequiredError):
         auth_serv.get_as_admin_user(token)
+
+def test_auth_service_treats_agent_token_as_user_token():
+    # Agent tokens are only valid as long as the monologue they come from is running
+    # and they represent the User who owns the given Agent
+    assert False
