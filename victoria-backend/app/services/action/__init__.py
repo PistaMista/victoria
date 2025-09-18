@@ -4,9 +4,9 @@ from app.model.action import Action
 from app.model.invocation import Invocation
 from app.model.action_repository import ActionRepository
 from sqlalchemy import select
-from typing import List
+from typing import List, Optional
 from git import Repo
-from pydantic import TypeAdapter, ValidationError
+from pydantic import TypeAdapter, ValidationError, BaseModel
 from pydoc import locate
 import requests
 import re
@@ -279,6 +279,10 @@ class ActionService:
         temp_dir = tempfile.mkdtemp("victoria-action-import")
         Repo.clone_from(url, temp_dir)
         return temp_dir
+
+class ActionRepositoryDiff(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
 
 class NonexistentActionRepositoryError(Exception):
     def __init__(self, id: int):

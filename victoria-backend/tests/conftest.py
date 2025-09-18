@@ -80,9 +80,16 @@ def app(db_connection):
     return app
 
 @pytest.fixture(scope="function")
+def user():
+    return User(
+        id=1,
+        username="John",
+        role=Role.USER
+    )
+
+@pytest.fixture(scope="function")
 def db_mock():
     return mock.MagicMock()
-
 
 @pytest.fixture(scope="function")
 def user_mock():
