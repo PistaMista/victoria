@@ -100,7 +100,8 @@ def test_create_agent_returns_200_and_creates_agent_for_current_user_on_valid_re
     )
 
     # Assert
-    agent_mock.add_agent.assert_called_with(
+    agent_mock.add_user_agent.assert_called_with(
+        user_id=1,
         name="John",
         model_id=3,
         system_prompt="You do things",
@@ -137,7 +138,7 @@ def test_create_agent_returns_401_when_not_signed_in(mock_client, auth_mock, age
     )
 
     # Assert
-    agent_mock.add_agent.assert_not_called()
+    agent_mock.add_user_agent.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
 def test_get_agent_returns_200_and_agent_on_valid_request(mock_client, auth_mock, agent_mock, user):
@@ -360,6 +361,55 @@ def test_update_agent_returns_404_for_nonexistent_agent(mock_client, auth_mock, 
         user_id=1,
         agent_id=3,
         diff=AgentDiff()
+    )
+    assert res.status_code == status.HTTP_404_NOT_FOUND
+
+def test_delete_agent_returns_200_and_deletes_agent_on_valid_request(mock_client, auth_mock, agent_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+
+    # Act
+    res = mock_client.delete(
+        '/api/agents/3',
+        cookies={"token": "tok"}
+    )
+
+    # Assert
+    agent_mock.remove_user_agent.assert_called_with(
+        user_id=1,
+        agent_id=3
+    )
+    assert res.status_code == status.HTTP_200_OK
+
+def test_delete_agent_returns_401_when_not_logged_in(mock_client, auth_mock, agent_mock):
+    # Arrange
+    auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
+
+    # Act
+    res = mock_client.delete(
+        '/api/agents/3',
+        cookies={"token": "tok"}
+    )
+
+    # Assert
+    agent_mock.remove_user_agent.assert_not_called()
+    assert res.status_code == status.HTTP_401_UNAUTHORIZED
+
+def test_delete_agent_returns_404_for_nonexistent_agent(mock_client, auth_mock, agent_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    agent_mock.remove_user_agent.side_effect = NonexistentAgentError(3)
+
+    # Act
+    res = mock_client.delete(
+        '/api/agents/3',
+        cookies={"token": "tok"}
+    )
+
+    # Assert
+    agent_mock.remove_user_agent.assert_called_with(
+        user_id=1,
+        agent_id=3
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
