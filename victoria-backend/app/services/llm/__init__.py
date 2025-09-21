@@ -2,8 +2,9 @@ from app.services.db import DatabaseService
 from app.model.llm_connection import OllamaConnection, LLMConnection
 from app.model.language_model import LanguageModel
 from sqlalchemy import select
+from pydantic import BaseModel
 import requests
-from typing import List
+from typing import List, Optional
 
 class LLMService:
     def __init__(
@@ -158,6 +159,10 @@ class UserMessage(Message):
         res = super().to_json()
         res["role"] = "user"
         return res
+
+class OllamaConnectionDiff(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
 
 class NonexistentConnectionError(Exception):
     def __init__(self, id: int):

@@ -132,6 +132,10 @@ def agent_mock():
     return mock.MagicMock()
 
 @pytest.fixture(scope="function")
+def llm_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
 def mock_app(
     db_mock,
     dispatcher_mock,
@@ -143,7 +147,8 @@ def mock_app(
     chat_mock,
     action_mock,
     trigger_mock,
-    agent_mock
+    agent_mock,
+    llm_mock
 ):
     app = create_app()
     
@@ -158,6 +163,7 @@ def mock_app(
     app.container.action.override(action_mock)
     app.container.trigger.override(trigger_mock)
     app.container.agent.override(agent_mock)
+    app.container.llm.override(llm_mock)
     
     return app
 
