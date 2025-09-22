@@ -123,6 +123,10 @@ class NonexistentTriggerError(Exception):
     def __init__(self, id: int):
         super().__init__(f"nonexistent trigger with id: {id}")
 
+class NonexistentEventError(Exception):
+    def __init__(self, id: int):
+        super().__init__(f"nonexistent event with id: {id}")
+
 class NotTimedTriggerError(Exception):
     def __init__(self, id: int):
         super().__init__(f"trigger with id {id} is not a timed trigger")
