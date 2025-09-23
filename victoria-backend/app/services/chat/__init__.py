@@ -11,3 +11,7 @@ class ChatOptionsDiff(BaseModel):
 class NonexistentChatError(Exception):
     def __init__(self, id: int):
         super().__init__(f"nonexistent chat with ID {id}")
+
+class NonexistentExchangeError(Exception):
+    def __init__(self, id: int):
+        super().__init__(f"nonexistent exchange with ID {id}")

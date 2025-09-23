@@ -329,6 +329,7 @@ def test_send_message_to_chat_returns_200_creates_exchange_with_choice_prompt_an
         '/api/chats/4/send-message',
         json={
             "type": "choice_prompt",
+            "prompt": "Pick a thing",
             "choices": ['lol', 'weee']
         }
     )
@@ -338,6 +339,7 @@ def test_send_message_to_chat_returns_200_creates_exchange_with_choice_prompt_an
         user_id=1,
         chat_id=4,
         from_agent_id=None,
+        prompt="Pick a thing",
         choices=['lol', 'weee']
     )
     assert res.status_code == status.HTTP_200_OK
@@ -356,6 +358,7 @@ def test_send_message_to_chat_returns_200_creates_exchange_with_choice_prompt_an
         '/api/chats/4/send-message',
         json={
             "type": "choice_prompt",
+            "prompt": "Pick a thing",
             "choices": ['lol', 'weee'],
             "from_agent_id": 88
         }
@@ -366,6 +369,7 @@ def test_send_message_to_chat_returns_200_creates_exchange_with_choice_prompt_an
         user_id=1,
         chat_id=4,
         from_agent_id=88,
+        prompt="Pick a thing",
         choices=['lol', 'weee']
     )
     assert res.status_code == status.HTTP_200_OK
