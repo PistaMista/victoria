@@ -1,9 +1,10 @@
 from app.services.db import DatabaseService
-from typing import Dict, Any 
+from typing import Dict, Any, Union, Optional, Literal
 from itertools import chain
 from sqlalchemy import select
 from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
 from app.model.event import Event
+from pydantic import BaseModel
 import requests
 import re
 from threading import Timer
@@ -117,7 +118,24 @@ class TriggerService:
             )
             db.add(event)
             db.commit()
-        
+
+class TriggerDiff(BaseModel):
+    name: Optional[str] = None
+    parser: Optional[Literal["identity"]] = None
+    template: Optional[str] = None
+
+class TimerTriggerDiff(TriggerDiff):
+    interval: Optional[int] = None
+
+class PollTriggerDiff(TriggerDiff):
+    interval: Optional[int] = None
+    url: Optional[str] = None
+
+class ChatTriggerDiff(TriggerDiff):
+    receiver: Optional[str] = None
+
+class WebhookTriggerDiff(TriggerDiff):
+    endpoint: Optional[str] = None
 
 class NonexistentTriggerError(Exception):
     def __init__(self, id: int):
