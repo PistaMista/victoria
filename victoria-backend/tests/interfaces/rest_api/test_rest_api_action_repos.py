@@ -80,7 +80,7 @@ def test_list_repos_returns_403_when_not_admin(mock_client, auth_mock, action_mo
     )
 
     # Assert
-    assert action_mock.get_all_action_repositories.assert_not_called()
+    action_mock.get_all_action_repositories.assert_not_called()
     assert res.status_code == status.HTTP_403_FORBIDDEN
 
 def test_get_repo_returns_200_with_repo_for_valid_request(mock_client, auth_mock, action_mock, user):
@@ -102,7 +102,7 @@ def test_get_repo_returns_200_with_repo_for_valid_request(mock_client, auth_mock
     )
 
     # Assert
-    assert action_mock.get_action_repository_by_id.assert_called_with(3)
+    action_mock.get_action_repository_by_id.assert_called_with(3)
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == {
         "id": 3,
@@ -124,7 +124,7 @@ def test_get_repo_returns_401_when_not_logged_in(mock_client, auth_mock, action_
     )
 
     # Assert
-    assert action_mock.get_action_repository_by_id.assert_not_called()
+    action_mock.get_action_repository_by_id.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
 def test_get_repo_returns_403_when_not_admin(mock_client, auth_mock, action_mock, user):
@@ -307,7 +307,7 @@ def test_update_repo_returns_401_when_not_logged_in(mock_client, auth_mock, acti
 def test_update_repo_returns_403_when_not_admin(mock_client, auth_mock, action_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
-    auth_mock.get_as_non_admin_user.side_effect = AdminRequiredError()
+    auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 
     # Act
     res = mock_client.put(
