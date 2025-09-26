@@ -82,6 +82,7 @@ class TriggerService:
                 self.generate_event(trigger.id, {"message": message})
 
     def receive_webhook_payload(self, endpoint: str, content: str):
+        # TODO: Make this method raise InvalidWebhookEndpointError when no matching endpoint is found
         with self._db.session() as db:
             matching = db.scalars(
                 select(WebhookTrigger)
@@ -136,6 +137,10 @@ class ChatTriggerDiff(TriggerDiff):
 
 class WebhookTriggerDiff(TriggerDiff):
     endpoint: Optional[str] = None
+
+class InvalidWebhookEndpointError(Exception):
+    def __init__(self, endpoint: str):
+        super().__init__(f"invalid webhook endpoint: {endpoint}")
 
 class NonexistentTriggerError(Exception):
     def __init__(self, id: int):
