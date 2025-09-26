@@ -1,12 +1,13 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, Cookie
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from app.model.user import User, Role
+from app.model.user import Role
 from app.interfaces.rest_api.schema.user import UserLogin, UserRegister
-from app.services.auth import AuthService, InvalidLoginError, ExpiredLoginError, AdminRequiredError, NotLoggedInError
-from app.services.user import UserService, UserExistsError
+from app.services.auth import AuthService, InvalidLoginError
+from app.services.user import User, UserService, UserExistsError
 from app.containers import Container
 from dependency_injector.wiring import Provide, inject
+from .dependencies.auth import get_non_admin_user, get_admin_user
 
 router = APIRouter()
 
@@ -57,52 +58,19 @@ async def register(
         )
 
 @router.get("/me")
-@inject
 async def me(
-    auth_service: Annotated[AuthService, Depends(Provide[Container.auth])],
-    token: str = Cookie(None)
+    user: Annotated[User, Depends(get_non_admin_user)]
 ):
-    try:
-        user = auth_service.get_as_non_admin_user(token)
-        return JSONResponse(content={
-            "username": user.username,
-            "role": str(user.role)
-        })
-    except ExpiredLoginError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Login has expired"
-        )
-    except NotLoggedInError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not logged in"
-        )
+    return JSONResponse(content={
+        "username": user.username,
+        "role": str(user.role)
+    })
 
 @router.get("/me/admin")
-@inject
 async def me_admin(
-    auth_service: Annotated[AuthService, Depends(Provide[Container.auth])],
-    token: str = Cookie(None)
+    user: Annotated[User, Depends(get_admin_user)]
 ):
-    try:
-        user = auth_service.get_as_admin_user(token)
-        return JSONResponse(content={
-            "username": user.username,
-            "role": str(user.role)
-        })
-    except ExpiredLoginError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Login has expired"
-        )
-    except NotLoggedInError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not logged in"
-        )
-    except AdminRequiredError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin priviliges required to access this resource"
-        )
+    return JSONResponse(content={
+        "username": user.username,
+        "role": str(user.role)
+    })
