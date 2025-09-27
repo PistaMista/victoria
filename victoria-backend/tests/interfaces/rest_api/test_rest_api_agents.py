@@ -110,9 +110,35 @@ def test_create_agent_returns_200_and_creates_agent_for_current_user_on_valid_re
             "top_k": 0.95
         },
         enabled_trigger_ids=[1, 2, 3],
-        enabled_actions=[42]
+        enabled_action_ids=[42]
     )
     assert res.status_code == status.HTTP_200_OK
+
+def test_create_agent_returns_400_on_invalid_agent_setting(mock_client, auth_mock, agent_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    auth_mock.get_as_admin_user.return_value = user
+    agent_mock.add_user_agent.side_effect = InvalidAgentSettingError("")
+
+    # Act
+    res = mock_client.post(
+        '/api/agents',
+        json={
+            "name": "John",
+            "baseModelId": 3,
+            "systemPrompt": "You do things",
+            "modelParameters": {
+                "temperature": 0.7,
+                "top_k": 0.95
+            },
+            "enabledTriggers": [1, 2, 3],
+            "enabledActions": [42]
+        },
+        cookies={ "token": "tok" }
+    )
+
+    # Assert
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
     
 
 
@@ -144,10 +170,12 @@ def test_create_agent_returns_401_when_not_signed_in(mock_client, auth_mock, age
 def test_get_agent_returns_200_and_agent_on_valid_request(mock_client, auth_mock, agent_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
+    agent_mock.is_agent_running_monologues.return_value = False
     agent_mock.get_user_agent_by_id.return_value = Agent(
         id=42,
         name="Researcher",
         prompt="You research things",
+        model_id=20,
         model=LanguageModel(
             id=20,
             name="gemma3:12b",
@@ -196,6 +224,7 @@ def test_get_agent_returns_200_and_agent_on_valid_request(mock_client, auth_mock
     assert res.json() == {
         "id": 42,
         "name": "Researcher",
+        "thumbnailDataURI": None,
         "status": "IDLE",
         "baseModelId": 20,
         "systemPrompt": "You research things",
@@ -235,7 +264,7 @@ def test_get_agent_returns_404_for_nonexistent_agent(mock_client, auth_mock, age
     )
 
     # Assert
-    agent_mock.assert_called_with.get_user_agent_by_id(
+    agent_mock.get_user_agent_by_id.assert_called_with(
         user_id=1,
         agent_id=42
     )

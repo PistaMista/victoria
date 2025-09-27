@@ -11,20 +11,20 @@ router = APIRouter()
 
 @router.get("/", response_model=List[ActionRepository])
 @inject
-def list_repos(
+async def list_repos(
     _: Annotated[User, Depends(get_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]
-):
+) -> List[ActionRepository]:
     repos = action_service.get_all_action_repositories()
     return [ActionRepository.model_validate(repo) for repo in repos]
 
 @router.get("/{id}", response_model=ActionRepository)
 @inject
-def get_repo(
+async def get_repo(
     id: int,
     _: Annotated[User, Depends(get_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]
-):
+) -> ActionRepository:
     try:
         repo = action_service.get_action_repository_by_id(id)
         return ActionRepository.model_validate(repo)
@@ -36,11 +36,11 @@ def get_repo(
 
 @router.post("/")
 @inject
-def create_repo(
+async def create_repo(
     body: ActionRepositoryCreate,
     _: Annotated[User, Depends(get_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]
-):
+) -> None:
     action_service.add_action_repository(
         name=body.name,
         url=body.url
@@ -48,12 +48,12 @@ def create_repo(
 
 @router.put("/{id}")
 @inject
-def update_repo(
+async def update_repo(
     id: int,
     body: ActionRepositoryUpdate,
     _: Annotated[User, Depends(get_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]
-):
+) -> bool:
     try:
         action_service.update_action_repository(
             id,
@@ -68,7 +68,7 @@ def update_repo(
 
 @router.delete("/{id}")
 @inject
-def delete_repo(
+async def delete_repo(
     id: int,
     _: Annotated[User, Depends(get_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]

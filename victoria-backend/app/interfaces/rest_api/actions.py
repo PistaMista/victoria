@@ -11,19 +11,19 @@ router = APIRouter()
 
 @router.get("/", response_model=List[ActionResponse])
 @inject
-def get_permitted_actions(
+async def get_permitted_actions(
     user: Annotated[User, Depends(get_non_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]
-):
+) -> List[ActionResponse]:
     actions = action_service.get_user_permitted_actions(user.id)
     return [ActionResponse.model_validate(x) for x in actions]
 
 @router.get("/all", response_model=List[ActionResponse])
 @inject
-def get_all_actions(
+async def get_all_actions(
     _: Annotated[User, Depends(get_admin_user)],
     action_service: Annotated[ActionService, Depends(Provide[Container.action])]
-):
+) -> List[ActionResponse]:
     actions = action_service.get_all_actions()
     return [ActionResponse.model_validate(x) for x in actions]
 

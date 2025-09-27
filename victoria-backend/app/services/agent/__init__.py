@@ -7,6 +7,7 @@ class AgentService:
 class AgentDiff(BaseModel):
     name: Optional[str] = None
     model_id: Optional[int] = None
+    prompt: Optional[str] = None
     model_params: Optional[Dict[str, Any]] = None
     enabled_trigger_ids: Optional[List[int]] = None
     enabled_action_ids: Optional[List[int]] = None

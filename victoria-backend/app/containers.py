@@ -18,7 +18,8 @@ class Container(containers.DeclarativeContainer):
         modules=[
             ".interfaces.rest_api.auth",
             ".interfaces.rest_api.action_repos",
-            ".interfaces.rest_api.actions"
+            ".interfaces.rest_api.actions",
+            ".interfaces.rest_api.agents"
         ]
     )
     
