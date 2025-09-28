@@ -1,4 +1,5 @@
 from fastapi import status, APIRouter, Depends, HTTPException
+from app.model.chat import Chat
 from app.model.user import User
 from app.services.action import ActionService, NonexistentActionRepositoryError
 from typing import Annotated, List

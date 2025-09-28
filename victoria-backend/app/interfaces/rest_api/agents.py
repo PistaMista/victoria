@@ -2,6 +2,7 @@ from fastapi import status, APIRouter, Depends, HTTPException
 from app.services.agent import AgentService, NonexistentAgentError, InvalidAgentSettingError
 from app.containers import Container
 from app.model.user import User
+from app.model.chat import Chat
 from app.model.agent import Agent
 from typing import List, Annotated
 from .schema.agents import AgentListItemResponse, AgentCreate, AgentResponse, AgentUpdate
