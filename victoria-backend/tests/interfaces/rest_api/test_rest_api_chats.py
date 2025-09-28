@@ -4,6 +4,10 @@ from app.model.user import User
 from app.model.agent import Agent
 from app.model.monologue import Monologue
 from app.model.action import Action
+from app.model.chat import Chat
+from app.model.chat_exchange import ChatExchange
+from app.model.chat_message import ChatMessageMarkdown
+from app.model.event import ChatEvent
 from fastapi import status
 import threading
 import time
@@ -480,37 +484,51 @@ def test_list_exchanges_returns_200_and_list_of_exchanges_when_new_exchanges_ava
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     chat_mock.get_user_chat_exchanges_after.return_value = [
-        Exchange(
+        ChatExchange(
             id=2,
             chat_id=4,
             timestamp=datetime.fromtimestamp(1000),
-            user_message=MarkdownMessage(
+            user_message=ChatMessageMarkdown(
                 id=1,
                 timestamp=datetime.fromtimestamp(1000),
-                exchange_id=2,
                 sending_user=User(
                     username="John"
                 ),
                 sending_agent=None,
                 markdown="Hello?"
             ),
-            monologues=[
-                Monologue(
-                    id=1
+            triggered_chat_events=[
+                ChatEvent(
+                    monologues=[
+                        Monologue(
+                            id=1
+                        ),
+                        Monologue(
+                            id=2
+                        )
+                    ]
                 ),
-                Monologue(
-                    id=2
+                ChatEvent(
+                    monologues=[
+                        Monologue(
+                            id=3
+                        )
+                    ]
                 )
             ]
         ),
-        Exchange(
+        ChatExchange(
             id=3,
             chat_id=4,
             timestamp=datetime.fromtimestamp(1200),
             user_message=None,
-            monologues=[
-                Monologue(
-                    id=3
+            triggered_chat_events=[
+                ChatEvent(
+                    monologues=[
+                        Monologue(
+                            id=3
+                        )
+                    ]
                 )
             ]
         )
@@ -545,7 +563,7 @@ def test_list_exchanges_returns_200_and_list_of_exchanges_when_new_exchanges_ava
                     "markdownText": "Hello?"
                 }
             },
-            "monologueIds": [1, 2]
+            "monologueIds": [1, 2, 3]
         },
         {
             "id": 3,
@@ -563,14 +581,18 @@ def test_list_exchanges_waits_until_new_exchanges_are_available_before_returning
     def data_source():
         time.sleep(2)
         chat_mock.get_user_chat_exchanges_after.return_value = [
-            Exchange(
+            ChatExchange(
                 id=3,
                 chat_id=4,
                 timestamp=datetime.fromtimestamp(1700),
                 user_message=None,
-                monologues=[
-                    Monologue(
-                        id=320
+                triggered_chat_events=[
+                    ChatEvent(
+                        monologues=[
+                            Monologue(
+                                id=320
+                            )
+                        ]
                     )
                 ]
             )
@@ -847,7 +869,7 @@ def test_get_chat_history_returns_200_and_all_chat_messages_for_valid_requests(m
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     chat_mock.get_user_chat_messages.return_value = [
-        MarkdownMessage(
+        ChatMessageMarkdown(
             id=1,
             sending_user=User(
                 username="John"
@@ -855,7 +877,7 @@ def test_get_chat_history_returns_200_and_all_chat_messages_for_valid_requests(m
             sending_agent=None,
             markdown="Hello!"
         ),
-        MarkdownMessage(
+        ChatMessageMarkdown(
             id=2,
             sending_user=None,
             sending_agent=Agent(
@@ -863,7 +885,7 @@ def test_get_chat_history_returns_200_and_all_chat_messages_for_valid_requests(m
             ),
             markdown="What can I help you with?"
         ),
-        MarkdownMessage(
+        ChatMessageMarkdown(
             id=3,
             sending_user=User(
                 username="John"
@@ -871,7 +893,7 @@ def test_get_chat_history_returns_200_and_all_chat_messages_for_valid_requests(m
             sending_agent=None,
             markdown="Give me a recipe for pretzels"
         ),
-        MarkdownMessage(
+        ChatMessageMarkdown(
             id=4,
             sending_user=None,
             sending_agent=Agent(
