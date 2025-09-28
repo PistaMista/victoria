@@ -197,15 +197,17 @@ def test_duplicate_chat_returns_200_and_duplicates_chat_on_valid_request(mock_cl
     # Act
     res = mock_client.post(
         '/api/chats/42/duplicate',
+        json={},
         cookies={"token": "tok"}
     )
 
     # Assert
+    assert res.status_code == status.HTTP_200_OK
     chat_mock.duplicate_user_chat.assert_called_with(
         user_id=1,
-        chat_id=42
+        chat_id=42,
+        last_exchange_id=None
     )
-    assert res.status_code == status.HTTP_200_OK
     assert res.json() == 75
 
 def test_duplicate_chat_returns_200_and_duplicates_chat_up_to_exchange_on_valid_request(mock_client, auth_mock, chat_mock, user):
@@ -307,7 +309,7 @@ def test_send_message_to_chat_returns_200_and_creates_exchange_with_markdown_mes
         json={
             "type": "markdown",
             "message": "Message!",
-            "from_agent_id": 33
+            "fromAgentId": 33
         }
     )
 
@@ -364,7 +366,7 @@ def test_send_message_to_chat_returns_200_creates_exchange_with_choice_prompt_an
             "type": "choice_prompt",
             "prompt": "Pick a thing",
             "choices": ['lol', 'weee'],
-            "from_agent_id": 88
+            "fromAgentId": 88
         }
     )
 
@@ -382,10 +384,9 @@ def test_send_message_to_chat_returns_200_creates_exchange_with_choice_prompt_an
         "queryId": 120
     }
 
-def test_send_message_to_chat_returns_200_and_assumes_markdown_message_when_type_unspecified_on_user_request(mock_client, auth_mock, chat_mock, user):
+def test_send_message_to_chat_returns_422_when_type_unspecified_on_user_request(mock_client, auth_mock, chat_mock, user):
     # Arrange
-    auth_mock.get_as_non_admin_user = user
-    chat_mock.send_markdown_message_to_user_chat.return_value = 99
+    auth_mock.get_as_non_admin_user.return_value = user
 
     # Act
     res = mock_client.post(
@@ -396,18 +397,10 @@ def test_send_message_to_chat_returns_200_and_assumes_markdown_message_when_type
     )
 
     # Assert
-    chat_mock.send_markdown_message_to_user_chat.assert_called_with(
-        user_id=1,
-        chat_id=4,
-        from_agent_id=None,
-        markdown="Weee",
-    )
-    assert res.status_code == status.HTTP_200_OK
-    assert res.json() == {
-        "exchangeId": 99
-    }
+    chat_mock.send_markdown_message_to_user_chat.assert_not_called
+    assert res.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-def test_send_message_to_chat_returns_400_when_unknown_message_type_specified(mock_client, auth_mock, chat_mock, user):
+def test_send_message_to_chat_returns_422_when_unknown_message_type_specified(mock_client, auth_mock, chat_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
 
@@ -423,7 +416,7 @@ def test_send_message_to_chat_returns_400_when_unknown_message_type_specified(mo
     # Assert
     chat_mock.send_markdown_message_to_user_chat.assert_not_called()
     chat_mock.send_choice_message_to_user_chat.assert_not_called()
-    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 def test_send_message_to_chat_returns_401_when_not_logged_in(mock_client, auth_mock, chat_mock):
     # Arrange
@@ -460,6 +453,7 @@ def test_send_message_to_chat_returns_404_for_nonexistent_chat(mock_client, auth
         '/api/chats/4/send-message',
         json={
             "type": "choice_prompt",
+            "prompt": "Pick",
             "choices": [10, 20]
         }
     )
@@ -475,6 +469,7 @@ def test_send_message_to_chat_returns_404_for_nonexistent_chat(mock_client, auth
         user_id=1,
         chat_id=4,
         from_agent_id=None,
+        prompt="Pick",
         choices=[10, 20]
     )
     assert res1.status_code == status.HTTP_404_NOT_FOUND
@@ -543,12 +538,12 @@ def test_list_exchanges_returns_200_and_list_of_exchanges_when_new_exchanges_ava
     )
 
     # Assert
+    assert res.status_code == status.HTTP_200_OK
     chat_mock.get_user_chat_exchanges_after.assert_called_with(
         user_id=1,
         chat_id=4,
         after=1000
     )
-    assert res.status_code == status.HTTP_200_OK
     assert res.json() == [
         {
             "id": 2,
@@ -743,7 +738,7 @@ def test_set_chat_options_returns_200_and_updates_chat_options_on_simple_request
         user_id=1,
         chat_id=4,
         options=ChatOptionsDiff(
-            receiver="New"
+            receiver="new"
         )
     )
     assert res.status_code == status.HTTP_200_OK
@@ -766,7 +761,7 @@ def test_set_chat_options_returns_200_and_updates_chat_options_on_complex_reques
         user_id=1,
         chat_id=4,
         options=ChatOptionsDiff(
-            receiver="New",
+            receiver="new",
             enabled_action_ids=[84, 24]
         )
     )
@@ -859,7 +854,7 @@ def test_set_chat_summary_returns_404_for_nonexistent_chat(mock_client, auth_moc
     chat_mock.set_user_chat_summary.assert_called_with(
         user_id=1,
         chat_id=50,
-        summary="My new summary!"
+        summary="Lol"
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
@@ -914,7 +909,7 @@ def test_get_chat_history_returns_200_and_all_chat_messages_for_valid_requests(m
         chat_id=42
     )
     assert res.status_code == status.HTTP_200_OK
-    assert res.json == [
+    assert res.json() == [
         {
             "role": "user",
             "message": "Hello!"
@@ -991,7 +986,7 @@ def test_get_chat_returns_200_and_basic_chat_info_on_valid_request(mock_client, 
     )
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == {
-        "id": 42,
+        "id": 3,
         "title": "Dogs",
         "summary": "Chat about dogs"
     }
