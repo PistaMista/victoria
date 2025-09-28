@@ -27,3 +27,5 @@ class ChatExchange(Base):
 
     chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id", ondelete='CASCADE'), nullable=False)
     chat: Mapped["Chat"] = relationship("Chat", back_populates="exchanges")
+
+    triggered_chat_events: Mapped[List["ChatEvent"]] = relationship("ChatEvent", back_populates="triggering_chat_exchange")
