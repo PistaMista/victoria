@@ -5,7 +5,7 @@ from app.model.thought import Thought
 from app.model.monologue import Monologue, MonologueStatus
 from app.services.db import DatabaseService
 from app.services.monologues.runner import RunnerService
-from datetime import datetime
+from datetime import datetime, timezone
 
 class DispatcherService:
     def __init__(
@@ -73,7 +73,7 @@ class DispatcherService:
             matching_agents = event.trigger.allowed_on_agents
             for agent in matching_agents:
                 trigger_thought = Thought(
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(tz=timezone.utc),
                     invocation=None,
                     result=event.content
                 )
