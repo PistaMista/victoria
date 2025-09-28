@@ -1,7 +1,8 @@
 from app.model import Base
-from sqlalchemy import ForeignKey, String, DateTime, Text
+from sqlalchemy import ForeignKey, String, DateTime, Text, JSON
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from datetime import datetime
+from typing import List, Any
 
 class ChatMessage(Base):
     __tablename__ = "chat_message"
@@ -45,3 +46,27 @@ class ChatMessageMarkdown(ChatMessage):
     __mapper_args__ = {
         'polymorphic_identity': 'MARKDOWN'
     }
+
+class ChatMessageChoicePrompt(ChatMessage):
+    __tablename__ = "chat_message_prompt"
+
+    id: Mapped[int] = mapped_column(ForeignKey('chat_message.id'), primary_key=True)
+
+    prompt: Mapped[str] = mapped_column(String(120), nullable=False)
+    choices: Mapped[List["ChoiceMessageOption"]] = relationship(
+            "ChoiceMessageOption",
+            back_populates="message",
+            cascade='all,delete'
+        )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'CHOICE'
+    }
+
+class ChoiceMessageOption(Base):
+    __tablename__ = "chat_message_prompt_option"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey('chat_message_prompt.id', ondelete='CASCADE'), nullable=False)
+    message: Mapped[ChatMessageChoicePrompt] = relationship("ChatMessageChoicePrompt", back_populates="choices")
+    value: Mapped[Any] = mapped_column(JSON(), nullable=False)
