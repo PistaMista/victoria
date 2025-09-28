@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from app.model import Base, user, trigger, thought, monologue, invocation, event, allowed_agent_trigger, allowed_agent_action, agent, action, action_repository, language_model, llm_connection
+from app.model import Base, user, trigger, thought, monologue, invocation, event, allowed_agent_trigger, allowed_agent_action, agent, action, action_repository, language_model, llm_connection, chat, chat_exchange, chat_message, allowed_chat_action
 from app.config import settings
 
 # this is the Alembic Config object, which provides
