@@ -15,6 +15,7 @@ def test_get_event_returns_200_and_event_on_valid_request(mock_client, auth_mock
             url="seznam.cz",
             interval=20
         ),
+        trigger_id=10,
         content="Weee",
         dispatched=False
     )
@@ -28,6 +29,10 @@ def test_get_event_returns_200_and_event_on_valid_request(mock_client, auth_mock
         event_id=5
     )
     assert res.status_code == status.HTTP_200_OK
+    assert res.json() == {
+        "triggerId": 10,
+        "content": "Weee"
+    }
 
 
 def test_get_event_returns_401_when_not_logged_in(mock_client, auth_mock, trigger_mock):
