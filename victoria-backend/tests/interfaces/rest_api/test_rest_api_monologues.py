@@ -1,4 +1,4 @@
-from app.services.auth import NotLoggedInError, AdminRequiredError
+from app.services.auth import NotLoggedInError
 from app.services.monologues import NonexistentMonologueError
 from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
@@ -17,6 +17,7 @@ def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_
             title="Research thesis ideas",
             summary="Searching the web for sources",
             status=MonologueStatus.RUNNING,
+            agent_id=20,
             agent=Agent(
                 id=20
             )
@@ -26,6 +27,7 @@ def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_
             title="Generate recipes for the week",
             summary="Checking available ingredients",
             status=MonologueStatus.PENDING,
+            agent_id=8,
             agent=Agent(
                 id=8
             )
@@ -83,6 +85,7 @@ def test_get_monologue_returns_200_and_monologue_on_valid_request(mock_client, a
         title="Yo dawg",
         summary="Summery",
         status=MonologueStatus.FAILURE,
+        agent_id=600,
         agent=Agent(
             id=600
         )
@@ -190,7 +193,6 @@ def test_abort_monologue_returns_404_for_nonexistent_monologue(mock_client, auth
 
 
 def test_end_monologue_returns_200_and_ends_monologue_on_agent_request(mock_client, auth_mock, monologue_mock, user):
-    # Test both success and failure cases
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
 
@@ -276,6 +278,7 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
         agent=Agent(
             id=600
         ),
+        event_id=33,
         event=Event(
             id=33
         )

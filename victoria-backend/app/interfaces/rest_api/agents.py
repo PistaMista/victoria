@@ -6,7 +6,7 @@ from app.model.chat import Chat
 from app.model.agent import Agent
 from typing import List, Annotated
 from .schema.agents import AgentListItemResponse, AgentCreate, AgentResponse, AgentUpdate
-from .schema.monologues import MonologueListItemResponse
+from .schema.monologues import MonologueListItemResponse, to_monologue_list_item_response
 from .dependencies.auth import get_non_admin_user
 from dependency_injector.wiring import inject, Provide
 
@@ -137,14 +137,7 @@ async def list_agent_monologues(
             agent_id=id
         )
         return [
-            MonologueListItemResponse(
-                id=x.id,
-                agentId=x.agent_id,
-                startTimestamp=0,
-                title=x.title,
-                summary=x.summary,
-                status=x.status.to_status_str()
-            )
+            to_monologue_list_item_response(x)
             for x in monologues
         ]
     except NonexistentAgentError as err:
