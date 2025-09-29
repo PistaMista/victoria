@@ -23,7 +23,8 @@ class Container(containers.DeclarativeContainer):
             ".interfaces.rest_api.chats",
             ".interfaces.rest_api.connections",
             ".interfaces.rest_api.events",
-            ".interfaces.rest_api.exchanges"
+            ".interfaces.rest_api.exchanges",
+            ".interfaces.rest_api.models"
         ]
     )
     

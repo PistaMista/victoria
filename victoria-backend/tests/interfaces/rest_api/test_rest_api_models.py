@@ -12,6 +12,7 @@ def test_list_enabled_models_returns_200_and_lists_enabled_models_on_valid_reque
             id=1,
             name="gemma3:12b",
             enabled=True,
+            connection_id=33,
             connection=OllamaConnection(
                 id=33,
                 name="Homelab",
@@ -22,6 +23,7 @@ def test_list_enabled_models_returns_200_and_lists_enabled_models_on_valid_reque
             id=20,
             name="llama3.1:8b",
             enabled=True,
+            connection_id=20,
             connection=OllamaConnection(
                 id=20,
                 name="Commercial",
@@ -74,6 +76,7 @@ def test_list_all_models_returns_200_and_lists_all_models_on_valid_request(mock_
             id=1,
             name="gemma3:12b",
             enabled=False,
+            connection_id=33,
             connection=OllamaConnection(
                 id=33,
                 name="Homelab",
