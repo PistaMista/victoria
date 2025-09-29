@@ -686,3 +686,6 @@ def test_llm_service_throws_when_using_disabled_model_for_chat_completion(mock_g
             AssistantMessage("What can I help you with?"),
             UserMessage("Give me a recipe for fish and chips.")
         ])
+
+def test_llm_service_returns_id_of_newly_created_connection():
+    assert False

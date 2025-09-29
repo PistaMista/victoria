@@ -1,4 +1,4 @@
-from app.services.llm import NonexistentConnectionError, OllamaConnectionDiff
+from app.services.llm import NonexistentConnectionError, OllamaConnectionDiff, OllamaCommunicationError
 from app.services.auth import NotLoggedInError, AdminRequiredError
 from app.model.llm_connection import OllamaConnection
 from fastapi import status
@@ -26,6 +26,16 @@ def test_list_connections_returns_200_and_list_of_connections_on_valid_request(m
     # Assert
     llm_mock.get_all_connections.assert_called_with()
     assert res.status_code == status.HTTP_200_OK
+    assert res.json() == [
+        {
+            "id": 1,
+            "name": "Homelab"
+        },
+        {
+            "id": 2,
+            "name": "Basics"
+        }
+    ]
 
 
 def test_list_connections_returns_401_when_not_logged_in(mock_client, auth_mock, llm_mock):
@@ -56,6 +66,7 @@ def test_create_connection_returns_200_and_creates_connection_on_valid_request(m
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    llm_mock.add_ollama_connection.return_value = 1
     llm_mock.get_connection_by_id.return_value = OllamaConnection(
         id=1,
         name="New",
@@ -82,6 +93,30 @@ def test_create_connection_returns_200_and_creates_connection_on_valid_request(m
         "id": 1,
         "name": "New"
     }
+
+def test_create_connection_returns_400_on_ollama_communication_failure(mock_client, auth_mock, llm_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    auth_mock.get_as_admin_user.return_value = user
+    llm_mock.add_ollama_connection.side_effect = OllamaCommunicationError()
+
+    # Act
+    res = mock_client.post(
+            "/api/connections",
+            json={
+                "id": 0,
+                "name": "New",
+                "url": "woo"
+            }
+    )
+
+    # Assert
+    llm_mock.add_ollama_connection.assert_called_with(
+        name="New",
+        url="woo"
+    )
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+
 
 def test_create_connection_returns_401_when_not_logged_in(mock_client, auth_mock, llm_mock):
     # Arrange
@@ -227,6 +262,31 @@ def test_update_connection_returns_200_and_updates_connection_on_complex_request
         )
     )
     assert res.status_code == status.HTTP_200_OK
+
+def test_update_connection_returns_400_on_ollama_communication_failure(mock_client, auth_mock, llm_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    auth_mock.get_as_admin_user.return_value = user
+    llm_mock.update_ollama_connection.side_effect = OllamaCommunicationError()
+
+    # Act
+    res = mock_client.put(
+        "/api/connections/50",
+        json={
+            "name": "NEW",
+            "url": "localhost:2999"
+        }
+    )
+
+    # Assert
+    llm_mock.update_ollama_connection.assert_called_with(
+        id=50,
+        changes=OllamaConnectionDiff(
+            name="NEW",
+            url="localhost:2999"
+        )
+    )
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
 
 def test_update_connection_returns_401_when_not_logged_in(mock_client, auth_mock, llm_mock):
     # Arrange
