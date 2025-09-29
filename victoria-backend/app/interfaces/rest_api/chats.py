@@ -1,11 +1,12 @@
 from fastapi import APIRouter, status, Depends, HTTPException, Request, Body
 from dependency_injector.wiring import inject, Provide
-from app.services.chat import ChatService, NonexistentChatError, NonexistentExchangeError, NonexistentMessageError, QueryAlreadyAnsweredError
+from app.services.chat import ChatService, NonexistentChatError
 from app.model.user import User
 from app.model.chat_message import ChatMessageMarkdown
 from app.containers import Container
-from .schema.chats import ChatResponse, ChatOptionsResponse, ChatOptionsUpdate, ChatDuplicate, SentMarkdownInfoResponse, SentChoiceInfoResponse, SendMessage, SendMessageChoicePrompt, SendMessageMarkdown, LLMMessage, LLMUserMessage, LLMAssistantMessage
+from .schema.chats import ChatResponse, ChatOptionsResponse, ChatOptionsUpdate, ChatDuplicate, LLMMessage, LLMUserMessage, LLMAssistantMessage
 from .schema.exchanges import ExchangeResponse, to_exchange_response
+from .schema.messages import SendMessage, SendMessageChoicePrompt, SendMessageMarkdown, SentMarkdownInfoResponse, SentChoiceInfoResponse
 from .dependencies.auth import get_non_admin_user
 from typing import List, Annotated, Union
 import time

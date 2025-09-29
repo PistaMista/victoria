@@ -29,29 +29,8 @@ class ChatOptionsUpdate(BaseModel):
             enabled_action_ids=self.enabledActionIds
         )
 
-
-class SentMarkdownInfoResponse(BaseModel):
-    exchangeId: int
-
-class SentChoiceInfoResponse(BaseModel):
-    exchangeId: int
-    queryId: int
-
 class ChatDuplicate(BaseModel):
     toExchange: Optional[int] = None
-
-class SendMessageMarkdown(BaseModel):
-    type: Literal["markdown"]
-    message: str
-    fromAgentId: Optional[int] = None
-
-class SendMessageChoicePrompt(BaseModel):
-    type: Literal["choice_prompt"]
-    prompt: str
-    choices: List[Any]
-    fromAgentId: Optional[int] = None
-
-SendMessage = Annotated[Union[SendMessageMarkdown, SendMessageChoicePrompt], Field(discriminator="type")]
 
 class LLMUserMessage(BaseModel):
     role: Literal["user"] = "user"

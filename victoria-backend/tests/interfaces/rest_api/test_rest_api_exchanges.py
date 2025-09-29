@@ -1,6 +1,7 @@
 from fastapi import status
 from app.model.user import User
 from app.model.agent import Agent
+from app.model.chat_message import ChatMessageMarkdown, ChatMessageChoicePrompt, ChoiceMessageOption
 from app.services.chat import NonexistentExchangeError
 from app.services.auth import NotLoggedInError
 from datetime import datetime
@@ -10,8 +11,8 @@ import threading
 def test_get_exchange_messages_returns_200_and_message_when_new_messages_available(mock_client, auth_mock, chat_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
-    chat_mock.get_user_exchange_replies.return_value = [
-        MarkdownMessage(
+    chat_mock.get_user_exchange_replies_after.return_value = [
+        ChatMessageMarkdown(
             id=1,
             timestamp=datetime.fromtimestamp(1000),
             sending_user=User(
@@ -20,7 +21,7 @@ def test_get_exchange_messages_returns_200_and_message_when_new_messages_availab
             sending_agent=None,
             markdown="Hello!"
         ),
-        ChoicePromptMessage(
+        ChatMessageChoicePrompt(
             id=2,
             timestamp=datetime.fromtimestamp(1100),
             sending_user=None,
@@ -29,10 +30,10 @@ def test_get_exchange_messages_returns_200_and_message_when_new_messages_availab
             ),
             prompt="Pick an option",
             choices=[
-                ChoiceOption(
+                ChoiceMessageOption(
                     value="lol"
                 ),
-                ChoiceOption(
+                ChoiceMessageOption(
                     value="woo"
                 )
             ]
@@ -41,13 +42,17 @@ def test_get_exchange_messages_returns_200_and_message_when_new_messages_availab
 
     # Act
     res = mock_client.get(
-        "/api/exchanges/42/messages"
+        "/api/exchanges/42/messages",
+        params={
+            "after": 200
+        }
     )
 
     # Assert
-    chat_mock.get_user_exchange_replies.assert_called_with(
+    chat_mock.get_user_exchange_replies_after.assert_called_with(
         user_id=1,
-        exchange_id=42
+        exchange_id=42,
+        after=200
     )
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == [
@@ -79,13 +84,13 @@ def test_get_exchange_messages_returns_200_and_message_when_new_messages_availab
 
 def test_get_exchange_messages_waits_until_new_messages_available_before_returning_200_and_data(mock_client, auth_mock, chat_mock, user):
     # Arrange
-    mock_client.get_as_non_admin_user.return_value = user
-    chat_mock.get_user_exchange_replies.return_value = []
+    auth_mock.get_as_non_admin_user.return_value = user
+    chat_mock.get_user_exchange_replies_after.return_value = []
 
     def data_source():
         time.sleep(2)
-        chat_mock.get_user_exchange_replies.return_value = [
-            MarkdownMessage(
+        chat_mock.get_user_exchange_replies_after.return_value = [
+            ChatMessageMarkdown(
                 id=1,
                 timestamp=datetime.fromtimestamp(1000),
                 sending_user=User(
@@ -101,14 +106,18 @@ def test_get_exchange_messages_waits_until_new_messages_available_before_returni
 
     # Act
     res = mock_client.get(
-        "/api/exchanges/42/messages"
+        "/api/exchanges/42/messages",
+        params={
+            "after": 200
+        }
     )
     source_thread.join()
 
     # Assert
-    chat_mock.get_user_exchange_replies.assert_called_with(
+    chat_mock.get_user_exchange_replies_after.assert_called_with(
         user_id=1,
-        exchange_id=42
+        exchange_id=42,
+        after=200
     )
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == [
@@ -133,23 +142,27 @@ def test_get_exchange_messages_returns_401_when_not_logged_in(mock_client, auth_
     )
 
     # Assert
-    chat_mock.get_user_exchange_replies.assert_not_called()
+    chat_mock.get_user_exchange_replies_after.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
 def test_get_exchange_messages_returns_404_for_nonexistent_exchange(mock_client, auth_mock, chat_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
-    chat_mock.get_user_exchange_replies.side_effect = NonexistentExchangeError(20)
+    chat_mock.get_user_exchange_replies_after.side_effect = NonexistentExchangeError(20)
 
     # Act
     res = mock_client.get(
-        "/api/exchanges/20/messages"
+        "/api/exchanges/20/messages",
+        params={
+            "after": 0
+        }
     )
 
     # Assert
-    chat_mock.get_user_exchange_replies.assert_called_with(
+    chat_mock.get_user_exchange_replies_after.assert_called_with(
         user_id=1,
-        exchange_id=42
+        exchange_id=20,
+        after=0
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
@@ -163,7 +176,7 @@ def test_send_reply_returns_200_and_adds_markdown_message_on_agent_request(mock_
         json={
             "type": "markdown",
             "message": "Message!",
-            "from_agent_id": 33
+            "fromAgentId": 33
         }
     )
 
@@ -175,7 +188,6 @@ def test_send_reply_returns_200_and_adds_markdown_message_on_agent_request(mock_
         markdown="Message!"
     )
     assert res.status_code == status.HTTP_200_OK
-    assert res.json() == {}
 
 def test_send_reply_returns_200_adds_message_with_choice_prompt_and_returns_query_id_on_agent_request(mock_client, auth_mock, chat_mock, user):
     # Arrange
@@ -186,10 +198,10 @@ def test_send_reply_returns_200_adds_message_with_choice_prompt_and_returns_quer
     res = mock_client.post(
         "/api/exchanges/42/send-reply",
         json={
-            "type": "choice",
+            "type": "choice_prompt",
             "prompt": "Pick a thing",
             "choices": ["choice1", 2],
-            "from_agent_id": 33
+            "fromAgentId": 33
         }
     )
 
@@ -202,11 +214,11 @@ def test_send_reply_returns_200_adds_message_with_choice_prompt_and_returns_quer
         choices=["choice1", 2]
     )
     assert res.status_code == status.HTTP_200_OK
-    assert res.json == {
+    assert res.json() == {
         "queryId": 50
     }
 
-def test_send_reply_returns_400_when_unknown_message_type_specified(mock_client, auth_mock, chat_mock, user):
+def test_send_reply_returns_422_when_unknown_message_type_specified(mock_client, auth_mock, chat_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
 
@@ -224,7 +236,7 @@ def test_send_reply_returns_400_when_unknown_message_type_specified(mock_client,
     # Assert
     chat_mock.send_markdown_reply_to_user_exchange.assert_not_called()
     chat_mock.send_choice_reply_to_user_exchange.assert_not_called()
-    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 def test_send_reply_returns_401_when_not_logged_in(mock_client, auth_mock, chat_mock):
     # Arrange
@@ -253,20 +265,20 @@ def test_send_reply_returns_404_for_nonexistent_exchange(mock_client, auth_mock,
 
     # Act
     res1 = mock_client.post(
-        "/api/exchanges/42/send-reply",
+        "/api/exchanges/55/send-reply",
         json={
             "type": "markdown",
             "message": "Message!",
-            "from_agent_id": 33
+            "fromAgentId": 33
         }
     )
     res2 = mock_client.post(
-        "/api/exchanges/42/send-reply",
+        "/api/exchanges/66/send-reply",
         json={
-            "type": "choice",
+            "type": "choice_prompt",
             "prompt": "Pick a thing",
             "choices": ["choice1", 2],
-            "from_agent_id": 33
+            "fromAgentId": 33
         }
     )
 

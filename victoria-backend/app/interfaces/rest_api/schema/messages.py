@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from app.model.chat_message import ChatMessage, ChatMessageMarkdown, ChatMessageChoicePrompt
-from typing import Literal, Union, Any, List, Annotated
+from typing import Literal, Union, Any, List, Annotated, Optional
 
 class PromptChoice(BaseModel):
     value: Any
@@ -47,3 +47,26 @@ def to_message_response(x: ChatMessage) -> MessageResponse:
                    else "Unknown",
         content=content
     )
+
+class SendMessageMarkdown(BaseModel):
+    type: Literal["markdown"]
+    message: str
+    fromAgentId: Optional[int] = None
+
+class SendMessageChoicePrompt(BaseModel):
+    type: Literal["choice_prompt"]
+    prompt: str
+    choices: List[Any]
+    fromAgentId: Optional[int] = None
+
+SendMessage = Annotated[Union[SendMessageMarkdown, SendMessageChoicePrompt], Field(discriminator="type")]
+
+class SentMarkdownInfoResponse(BaseModel):
+    exchangeId: int
+
+class SentChoiceInfoResponse(BaseModel):
+    exchangeId: int
+    queryId: int
+
+class RepliedChoiceInfoResponse(BaseModel):
+    queryId: int

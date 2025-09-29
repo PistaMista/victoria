@@ -6,6 +6,7 @@ from .agents import router as agents_router
 from .chats import router as chats_router
 from .connections import router as connections_router
 from .events import router as events_router
+from .exchanges import router as exchanges_router
 
 api_router = APIRouter()
 
@@ -16,3 +17,4 @@ api_router.include_router(agents_router, prefix="/agents", tags=["agents"])
 api_router.include_router(chats_router, prefix="/chats", tags=["chats"])
 api_router.include_router(connections_router, prefix="/connections", tags=["connections"])
 api_router.include_router(events_router, prefix="/events", tags=["events"])
+api_router.include_router(exchanges_router, prefix="/exchanges", tags=["exchanges"])
