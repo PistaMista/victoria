@@ -422,7 +422,7 @@ def test_get_trigger_returns_200_and_chat_trigger_on_valid_request(mock_client, 
     )
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == {
-        "id": 101,
+        "id": 21,
         "name": "Research chat",
         "template": "New message received",
         "parser": "identity",
@@ -509,10 +509,16 @@ def test_get_trigger_returns_404_for_nonexistent_trigger(mock_client, auth_mock,
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
-def test_update_trigger_returns_200_and_updates_base_trigger_on_valid_request(mock_client, auth_mock, trigger_mock, user):
+def test_update_trigger_returns_200_and_updates_base_trigger_attributes_on_valid_request(mock_client, auth_mock, trigger_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    trigger_mock.get_trigger_by_id.return_value = ChatTrigger(
+        id=57,
+        name="Something",
+        template="lol",
+        receiver="technical"
+    )
 
     # Act
     res = mock_client.put(
@@ -524,6 +530,7 @@ def test_update_trigger_returns_200_and_updates_base_trigger_on_valid_request(mo
     )
 
     # Assert
+    assert res.status_code == status.HTTP_200_OK
     trigger_mock.update_trigger.assert_called_with(
         trigger_id=57,
         changes=TriggerDiff(
@@ -531,12 +538,16 @@ def test_update_trigger_returns_200_and_updates_base_trigger_on_valid_request(mo
             template="new"
         )
     )
-    assert res.status_code == status.HTTP_200_OK
 
 def test_update_trigger_returns_200_and_updates_timer_trigger_on_valid_request(mock_client, auth_mock, trigger_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    trigger_mock.get_trigger_by_id.return_value = TimerTrigger(
+        name="",
+        template="",
+        interval=50
+    )
 
     # Act
     res = mock_client.put(
@@ -550,6 +561,7 @@ def test_update_trigger_returns_200_and_updates_timer_trigger_on_valid_request(m
     )
 
     # Assert
+    assert res.status_code == status.HTTP_200_OK
     trigger_mock.update_trigger.assert_called_with(
         trigger_id=57,
         changes=TimerTriggerDiff(
@@ -557,12 +569,16 @@ def test_update_trigger_returns_200_and_updates_timer_trigger_on_valid_request(m
             interval=300
         )
     )
-    assert res.status_code == status.HTTP_200_OK
 
 def test_update_trigger_returns_200_and_updates_poll_trigger_on_valid_request(mock_client, auth_mock, trigger_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    trigger_mock.get_trigger_by_id.return_value = PollTrigger(
+        name="Get upcoming events",
+        template="template",
+        interval=50
+    )
 
     # Act
     res = mock_client.put(
@@ -589,6 +605,11 @@ def test_update_trigger_returns_200_and_updates_chat_trigger_on_valid_request(mo
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    trigger_mock.get_trigger_by_id.return_value = ChatTrigger(
+        name="General chat",
+        template="template",
+        receiver="general"
+    )
 
     # Act
     res = mock_client.put(
@@ -615,6 +636,11 @@ def test_update_trigger_returns_200_and_updates_webhook_trigger_on_valid_request
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    trigger_mock.get_trigger_by_id.return_value = WebhookTrigger(
+        name="Webhook",
+        template="template",
+        endpoint="/hook"
+    )
 
     # Act
     res = mock_client.put(
@@ -628,6 +654,7 @@ def test_update_trigger_returns_200_and_updates_webhook_trigger_on_valid_request
     )
 
     # Assert
+    assert res.status_code == status.HTTP_200_OK
     trigger_mock.update_trigger.assert_called_with(
         trigger_id=57,
         changes=WebhookTriggerDiff(
@@ -635,12 +662,16 @@ def test_update_trigger_returns_200_and_updates_webhook_trigger_on_valid_request
             endpoint="/discord"
         )
     )
-    assert res.status_code == status.HTTP_200_OK
 
 def test_update_trigger_returns_200_and_changes_trigger_type_on_valid_request(mock_client, auth_mock, trigger_mock, user):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.return_value = user
+    trigger_mock.get_trigger_by_id.return_value = ChatTrigger(
+        name="General chat",
+        template="template",
+        receiver="general"
+    )
 
     # Act
     res = mock_client.put(
