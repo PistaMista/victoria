@@ -4,6 +4,7 @@ from app.model import Base
 from typing import List
 from app.model.allowed_agent_action import allowed_agent_action_association
 from app.model.allowed_chat_action import allowed_chat_action_association
+from app.model.allowed_user_action import allowed_user_action_association
 
 class Action(Base):
     __tablename__ = "action"
@@ -19,3 +20,4 @@ class Action(Base):
 
     allowed_on_agents: Mapped[List["Agent"]] = relationship("Agent", secondary=allowed_agent_action_association, back_populates="allowed_actions")
     allowed_on_chats: Mapped[List["Chat"]] = relationship("Chat", secondary=allowed_chat_action_association, back_populates="allowed_actions")
+    allowed_on_users: Mapped[List["User"]] = relationship("User", secondary=allowed_user_action_association, back_populates="allowed_actions")

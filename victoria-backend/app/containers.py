@@ -27,7 +27,8 @@ class Container(containers.DeclarativeContainer):
             ".interfaces.rest_api.models",
             ".interfaces.rest_api.monologues",
             ".interfaces.rest_api.queries",
-            ".interfaces.rest_api.triggers"
+            ".interfaces.rest_api.triggers",
+            ".interfaces.rest_api.users"
         ]
     )
     

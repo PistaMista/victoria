@@ -197,7 +197,7 @@ def test_get_user_returns_200_and_user_on_valid_request(mock_client, auth_mock, 
         username="john",
         password_hash=b'$2b$12$o8CqurHMoPKWzga2oohzdu0zpukOChhEdEdSBZO1hCZAeRyl5jtJa'.decode('utf-8'),
         role=Role.ADMIN,
-        permitted_actions=[
+        allowed_actions=[
             Action(
                 id=20
             ),
@@ -205,7 +205,7 @@ def test_get_user_returns_200_and_user_on_valid_request(mock_client, auth_mock, 
                 id=40
             )
         ],
-        permitted_triggers=[
+        allowed_triggers=[
             PollTrigger(
                 id=42
             ),
@@ -382,7 +382,7 @@ def test_update_user_returns_404_for_nonexistent_user(mock_client, auth_mock, us
 
     # Assert
     user_mock.update_user.assert_called_with(
-        id=3,
+        id=20,
         changes=UserDiff(
             new_password="weee",
             role=Role.USER,

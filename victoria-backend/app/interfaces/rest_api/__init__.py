@@ -11,6 +11,7 @@ from .models import router as models_router
 from .monologues import router as monologues_router
 from .queries import router as queries_router
 from .triggers import router as triggers_router
+from .users import router as users_router
 
 api_router = APIRouter()
 
@@ -26,3 +27,4 @@ api_router.include_router(models_router, prefix="/models", tags=["models"])
 api_router.include_router(monologues_router, prefix="/monologues", tags=["monologues"])
 api_router.include_router(queries_router, prefix="/queries", tags=["queries"])
 api_router.include_router(triggers_router, prefix="/triggers", tags=["triggers"])
+api_router.include_router(users_router, prefix="/users", tags=["users"])
