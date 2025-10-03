@@ -12,6 +12,7 @@ from .monologues import router as monologues_router
 from .queries import router as queries_router
 from .triggers import router as triggers_router
 from .users import router as users_router
+from .webhooks import router as webhooks_router
 
 api_router = APIRouter()
 
@@ -28,3 +29,4 @@ api_router.include_router(monologues_router, prefix="/monologues", tags=["monolo
 api_router.include_router(queries_router, prefix="/queries", tags=["queries"])
 api_router.include_router(triggers_router, prefix="/triggers", tags=["triggers"])
 api_router.include_router(users_router, prefix="/users", tags=["users"])
+api_router.include_router(webhooks_router, prefix="/webhooks", tags=["webhooks"])
