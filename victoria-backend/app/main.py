@@ -30,10 +30,11 @@ def create_app() -> FastAPI:
 def main():
     app = create_app()
 
+    db = app.container.db()
+    db.run_db_migrations()
+
     app.container.action()
     app.container.trigger()
     app.container.llm()
 
-    db = app.container.db()
-    db.run_db_migrations()
     uvicorn.run(app, host=settings.ADDRESS, port=settings.PORT)
