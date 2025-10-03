@@ -81,7 +81,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     trigger = providers.Singleton(
-        TriggerService
+        TriggerService,
+        database_service=db
     )
 
     agent = providers.Singleton(
