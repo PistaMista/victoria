@@ -12,7 +12,14 @@ from app.model.user import User, Role
 from app.services.db import DatabaseService
 from app.services.auth import AuthService
 from app.services.user import UserService
+from app.services.action import ActionService
+from app.services.trigger import TriggerService
 from app.services.monologues.dispatcher import DispatcherService
+from app.services.monologues.runner import RunnerService
+from app.services.monologues.runner.monologue_thread import AgenticMonologueThread
+from app.services.monologues import MonologueService
+from app.services.chat import ChatService
+from app.services.agent import AgentService
 
 
 postgres = PostgresContainer("postgres")
@@ -73,34 +80,90 @@ def app(db_connection):
     return app
 
 @pytest.fixture(scope="function")
-def db_mock():
-    return mock.Mock(spec=DatabaseService)
+def user():
+    return User(
+        id=1,
+        username="John",
+        role=Role.USER
+    )
 
 @pytest.fixture(scope="function")
-def dispatcher_mock():
-    return mock.Mock(spec=DispatcherService)
+def db_mock():
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def user_mock():
-    return mock.Mock(spec=UserService)
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def auth_mock():
-    return mock.Mock(spec=AuthService)
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def monologue_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def dispatcher_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def runner_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def thread_factory_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def chat_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def action_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def trigger_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def agent_mock():
+    return mock.MagicMock()
+
+@pytest.fixture(scope="function")
+def llm_mock():
+    return mock.MagicMock()
 
 @pytest.fixture(scope="function")
 def mock_app(
     db_mock,
     dispatcher_mock,
     user_mock,
-    auth_mock
+    auth_mock,
+    monologue_mock,
+    runner_mock,
+    thread_factory_mock,
+    chat_mock,
+    action_mock,
+    trigger_mock,
+    agent_mock,
+    llm_mock
 ):
     app = create_app()
     
     app.container.db.override(db_mock)
-    # app.container.dispatcher.override(dispatcher_mock)
+    app.container.dispatcher.override(dispatcher_mock)
     app.container.user.override(user_mock)
     app.container.auth.override(auth_mock)
+    app.container.monologue.override(monologue_mock)
+    app.container.runner.override(runner_mock)
+    app.container.agentic_thread_factory.override(thread_factory_mock)
+    app.container.chat.override(chat_mock)
+    app.container.action.override(action_mock)
+    app.container.trigger.override(trigger_mock)
+    app.container.agent.override(agent_mock)
+    app.container.llm.override(llm_mock)
     
     return app
 

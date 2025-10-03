@@ -2,13 +2,17 @@ import enum
 from sqlalchemy import String, ForeignKey, Enum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model import Base
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Literal
 
 class MonologueStatus(enum.Enum):
     PENDING = 0
     RUNNING = 1
     SUCCESS = 2
     FAILURE = 3
+    
+    def to_status_str(self) -> Literal["PENDING", "RUNNING", "SUCCESS", "FAILURE"]:
+        return self.name
+                
 
 class Monologue(Base):
     __tablename__ = "monologue"

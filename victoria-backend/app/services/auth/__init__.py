@@ -16,7 +16,7 @@ class AuthService:
         self._jwt_secret: str = jwt_secret
         self._login_lifetime: int = login_lifetime
     
-    def get_login_token(self, username: str, password: str) -> Optional[str]:
+    def get_login_token(self, username: str, password: str) -> str:
         user = self._user.get_user_by_name(username)
 
         if user is not None:

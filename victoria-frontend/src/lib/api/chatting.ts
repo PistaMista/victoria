@@ -103,7 +103,7 @@ export async function sendMessageToChat(chatId: number, msg: string): Promise<Se
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ message: msg })
+        body: JSON.stringify({ type: "markdown", message: msg })
     });
     const json = await res.json();
 

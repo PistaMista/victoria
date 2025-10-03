@@ -1,9 +1,10 @@
 from app.services.db import DatabaseService
-from typing import Dict, Any 
+from typing import Dict, Any, Union, Optional, Literal
 from itertools import chain
 from sqlalchemy import select
 from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
 from app.model.event import Event
+from pydantic import BaseModel
 import requests
 import re
 from threading import Timer
@@ -25,11 +26,12 @@ class TriggerService:
             timed = chain(polls, timers)
 
             for trigger in timed:
-                timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
-                    "trigger": trigger
-                })
-                self._trigger_timers[trigger.id] = timer
-                timer.start()
+                if trigger.id not in self._trigger_timers:
+                    timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
+                        "trigger": trigger
+                    })
+                    self._trigger_timers[trigger.id] = timer
+                    timer.start()
 
     def stop_trigger_timers(self):
         for timer in self._trigger_timers.values():
@@ -80,6 +82,7 @@ class TriggerService:
                 self.generate_event(trigger.id, {"message": message})
 
     def receive_webhook_payload(self, endpoint: str, content: str):
+        # TODO: Make this method raise InvalidWebhookEndpointError when no matching endpoint is found
         with self._db.session() as db:
             matching = db.scalars(
                 select(WebhookTrigger)
@@ -116,11 +119,36 @@ class TriggerService:
             )
             db.add(event)
             db.commit()
-        
+
+class TriggerDiff(BaseModel):
+    name: Optional[str] = None
+    parser: Optional[Literal["identity"]] = None
+    template: Optional[str] = None
+
+class TimerTriggerDiff(TriggerDiff):
+    interval: Optional[int] = None
+
+class PollTriggerDiff(TriggerDiff):
+    interval: Optional[int] = None
+    url: Optional[str] = None
+
+class ChatTriggerDiff(TriggerDiff):
+    receiver: Optional[str] = None
+
+class WebhookTriggerDiff(TriggerDiff):
+    endpoint: Optional[str] = None
+
+class InvalidWebhookEndpointError(Exception):
+    def __init__(self, endpoint: str):
+        super().__init__(f"invalid webhook endpoint: {endpoint}")
 
 class NonexistentTriggerError(Exception):
     def __init__(self, id: int):
         super().__init__(f"nonexistent trigger with id: {id}")
+
+class NonexistentEventError(Exception):
+    def __init__(self, id: int):
+        super().__init__(f"nonexistent event with id: {id}")
 
 class NotTimedTriggerError(Exception):
     def __init__(self, id: int):

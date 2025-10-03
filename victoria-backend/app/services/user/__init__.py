@@ -1,8 +1,9 @@
 from app.services.db import DatabaseService
 from bcrypt import hashpw, gensalt
-from typing import Optional
+from typing import Optional, List
 from app.model.user import User, Role
 from sqlalchemy import select, delete
+from pydantic import BaseModel
 
 class UserService:
     def __init__(self, db_service: DatabaseService):
@@ -58,6 +59,21 @@ class UserService:
             if user:
                 db.delete(user)
                 db.commit()
+
+class UserDiff(BaseModel):
+    username: Optional[str] = None
+    new_password: Optional[str] = None
+    role: Optional[Role] = None
+    permitted_action_ids: Optional[List[int]] = None
+    permitted_trigger_ids: Optional[List[int]] = None
+
+class InvalidUserSettingError(Exception):
+    def __init__(self, msg: str):
+        super().__init__(f"tried to set an invalid value for property of user: {msg}")
+
+class NonexistentUserError(Exception):
+    def __init__(self, id_or_name: int | str):
+        super().__init__(f"nonexistent user {id_or_name}")
 
 class UserExistsError(Exception):
     def __init__(self, username: str):

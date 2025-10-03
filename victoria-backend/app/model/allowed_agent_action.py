@@ -5,6 +5,6 @@ from app.model import Base
 allowed_agent_action_association = Table(
     "allowed_agent_action",
     Base.metadata,
-    Column("agent_id", ForeignKey("agent.id"), nullable=False),
-    Column("action_id", ForeignKey("action.id"), nullable=False)
+    Column("agent_id", ForeignKey("agent.id", ondelete='CASCADE'), nullable=False),
+    Column("action_id", ForeignKey("action.id", ondelete='CASCADE'), nullable=False)
 )

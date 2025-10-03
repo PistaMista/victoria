@@ -213,6 +213,62 @@ def test_trigger_service_timer_trigger_generates_events_periodically(mock_genera
     # Teardown
     serv.stop_trigger_timers()
 
+@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
+def test_trigger_service_timer_trigger_does_not_start_multiple_times(mock_generate, db_serv, db_session):
+    # Arrange
+    timer_trigger = TimerTrigger(
+        id=42,
+        name="Timer",
+        template="Event!",
+        interval=1
+    )
+    db_session.add(timer_trigger)
+    db_session.commit()
+
+    # Act
+    serv = TriggerService(
+        database_service=db_serv
+    )
+
+    serv.start_stopped_trigger_timers()
+    serv.start_stopped_trigger_timers()
+    serv.start_stopped_trigger_timers()
+
+    # Assert
+    time.sleep(1.5)
+    assert mock_generate.call_count == 1
+    mock_generate.assert_called_with(42, {})
+
+    # Teardown
+    serv.stop_trigger_timers()
+
+@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
+def test_trigger_service_timer_trigger_can_be_started_after_being_added(mock_generate, db_serv, db_session):
+    # Arrange
+    serv = TriggerService(
+        database_service=db_serv
+    )
+
+    # Act
+    timer_trigger = TimerTrigger(
+        id=42,
+        name="Timer",
+        template="Event!",
+        interval=1
+    )
+    db_session.add(timer_trigger)
+    db_session.commit()
+
+    serv.start_stopped_trigger_timers()
+
+    # Assert
+    time.sleep(1.5)
+    assert mock_generate.call_count == 1
+    mock_generate.assert_called_with(42, {})
+
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("app.services.trigger.requests.get")
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
 def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, mock_get, db_serv, db_session):

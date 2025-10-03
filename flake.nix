@@ -100,7 +100,10 @@
         wrapper = prod-pkgs.writeShellApplication {
           name = "victoria-backend";
 
-          runtimeInputs = [ ];
+          runtimeInputs = [
+            # Needed by GitPython
+            prod-pkgs.git
+          ];
 
           text = ''
             export VICTORIA_FRONTEND_PATH="${frontend}";
