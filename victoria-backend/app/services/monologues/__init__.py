@@ -16,6 +16,22 @@ class MonologueService:
     ):
         self._db: DatabaseService = database_service
         self._action: ActionService = action_service
+
+    def get_user_monologues(self, user_id: int) -> List[Monologue]:
+        """Gets all of the given User's monologues."""
+        pass
+
+    def get_user_monologue(self, user_id: int, monologue_id: int) -> Monologue:
+        """Gets the given Monologue."""
+        pass
+
+    def end_user_monologue(self, user_id: int, monologue_id: int, successful: bool):
+        """Ends the given Monologue with either SUCCESS or FAILURE."""
+        pass
+
+    def get_user_monologue_thoughts(self, user_id: int, monologue_id: int) -> List[Thought]:
+        """Gets the Thoughts of the given Monologue."""
+        pass
     
     def set_monologue_status(self, id: int, status: MonologueStatus):
         with self._db.session() as db:

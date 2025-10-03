@@ -8,8 +8,16 @@ from pydantic import BaseModel
 class UserService:
     def __init__(self, db_service: DatabaseService):
         self._db = db_service
+
+    def get_all_users(self) -> List[User]:
+        """Gets all registered Users."""
+        pass
+
+    def update_user(self, id: int, changes: "UserDiff"):
+        """Updates the given User."""
+        pass
         
-    def create_user(self, username: str, password: str, role: Role) -> None:
+    def create_user(self, username: str, password: str, role: Role, permitted_action_ids: List[int] = [], permitted_trigger_ids: List[int] = []) -> int:
         with self._db.session() as db:
             existing_user = db.scalars(
                     select(User).where(User.username == username)
@@ -34,7 +42,8 @@ class UserService:
 
             return first_user is not None
 
-    def get_user_by_id(self, id: int) -> Optional[User]:
+    def get_user_by_id(self, id: int) -> User:
+        # TODO: Throw NonexistentUserError when the user does not exist
         with self._db.session() as db:
             user = db.scalar(
                 select(User).where(User.id == id)

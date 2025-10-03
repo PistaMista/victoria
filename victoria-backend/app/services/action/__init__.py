@@ -26,6 +26,26 @@ class ActionService:
         self._db: DatabaseService = database_service
         self._reimport_actions_for_existing_repositories()
 
+    def get_all_action_repositories(self) -> List[ActionRepository]:
+        """Returns all registered action repositories."""
+        pass
+    
+    def get_action_repository_by_id(self, id: int) -> ActionRepository:
+        """Gets the action repository with the given id."""
+        pass
+
+    def update_action_repository(self, id: int, changes: "ActionRepositoryDiff"):
+        """Updates the action repository with the given id."""
+        pass
+
+    def get_user_permitted_actions(self, user_id: int) -> List[Action]:
+        """Gets the actions that agents of the user with the given id can take."""
+        pass
+
+    def get_all_actions(self) -> List[Action]:
+        """Gets all the currently registered actions."""
+        pass
+
 
     def add_action_repository(self, name: str, url: str):
         """Adds an action repository with the given name and url."""

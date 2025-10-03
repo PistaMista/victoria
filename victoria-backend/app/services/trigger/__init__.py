@@ -1,5 +1,5 @@
 from app.services.db import DatabaseService
-from typing import Dict, Any, Union, Optional, Literal
+from typing import Dict, Any, Optional, Literal, List
 from itertools import chain
 from sqlalchemy import select
 from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
@@ -17,6 +17,46 @@ class TriggerService:
         self._db: DatabaseService = database_service
         self._trigger_timers: Dict[int, Timer] = {}
         self.start_stopped_trigger_timers()
+
+    def get_user_event(self, user_id: int, event_id: int) -> Event:
+        """Gets the given Event."""
+        pass
+
+    def get_user_allowed_triggers(self, user_id: int) -> List[Trigger]:
+        """Gets all the Triggers allowed for the User's Agents."""
+        pass
+
+    def get_all_triggers(self) -> List[Trigger]:
+        """Gets all available Triggers."""
+        pass
+
+    def add_timer_trigger(self, name: str, template: str, interval: int) -> int:
+        """Creates a new timer trigger and returns its id."""
+        pass
+
+    def add_poll_trigger(self, name: str, template: str, interval: int, url: str) -> int:
+        """Creates a new poll trigger and returns its id."""
+        pass
+
+    def add_chat_trigger(self, name: str, template: str, receiver: str) -> int:
+        """Creates a new chat trigger and returns its id."""
+        pass
+
+    def add_webhook_trigger(self, name: str, template: str, endpoint: str) -> int:
+        """Creates a new webhook trigger and returns its id."""
+        pass
+
+    def get_trigger_by_id(self, id: int) -> Trigger:
+        """Gets the given Trigger."""
+        pass
+
+    def update_trigger(self, trigger_id: int, changes: "TriggerDiff"):
+        """Updates the given Trigger."""
+        pass
+
+    def remove_trigger(self, id: int):
+        """Deletes the given Trigger."""
+        pass
 
     def start_stopped_trigger_timers(self):
         with self._db.session() as db:

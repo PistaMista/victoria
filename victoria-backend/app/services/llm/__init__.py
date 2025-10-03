@@ -25,8 +25,31 @@ class LLMService:
                     # TODO: Log the connection failure?
                     pass
 
+    def get_enabled_models(self) -> List[LanguageModel]:
+        """Gets all currently enabled LanguageModels."""
+        pass
+
+    def get_all_models(self) -> List[LanguageModel]:
+        """Gets all available LanguageModels."""
+        pass
+
+    def set_model_enabled_by_id(self, model_id: int, enabled: bool):
+        """Enables or disables the given LanguageModel."""
+        pass
+
+    def get_all_connections(self) -> List[LLMConnection]:
+        """Gets all registered connections."""
+        pass
+
+    def get_connection_by_id(self, id: int) -> LLMConnection:
+        """Gets the connection with the given ID."""
+        pass
+
+    def update_ollama_connection(self, id: int, changes: "OllamaConnectionDiff"):
+        """Updates the given Connection's settings."""
+        pass
     
-    def add_ollama_connection(self, name: str, url: str):
+    def add_ollama_connection(self, name: str, url: str) -> int:
         with self._db.session() as db:
             connection = OllamaConnection(
                 name=name,

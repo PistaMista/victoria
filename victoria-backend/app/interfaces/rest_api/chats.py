@@ -44,7 +44,7 @@ async def create_chat(
 async def list_receivers(
     user: Annotated[User, Depends(get_non_admin_user)],
     chat_service: Annotated[ChatService, Depends(Provide[Container.chat])]
-) -> List[int]:
+) -> List[str]:
     return chat_service.get_user_chat_receivers(
         user_id=user.id
     )
@@ -54,7 +54,7 @@ async def list_receivers(
 async def get_chat_info(
     id: int,
     user: Annotated[User, Depends(get_non_admin_user)],
-    chat_service: Annotated[User, Depends(Provide[Container.chat])]
+    chat_service: Annotated[ChatService, Depends(Provide[Container.chat])]
 ) -> ChatResponse:
     try:
         chat = chat_service.get_user_chat(
