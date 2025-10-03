@@ -4,6 +4,7 @@ from app.services.llm import UserMessage, AssistantMessage
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import Invocation
+from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 import json
