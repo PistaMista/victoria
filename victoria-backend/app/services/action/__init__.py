@@ -4,7 +4,7 @@ from app.model.action import Action
 from app.model.invocation import Invocation
 from app.model.action_repository import ActionRepository
 from sqlalchemy import select
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from git import Repo
 from pydantic import TypeAdapter, ValidationError, BaseModel
 from pydoc import locate
@@ -47,7 +47,7 @@ class ActionService:
         pass
 
 
-    def add_action_repository(self, name: str, url: str):
+    def add_action_repository(self, name: str, url: str) -> int:
         """Adds an action repository with the given name and url."""
         repo_id = 0
         with self._db.session() as db:
@@ -175,7 +175,7 @@ class ActionService:
         
         return result
     
-    def execute_invocation(self, invocation: Invocation) -> str:
+    def execute_invocation(self, invocation: Invocation, context: Dict[str, Any]) -> str:
         errors = []
         
         if invocation.function_name is not None:
