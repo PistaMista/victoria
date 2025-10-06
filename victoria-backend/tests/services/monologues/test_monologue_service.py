@@ -3,6 +3,7 @@ from unittest import mock
 from app.services.monologues import MonologueService, NonexistentMonologueError
 from app.services.db import DatabaseService
 from app.services.llm import UserMessage, AssistantMessage
+from app.model.user import User, Role
 from app.model.action import Action
 from app.model.agent import Agent
 from app.model.monologue import Monologue, MonologueStatus
@@ -15,7 +16,15 @@ from app.model.action_repository import ActionRepository
 from datetime import datetime
 
 @pytest.fixture(scope="function")
-def sample_monologue(db_session):
+def owner():
+    return User(
+        username="John",
+        password_hash="",
+        role=Role.USER
+    )
+
+@pytest.fixture(scope="function")
+def sample_monologue(db_session, owner):
     trigger = PollTrigger(
         name="Emails", 
         url="http://mycooldomain.com",
@@ -46,6 +55,7 @@ def sample_monologue(db_session):
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         allowed_triggers=[trigger],
         allowed_actions=[think_action, send_message_action]
     )

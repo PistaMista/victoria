@@ -21,6 +21,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     role: Mapped[Role] = mapped_column(Enum(Role, native_enum=False), nullable=False)
 
+    agents: Mapped[List["Agent"]] = relationship("Agent", back_populates="owner", cascade='all,delete', order_by="Agent.name.desc()")
     chats: Mapped[List["Chat"]] = relationship("Chat", back_populates="owner", cascade='all,delete', order_by="Chat.modified_at.desc()")
 
     allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_user_action_association, back_populates="allowed_on_users")
