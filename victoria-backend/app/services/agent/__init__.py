@@ -1,9 +1,16 @@
 from pydantic import BaseModel
+from app.services.db import DatabaseService
 from app.model.agent import Agent
 from app.model.monologue import Monologue
 from typing import Optional, Dict, Any, List
 
 class AgentService:
+    def __init__(
+        self,
+        database_service: DatabaseService
+    ):
+        self._db: DatabaseService = database_service
+
     def get_user_agents(self, user_id: int) -> List[Agent]:
         """Gets all agents of the user with the given id."""
         pass
