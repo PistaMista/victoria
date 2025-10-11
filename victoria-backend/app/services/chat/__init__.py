@@ -1,11 +1,24 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
+from enum import Enum
+from app.services.db import DatabaseService
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessage
+from datetime import datetime
+
+class ChatSortMode(Enum):
+    LONGEST = 0
+    RECENT = 0
 
 class ChatService:
-    def get_user_chats(self, user_id: int) -> List[Chat]:
+    def __init__(
+        self,
+        database_service: DatabaseService
+    ):
+        self._db: DatabaseService = database_service
+
+    def get_user_chats(self, user_id: int, sort_by: ChatSortMode = ChatSortMode.RECENT, search_query: Optional[str] = None) -> List[Chat]:
         """Gets all chats of the given User."""
         pass
 
@@ -74,11 +87,13 @@ class ChatService:
         pass
 
 
-
-
 class ChatOptionsDiff(BaseModel):
     receiver: Optional[str] = None
     enabled_action_ids: Optional[List[int]] = None
+
+class CannotCreateChatForNonexistentUserError(Exception):
+    def __init__(self, id: int):
+        super().__init__(f"cannot create chat for nonexistent user with ID {id}")
 
 class NonexistentChatError(Exception):
     def __init__(self, id: int):

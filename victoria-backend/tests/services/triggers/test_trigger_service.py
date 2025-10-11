@@ -32,6 +32,8 @@ def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(mock_s
 
 
 def test_trigger_service_can_generate_simple_event_from_given_trigger_id_and_variables(db_serv, db_session):
+    # TODO: Test for event ID being returned
+    assert False
     # Arrange
     serv = TriggerService(
         database_service=db_serv
@@ -65,6 +67,8 @@ def test_trigger_service_can_generate_simple_event_from_given_trigger_id_and_var
     serv.stop_trigger_timers()
 
 def test_trigger_service_can_generate_complex_event_from_given_trigger_id_and_variables(db_serv, db_session):
+    # TODO: Test for event ID being returned
+    assert False
     # Arrange
     serv = TriggerService(
         database_service=db_serv
@@ -98,6 +102,8 @@ def test_trigger_service_can_generate_complex_event_from_given_trigger_id_and_va
     serv.stop_trigger_timers()
 
 def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_when_variable_in_template_undefined(db_serv, db_session):
+    # TODO: Test for event ID being returned
+    assert False
     # Arrange
     serv = TriggerService(
         database_service=db_serv
@@ -131,6 +137,8 @@ def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_
     serv.stop_trigger_timers()
 
 def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_when_variable_in_template_not_string(db_serv, db_session):
+    # TODO: Test for event ID being returned
+    assert False
     # Arrange
     serv = TriggerService(
         database_service=db_serv
@@ -307,6 +315,8 @@ def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, 
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
 def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_events(mock_generate, db_serv, db_session):
+    # TODO: Test for event IDs being returned
+    assert False
     # Arrange
     chat_trigger_1 = ChatTrigger(
         id=1,
