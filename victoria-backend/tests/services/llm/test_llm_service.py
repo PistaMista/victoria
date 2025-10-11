@@ -16,6 +16,42 @@ def db_serv(db_factory, db_container):
         yield db
 
 @mock.patch('app.services.llm.requests.get')
+def test_llm_service_can_get_all_enabled_models(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_can_get_all_registered_models(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_can_disable_and_enable_models(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_can_get_all_registered_connections(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_can_get_connection_by_id(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_can_update_ollama_connection(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_reimports_models_from_updated_ollama_connection(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_fails_to_update_ollama_connection_on_ollama_error_status_code(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_fails_to_update_ollama_connection_on_ollama_server_connection_error(mock_get, db_serv, db_session):
+    assert False
+
+@mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_add_a_new_ollama_connection(mock_get, db_serv, db_session):
     # Arrange
     serv = LLMService(
@@ -23,7 +59,7 @@ def test_llm_service_can_add_a_new_ollama_connection(mock_get, db_serv, db_sessi
     )
     
     # Act
-    serv.add_ollama_connection(
+    res_id = serv.add_ollama_connection(
         name="Homelab",
         url="http://localhost:11434"
     )
@@ -34,6 +70,7 @@ def test_llm_service_can_add_a_new_ollama_connection(mock_get, db_serv, db_sessi
     ).all()
     
     assert len(connections) == 1
+    assert connections[0].id == res_id
     assert connections[0].name == "Homelab"
     assert connections[0].url == "http://localhost:11434"
 
@@ -86,16 +123,17 @@ def test_llm_service_imports_models_from_added_ollama_connection(mock_get, db_se
     )
     
     # Act
-    serv.add_ollama_connection(
+    res_id = serv.add_ollama_connection(
         name="Homelab",
         url="http://localhost:11434"
     )
     
     # Assert
     mock_get.assert_called_once_with("http://localhost:11434/api/tags")
-    connection = db_session.scalars(
+    connection = db_session.scalar(
         select(LLMConnection)
-    ).first()
+        .where(LLMConnection.id == res_id)
+    )
     
     models = db_session.scalars(
         select(LanguageModel)
@@ -687,5 +725,12 @@ def test_llm_service_throws_when_using_disabled_model_for_chat_completion(mock_g
             UserMessage("Give me a recipe for fish and chips.")
         ])
 
-def test_llm_service_returns_id_of_newly_created_connection():
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_throws_when_trying_to_manipulate_nonexistent_model(mock_get, db_serv, db_session):
     assert False
+
+@mock.patch('app.services.llm.requests.get')
+def test_llm_service_throws_when_trying_to_manipulate_nonexistent_connection(mock_get, db_serv, db_session):
+    assert False
+
+
