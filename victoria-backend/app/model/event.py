@@ -8,7 +8,7 @@ class Event(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     type: Mapped[str] = mapped_column(String(10), nullable=False)
-    trigger_id: Mapped[int] = mapped_column(ForeignKey("trigger.id"), nullable=False)
+    trigger_id: Mapped[int] = mapped_column(ForeignKey("trigger.id"), nullable=True)
     trigger: Mapped["Trigger"] = relationship(back_populates="spawned_events")
     content: Mapped[str] = mapped_column(Text(), nullable=False)
     dispatched: Mapped[bool] = mapped_column(Boolean(), nullable=False)

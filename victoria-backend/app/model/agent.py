@@ -22,4 +22,4 @@ class Agent(Base):
     
     allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_agent_trigger_association, back_populates="allowed_on_agents")
     allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_agent_action_association, back_populates="allowed_on_agents")
-    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="agent")
+    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="agent", cascade='all,delete')

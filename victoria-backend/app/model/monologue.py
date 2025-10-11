@@ -26,7 +26,7 @@ class Monologue(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), nullable=False)
     event: Mapped["Event"] = relationship("Event", back_populates="monologues")
     
-    agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"), nullable=False)
+    agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id", ondelete='CASCADE'), nullable=False)
     agent: Mapped["Agent"] = relationship("Agent", back_populates="monologues")
     
     thoughts: Mapped[List["Thought"]] = relationship("Thought", back_populates="monologue", order_by="Thought.timestamp")
