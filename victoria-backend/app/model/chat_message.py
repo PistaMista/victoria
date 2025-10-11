@@ -53,6 +53,7 @@ class ChatMessageChoicePrompt(ChatMessage):
     id: Mapped[int] = mapped_column(ForeignKey('chat_message.id'), primary_key=True)
 
     prompt: Mapped[str] = mapped_column(String(120), nullable=False)
+    answer: Mapped[Any] = mapped_column(JSON(), nullable=True)
     choices: Mapped[List["ChoiceMessageOption"]] = relationship(
             "ChoiceMessageOption",
             back_populates="message",
