@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
 from app.services.db import DatabaseService
+from app.services.trigger import TriggerService
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessage
@@ -14,7 +15,8 @@ class ChatSortMode(Enum):
 class ChatService:
     def __init__(
         self,
-        database_service: DatabaseService
+        database_service: DatabaseService,
+        trigger_service: TriggerService
     ):
         self._db: DatabaseService = database_service
 
@@ -38,7 +40,7 @@ class ChatService:
         """Deletes the given Chat."""
         pass
 
-    def duplicate_user_chat(self, user_id: int, chat_id: int, last_exchange_id: Optional[int]) -> int:
+    def duplicate_user_chat(self, user_id: int, chat_id: int, last_exchange_id: Optional[int] = None) -> int:
         """Duplicates the given Chat up to the given Exchange and returns the new id."""
         pass
 

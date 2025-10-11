@@ -111,7 +111,8 @@ class TriggerService:
     def _execute_timer_trigger(self, trigger: TimerTrigger):
         self.generate_event(trigger.id, {})
     
-    def receive_chat_message(self, receiver: str, message: str):
+    def receive_chat_message(self, receiver: str, message: str) -> List[int]:
+        # TODO: Return list of generated ChatEvent IDs
         with self._db.session() as db:
             matching = db.scalars(
                 select(ChatTrigger)
@@ -133,7 +134,7 @@ class TriggerService:
                 self.generate_event(trigger.id, {"payload": content})
 
 
-    def generate_event(self, trigger_id: int, variables: Dict[str, Any]):
+    def generate_event(self, trigger_id: int, variables: Dict[str, Any]) -> int:
         trigger = None
         with self._db.session() as db:
             trigger = db.scalar(

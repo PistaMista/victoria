@@ -23,7 +23,7 @@ class AgentService:
         self,
         user_id: int,
         name: str,
-        model_id: int,
+        model_id: Optional[int],
         system_prompt: str,
         model_parameters: Dict[str, Any],
         enabled_trigger_ids: List[int],

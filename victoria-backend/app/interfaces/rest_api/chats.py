@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException, Request, Body
 from dependency_injector.wiring import inject, Provide
-from app.services.chat import ChatService, NonexistentChatError
+from app.services.chat import ChatService, NonexistentChatError, NonexistentExchangeError, CannotCreateChatForNonexistentUserError
 from app.model.user import User
 from app.model.chat_message import ChatMessageMarkdown
 from app.containers import Container
@@ -30,14 +30,20 @@ async def create_chat(
     user: Annotated[User, Depends(get_non_admin_user)],
     chat_service: Annotated[ChatService, Depends(Provide[Container.chat])]
 ) -> ChatResponse:
-    created_chat_id = chat_service.create_user_chat(
-        user_id=user.id
-    )
-    created_chat = chat_service.get_user_chat(
-        user_id=user.id,
-        chat_id=created_chat_id
-    )
-    return ChatResponse.model_validate(created_chat)
+    try:
+        created_chat_id = chat_service.create_user_chat(
+            user_id=user.id
+        )
+        created_chat = chat_service.get_user_chat(
+            user_id=user.id,
+            chat_id=created_chat_id
+        )
+        return ChatResponse.model_validate(created_chat)
+    except CannotCreateChatForNonexistentUserError as err:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(err)
+        )
 
 @router.get("/receivers", response_model=List[str])
 @inject
@@ -105,6 +111,11 @@ async def duplicate_chat(
     except NonexistentChatError as err:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err)
+        )
+    except NonexistentExchangeError as err:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(err)
         )
 

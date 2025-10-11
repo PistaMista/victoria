@@ -1,5 +1,5 @@
 from app.services.auth import NotLoggedInError
-from app.services.chat import NonexistentChatError, ChatOptionsDiff
+from app.services.chat import NonexistentChatError, ChatOptionsDiff, CannotCreateChatForNonexistentUserError
 from app.model.user import User
 from app.model.agent import Agent
 from app.model.monologue import Monologue
@@ -93,6 +93,23 @@ def test_create_chat_returns_200_and_creates_chat_on_valid_request(mock_client, 
         "title": "New chat",
         "summary": "No summary"
     }
+
+def test_create_chat_returns_400_and_when_user_does_not_exist(mock_client, auth_mock, chat_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    chat_mock.create_user_chat.side_effect = CannotCreateChatForNonexistentUserError(user.id)
+
+    # Act
+    res = mock_client.post(
+        '/api/chats',
+        cookies={"token": "tok"}
+    )
+
+    # Assert
+    chat_mock.create_user_chat.assert_called_with(
+        user_id=1
+    )
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
 
 def test_create_chat_returns_401_when_not_logged_in(mock_client, auth_mock, chat_mock):
     # Arrange
