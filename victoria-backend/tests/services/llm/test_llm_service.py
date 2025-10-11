@@ -1,6 +1,6 @@
 import pytest
 from unittest import mock
-from app.services.llm import LLMService, SystemMessage, UserMessage, AssistantMessage, OllamaCommunicationError, NonexistentConnectionError, NonexistentModelError, DisabledModelError
+from app.services.llm import LLMService, SystemMessage, UserMessage, AssistantMessage, OllamaCommunicationError, NonexistentConnectionError, NonexistentModelError, DisabledModelError, OllamaConnectionDiff
 from app.services.db import DatabaseService
 from app.model.llm_connection import LLMConnection, OllamaConnection
 from app.model.language_model import LanguageModel
@@ -17,39 +17,580 @@ def db_serv(db_factory, db_container):
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_get_all_enabled_models(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    res = serv.get_enabled_models()
+
+    # Assert
+    assert len(res) == 1
+    assert res[0].id == 1
+    assert res[0].name == "gemma3:12b"
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_get_all_registered_models(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    res = serv.get_enabled_models()
+
+    # Assert
+    assert len(res) == 4
+    assert res[0].id == 1
+    assert res[0].name == "gemma3:12b"
+    assert res[1].id == 2
+    assert res[1].name == "deepseek-r1:latest"
+    assert res[2].id == 3
+    assert res[2].name == "qwen2"
+    assert res[3].id == 4
+    assert res[3].name == "gpt-oss"
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_disable_and_enable_models(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    to_enable = LanguageModel(
+        id=2,
+        name="deepseek-r1:latest",
+        enabled=False
+    )
+    to_disable = LanguageModel(
+        id=3,
+        name="qwen2",
+        enabled=True
+    )
+    connection1 = OllamaConnection(
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            to_enable
+        ]
+    )
+    connection2 = OllamaConnection(
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            ),
+            to_disable
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    serv.set_model_enabled_by_id(model_id=2, enabled=True)
+    serv.set_model_enabled_by_id(model_id=3, enabled=False)
+
+    # Assert
+    db_session.refresh(to_disable)
+    db_session.refresh(to_enable)
+    assert not to_disable.enabled
+    assert to_enable.enabled
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_get_all_registered_connections(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    res = serv.get_all_connections()
+
+    # Assert
+    assert len(res) == 2
+    assert res[0].name == "Megacenter"
+    assert res[1].name == "ChatGPT"
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_get_connection_by_id(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    res = serv.get_connection_by_id(1)
+
+    # Assert
+    assert isinstance(res, OllamaConnection)
+    assert res.name == "Megacenter"
+    assert res.url == "http://localhost:11434"
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_update_ollama_connection(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    serv.update_ollama_connection(
+        id=1,
+        changes=OllamaConnectionDiff(
+            name="MINE",
+            url="woo"
+        )
+    )
+
+    # Assert
+    db_session.refresh(connection1)
+    assert connection1.name == "MINE"
+    assert connection1.url == "woo"
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_reimports_models_from_updated_ollama_connection(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    mock_res = mock_get.return_value
+    mock_res.status_code = 200
+    mock_res.json.return_value = {
+      "models": [
+        {
+          "name": "gpt-oss:latest",
+          "model": "gpt-oss:latest",
+          "modified_at": "2025-05-10T08:06:48.639712648-07:00",
+          "size": 4683075271,
+          "digest": "0a8c266910232fd3291e71e5ba1e058cc5af9d411192cf88b6d30e92b6e73163",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "7.6B",
+            "quantization_level": "Q4_K_M"
+          }
+        },
+        {
+          "name": "llama3.2:latest",
+          "model": "llama3.2:latest",
+          "modified_at": "2025-05-04T17:37:44.706015396-07:00",
+          "size": 2019393189,
+          "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "llama",
+            "families": [
+              "llama"
+            ],
+            "parameter_size": "3.2B",
+            "quantization_level": "Q4_K_M"
+          }
+        }
+      ]
+    }        
+
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    serv.update_ollama_connection(
+        id=1,
+        changes=OllamaConnectionDiff(
+            name="MINE",
+            url="woo"
+        )
+    )
+
+    # Assert
+    db_session.refresh(connection1)
+    assert len(connection1.models) == 2
+
+    assert connection1.models[0].name == "gpt-oss:latest"
+    assert connection1.models[0].enabled
+    assert connection1.models[1].name == "llama3.2:latest"
+    assert connection1.models[1].enabled
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_fails_to_update_ollama_connection_on_ollama_error_status_code(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    mock_res = mock_get.return_value
+    mock_res.status_code = 400
+    mock_res.raise_for_status.side_effect = HTTPError()
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    with pytest.raises(OllamaCommunicationError):
+        serv.update_ollama_connection(
+            id=1,
+            changes=OllamaConnectionDiff(
+                name="WOOF",
+                url="nope"
+            )
+        )
+
+    # Assert
+    db_session.refresh(connection1)
+    db_session.refresh(connection2)
+
+    assert connection1.name == "Megacenter"
+    assert connection1.url == "http://localhost:11434"
+    assert len(connection1.models) == 2
+    assert connection2.name == "ChatGPT"
+    assert connection2.url == "http://chatgpt.com"
+    assert len(connection2.models) == 2
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_fails_to_update_ollama_connection_on_ollama_server_connection_error(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    mock_get.side_effect = ConnectionError()
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act
+    with pytest.raises(OllamaCommunicationError):
+        serv.update_ollama_connection(
+            id=1,
+            changes=OllamaConnectionDiff(
+                name="WOOF",
+                url="nope"
+            )
+        )
+
+    # Assert
+    db_session.refresh(connection1)
+    db_session.refresh(connection2)
+
+    assert connection1.name == "Megacenter"
+    assert connection1.url == "http://localhost:11434"
+    assert len(connection1.models) == 2
+    assert connection2.name == "ChatGPT"
+    assert connection2.url == "http://chatgpt.com"
+    assert len(connection2.models) == 2
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_add_a_new_ollama_connection(mock_get, db_serv, db_session):
@@ -436,41 +977,6 @@ def test_llm_service_can_remove_an_ollama_connection(mock_get, db_serv, db_sessi
     assert connections.first() is None
 
 @mock.patch('app.services.llm.requests.get')
-def test_llm_service_throws_when_removing_nonexistent_connection(mock_get, db_serv, db_session):
-    # Arrange
-    connection = OllamaConnection(
-        id=10,
-        name="Megacenter",
-        url="http://www.megacenter.com:11434"        
-    )
-    model = LanguageModel(
-        name="gemma3:12b",
-        enabled=True,
-        connection=connection
-    )
-    
-    mock_get.side_effect = ConnectionError()
-    
-    db_session.add(connection)
-    db_session.add(model)
-    db_session.commit()
-
-    serv = LLMService(
-        database_service=db_serv
-    )
-    
-    # Act / Assert
-    with pytest.raises(NonexistentConnectionError):
-        serv.remove_connection(15)
-    
-    connections = db_session.scalars(
-        select(LLMConnection)
-    )
-    
-    assert connections.first() == connection
-    
-    
-@mock.patch('app.services.llm.requests.get')
 def test_llm_service_removes_models_imported_from_a_removed_connection(mock_get, db_serv, db_session):
     # Arrange
     connection = OllamaConnection(
@@ -727,10 +1233,112 @@ def test_llm_service_throws_when_using_disabled_model_for_chat_completion(mock_g
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_throws_when_trying_to_manipulate_nonexistent_model(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act / Assert
+    with pytest.raises(NonexistentModelError):
+        serv.set_model_enabled_by_id(model_id=99, enabled=True)
+
+    with pytest.raises(NonexistentModelError):
+        serv.set_model_enabled_by_id(model_id=99, enabled=False)
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_throws_when_trying_to_manipulate_nonexistent_connection(mock_get, db_serv, db_session):
-    assert False
+    # Arrange
+    serv = LLMService(
+        database_service=db_serv
+    )
+
+    connection1 = OllamaConnection(
+        id=1,
+        name="Megacenter",
+        url="http://localhost:11434",
+        models=[
+            LanguageModel(
+                id=1,
+                name="gemma3:12b",
+                enabled=True
+            ),
+            LanguageModel(
+                id=2,
+                name="deepseek-r1:latest",
+                enabled=False
+            )
+        ]
+    )
+    connection2 = OllamaConnection(
+        id=2,
+        name="ChatGPT",
+        url="http://chatgpt.com",
+        models=[
+            LanguageModel(
+                id=3,
+                name="qwen2",
+                enabled=False
+            ),
+            LanguageModel(
+                id=4,
+                name="gpt-oss",
+                enabled=False
+            )
+        ]
+    )
+    
+    db_session.add(connection1)
+    db_session.add(connection2)
+    db_session.commit()
+
+    # Act / Assert
+    with pytest.raises(NonexistentConnectionError):
+        serv.remove_connection(15)
+
+    with pytest.raises(NonexistentConnectionError):
+        serv.update_ollama_connection(15, OllamaConnectionDiff())
+
+    with pytest.raises(NonexistentConnectionError):
+        serv.get_connection_by_id(15)
+
 
 
