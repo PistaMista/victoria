@@ -131,6 +131,9 @@ def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(thread_sut
     assert arg.invocation.params["content"] == "hello"
     assert arg.result == "hello"
 
+    # TODO: Test modified_at time changing and correct timestamp being given to new thought
+    assert False
+
 def test_agentic_thread_stops_when_monologue_is_marked_as_succeeded(thread_sut, mock_monologue_serv, mock_on_finish):
     # Act
     thread_sut.start()

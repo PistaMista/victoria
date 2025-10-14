@@ -4,7 +4,7 @@ from app.services.llm import UserMessage, AssistantMessage
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import Invocation
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 import json
@@ -18,7 +18,7 @@ class MonologueService:
         self._db: DatabaseService = database_service
         self._action: ActionService = action_service
 
-    def get_user_monologues(self, user_id: int) -> List[Monologue]:
+    def get_user_monologues(self, user_id: int, status_filter: Optional[MonologueStatus] = None, search_query: Optional[str] = None) -> List[Monologue]:
         """Gets all of the given User's monologues."""
         pass
 

@@ -86,6 +86,9 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_sessio
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
+    # TODO: Test dispatch time being set properly for the monologue
+    assert False
+
 def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, dispatcher, owner):
     # Arrange
     trigger = PollTrigger(
@@ -127,6 +130,9 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived..."
+
+    # TODO: Test dispatch time being set properly for the monologue
+    assert False
 
 def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, owner):
     # Arrange
