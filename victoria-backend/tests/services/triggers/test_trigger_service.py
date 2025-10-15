@@ -14,6 +14,82 @@ def db_serv(db_factory, db_container):
     with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
         yield db
 
+
+
+def test_trigger_service_can_get_user_event(db_serv):
+    assert False
+
+def test_trigger_service_can_get_all_registered_triggers(db_serv):
+    assert False
+
+def test_trigger_service_can_get_user_allowed_triggers(db_serv):
+    assert False
+
+def test_trigger_service_returns_empty_list_for_allowed_triggers_of_nonexistent_user(db_serv):
+    assert False
+
+def test_trigger_service_can_get_trigger_by_id(db_serv):
+    assert False
+
+def test_trigger_service_can_add_webhook_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_add_chat_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_add_timer_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_add_poll_trigger(db_serv):
+    assert False
+
+@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers")
+def test_trigger_service_tries_to_start_stopped_trigger_timers_when_timer_trigger_added(mock_start_timers, db_serv):
+    assert False
+
+@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers")
+def test_trigger_service_tries_to_start_stopped_trigger_timers_when_poll_trigger_added(mock_start_timers, db_serv):
+    assert False
+
+def test_trigger_service_can_update_webhook_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_update_chat_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_update_timer_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_update_poll_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_poll_trigger(db_serv):
+    assert False
+
+def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(db_serv):
+    assert False
+
+def test_trigger_service_tries_to_restart_timer_when_updating_poll_trigger(db_serv):
+    assert False
+
+def test_trigger_service_tries_to_restart_timer_when_changing_chat_trigger_to_timer_trigger(db_serv):
+    assert False
+
+def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to_poll_trigger(db_serv):
+    assert False
+
+def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_poll_trigger(db_serv):
+    assert False
+
+def test_trigger_service_can_remove_trigger(db_serv):
+    assert False
+
+def test_trigger_service_removing_timer_trigger_stops_generating_events(db_serv):
+    assert False
+
+def test_trigger_service_removing_poll_trigger_stops_polling_website_and_generating_events(db_serv):
+    assert False
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers")
 def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(mock_start_timers, db_serv):
     # Arrange
@@ -277,6 +353,7 @@ def test_trigger_service_timer_trigger_can_be_started_after_being_added(mock_gen
     # Teardown
     serv.stop_trigger_timers()
 
+
 @mock.patch("app.services.trigger.requests.get")
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
 def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, mock_get, db_serv, db_session):
@@ -312,6 +389,12 @@ def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, 
 
     # Teardown
     serv.stop_trigger_timers()
+
+def test_trigger_service_can_restart_specific_trigger_timer(db_serv, db_session):
+    assert False
+
+def test_trigger_service_can_stop_removed_trigger_timers(db_serv, db_session):
+    assert False
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
 def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_events(mock_generate, db_serv, db_session):
@@ -450,3 +533,9 @@ def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matc
     assert mock_generate.call_count == 2
     mock_generate.assert_any_call(1, {"payload": "load"})
     mock_generate.assert_any_call(1, {"payload": "foobar"})
+
+def test_trigger_service_throws_when_manipulating_nonexistent_trigger(db_serv):
+    assert False
+
+def test_trigger_service_throws_when_manipulating_nonexistent_event(db_serv):
+    assert False
