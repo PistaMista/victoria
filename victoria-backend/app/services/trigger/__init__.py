@@ -80,6 +80,14 @@ class TriggerService:
 
         self._trigger_timers.clear()
 
+    def restart_trigger_timer(self, trigger_id: int):
+        """Restarts the specified trigger's timer if running or starts it if stopped."""
+        pass
+
+    def stop_trigger_timer(self, trigger_id: int):
+        """Stops the specified trigger's timer if running."""
+        pass
+
     def _run_trigger_timer(self, trigger: Trigger):
         interval = 0.0
         if isinstance(trigger, TimerTrigger):
