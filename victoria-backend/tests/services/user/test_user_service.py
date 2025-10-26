@@ -6,6 +6,8 @@ from app.model.agent import Agent
 from app.model.action import Action
 from app.model.action_repository import ActionRepository
 from app.model.trigger import ChatTrigger, PollTrigger
+from app.model.monologue import Monologue, MonologueStatus
+from app.model.event import Event
 import pytest
 from unittest import mock
 
@@ -43,6 +45,133 @@ def test_user_service_can_get_all_registered_users(serv, db_session):
     assert res[0].username == "John"
     assert isinstance(res[1], User)
     assert res[1].username == "Mark"
+
+def test_user_service_can_get_user_of_valid_agent_token(serv, db_session):
+    # Arrange
+    poll_trigger = PollTrigger(
+        id=5,
+        name="Simple poll",
+        url="seznam.cz",
+        template="Content of the website: $(content)",
+        interval=30
+    )
+    agent_secretary = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+    )
+    user_john = User(
+        id=1,
+        username="John",
+        password_hash="old",
+        role=Role.USER,
+        agents=[agent_secretary]
+    )
+    monologue = Monologue(
+        status=MonologueStatus.RUNNING,
+        agent=agent_secretary,
+        event=Event(
+            dispatched=True,
+            trigger=poll_trigger,
+            content="Wooo"
+        ),
+        agent_token=b'abcd'
+    )
+
+    db_session.add(poll_trigger)
+    db_session.add(user_john)
+    db_session.add(monologue)
+    db_session.commit()
+
+    # Act
+    res = serv.get_user_by_running_monologue_agent_token(b'abcd')
+
+    # Assert
+    assert res.id == 1
+    assert res.username == "John"
+
+def test_user_service_throws_when_getting_user_of_nonexistent_agent_token(serv, db_session):
+    # Arrange
+    poll_trigger = PollTrigger(
+        id=5,
+        name="Simple poll",
+        url="seznam.cz",
+        template="Content of the website: $(content)",
+        interval=30
+    )
+    agent_secretary = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+    )
+    user_john = User(
+        id=1,
+        username="John",
+        password_hash="old",
+        role=Role.USER,
+        agents=[agent_secretary]
+    )
+    monologue = Monologue(
+        status=MonologueStatus.RUNNING,
+        agent=agent_secretary,
+        event=Event(
+            dispatched=True,
+            trigger=poll_trigger,
+            content="Wooo"
+        ),
+        agent_token=b'abcd'
+    )
+
+    db_session.add(poll_trigger)
+    db_session.add(user_john)
+    db_session.add(monologue)
+    db_session.commit()
+
+    # Act / Assert
+    with pytest.raises(NonexistentUserError):
+        serv.get_user_by_running_monologue_agent_token(b'FFFF')
+
+
+def test_user_service_throws_when_getting_user_of_agent_token_with_finished_monologue(serv, db_session):
+    # Arrange
+    poll_trigger = PollTrigger(
+        id=5,
+        name="Simple poll",
+        url="seznam.cz",
+        template="Content of the website: $(content)",
+        interval=30
+    )
+    agent_secretary = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+    )
+    user_john = User(
+        id=1,
+        username="John",
+        password_hash="old",
+        role=Role.USER,
+        agents=[agent_secretary]
+    )
+    monologue = Monologue(
+        status=MonologueStatus.FAILURE,
+        agent=agent_secretary,
+        event=Event(
+            dispatched=True,
+            trigger=poll_trigger,
+            content="Wooo"
+        ),
+        agent_token=b'abcd'
+    )
+
+    db_session.add(poll_trigger)
+    db_session.add(user_john)
+    db_session.add(monologue)
+    db_session.commit()
+
+    # Act / Assert
+    with pytest.raises(NonexistentUserError):
+        serv.get_user_by_running_monologue_agent_token(b'abcd')
 
 def test_user_service_can_update_user_simple(serv, db_session):
     # Arrange

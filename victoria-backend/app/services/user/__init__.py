@@ -12,6 +12,10 @@ class UserService:
     def get_all_users(self) -> List[User]:
         """Gets all registered Users."""
         pass
+    
+    def get_user_by_running_monologue_agent_token(self, token: bytes) -> User:
+        """Gets the owner of the Monologue given by the token, if it is running."""
+        pass
 
     def update_user(self, id: int, changes: "UserDiff"):
         """Updates the given User."""
