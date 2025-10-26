@@ -9,6 +9,7 @@ from app.model.action import Action
 from sqlalchemy import select, exists
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any, List
+from copy import copy
 
 class AgentService:
     def __init__(
@@ -68,10 +69,13 @@ class AgentService:
             model = None
             if model_id is not None:
                 model = db.scalar(
-                    select(LanguageModel).where(LanguageModel.id == model_id)
+                    select(LanguageModel).where(
+                        LanguageModel.id == model_id,
+                        LanguageModel.enabled
+                    )
                 )
 
-                if model is None or not model.enabled:
+                if model is None:
                     raise InvalidAgentSettingError(f"Model with ID {model_id} is nonexistent or disabled.")
 
             triggers = db.scalars(
@@ -121,7 +125,72 @@ class AgentService:
 
     def update_user_agent(self, user_id: int, agent_id: int, diff: "AgentDiff"):
         """Updates a given User's Agent."""
-        pass
+        with self._db.session() as db:
+            agent = self._load_user_agent(db, user_id, agent_id)
+
+            if diff.name is not None:
+                agent.name = diff.name
+            
+            if diff.model_id is not None:
+                model = db.scalar(
+                    select(LanguageModel)
+                    .where(
+                        LanguageModel.id == diff.model_id,
+                        LanguageModel.enabled
+                    )
+                )
+
+                if model is None:
+                    raise InvalidAgentSettingError("Cannot update Agent with nonexistent or disabled model.")
+
+                agent.model = model
+
+            if diff.prompt is not None:
+                agent.prompt = diff.prompt
+
+            if diff.model_params is not None:
+                # The copied dict is necessary for the ORM to detect changes
+                changed = copy(agent.model_params)
+
+                for key, value in diff.model_params.items():
+                    if value is None:
+                        changed.pop(key, None)
+                    else:
+                        changed[key] = value
+
+                agent.model_params = changed
+
+            if diff.enabled_trigger_ids is not None:
+                triggers = db.scalars(
+                    select(Trigger)
+                    .join(Trigger.allowed_on_users)
+                    .where(
+                        User.id == agent.owner_id,
+                        Trigger.id.in_(diff.enabled_trigger_ids)
+                    )
+                ).unique().all()
+
+                if len(triggers) < len(diff.enabled_trigger_ids):
+                    raise InvalidAgentSettingError("Cannot allow nonexistent or forbidden triggers for this agent.")
+
+                agent.allowed_triggers = triggers
+
+            if diff.enabled_action_ids is not None:
+                actions = db.scalars(
+                    select(Action)
+                    .join(Action.allowed_on_users)
+                    .where(
+                        User.id == agent.owner_id,
+                        Action.id.in_(diff.enabled_action_ids)
+                    )
+                ).unique().all()
+
+                if len(actions) < len(diff.enabled_action_ids):
+                    raise InvalidAgentSettingError("Cannot allow nonexistent or forbidden actions for this agent.")
+
+                agent.allowed_actions = actions
+
+            db.commit()
 
     def remove_user_agent(self, user_id: int, agent_id: int):
         """Deletes a given User's Agent."""

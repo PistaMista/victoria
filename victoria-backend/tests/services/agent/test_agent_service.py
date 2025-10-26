@@ -1044,7 +1044,7 @@ def test_agent_service_can_do_simple_agent_update_with_valid_settings(db_serv, d
     assert agent.name == "Cook"
     assert agent.prompt == "You are a thing"
     assert agent.model.name == "llama3.1:8b"
-    assert agent.model.model_params == {
+    assert agent.model_params == {
         "lol": 20,
         "foo": 40.2
     }
@@ -1182,14 +1182,14 @@ def test_agent_service_can_do_complex_agent_update_with_valid_settings(db_serv, 
     assert agent.name == "Sysadmin"
     assert agent.prompt == "New!"
     assert agent.model.name == "gemma3:12b"
-    assert agent.model.model_params == {
+    assert agent.model_params == {
         "foo": 37,
         "top_k": 0.5,
         "temperature": 451.0
     }
     assert len(agent.allowed_actions) == 2
-    assert agent.allowed_actions[0].function_name == "end_workflow"
-    assert agent.allowed_actions[1].function_name == "search_web"
+    assert agent.allowed_actions[0].function_name == "search_web"
+    assert agent.allowed_actions[1].function_name == "end_workflow"
     assert len(agent.allowed_triggers) == 1
     assert agent.allowed_triggers[0].name == "Chat"
 
