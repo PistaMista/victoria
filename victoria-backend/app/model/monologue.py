@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import String, ForeignKey, Enum, JSON, DateTime
+from sqlalchemy import String, ForeignKey, Enum, JSON, DateTime, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from app.model import Base
@@ -24,6 +24,7 @@ class Monologue(Base):
     summary: Mapped[str] = mapped_column(String(120), nullable=True)
     status: Mapped[MonologueStatus] = mapped_column(Enum(MonologueStatus, native_enum=False), nullable=False)
     context: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=True)
+    agent_token: Mapped[bytes] = mapped_column(LargeBinary(32), nullable=True, unique=True)
 
     dispatched_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=datetime.fromtimestamp(0, tz=UTC), server_default=func.now())
     modified_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=datetime.fromtimestamp(0, tz=UTC), server_default=func.now())
