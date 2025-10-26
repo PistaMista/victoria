@@ -9,7 +9,7 @@ from app.model.agent import Agent
 from app.model.action import Action
 from app.model.trigger import Trigger
 from unittest import mock
-import time
+from datetime import datetime, UTC
 
 # The agentic thread needs to:
 # 1. (MonologueService) Convert the thoughts, agent prompt and tool descriptions to a sequence of System/User/Assistant messages
@@ -119,7 +119,12 @@ def test_agentic_thread_calls_action_service_to_execute_invocation_on_iteration(
     # Assert
     mock_action_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value)
     
-def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(thread_sut, mock_monologue_serv, mock_action_serv):
+@mock.patch("app.services.monologues.runner.monologue_thread.datetime")
+def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(mock_datetime, thread_sut, mock_monologue_serv, mock_action_serv):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(5001, tz=UTC)
+
+
     # Act
     thread_sut.do_iteration()
     
@@ -130,9 +135,7 @@ def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(thread_sut
     assert arg.invocation.function_name == "think"
     assert arg.invocation.params["content"] == "hello"
     assert arg.result == "hello"
-
-    # TODO: Test modified_at time changing and correct timestamp being given to new thought
-    assert False
+    assert arg.timestamp == datetime.fromtimestamp(5001, tz=UTC)
 
 def test_agentic_thread_stops_when_monologue_is_marked_as_succeeded(thread_sut, mock_monologue_serv, mock_on_finish):
     # Act

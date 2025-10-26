@@ -5,7 +5,7 @@ from app.model.thought import Thought
 from app.services.monologues import MonologueService
 from app.services.llm import LLMService, SystemMessage
 from app.services.action import ActionService
-from datetime import datetime
+from datetime import datetime, UTC
 
 class MonologueThread(threading.Thread):
     def __init__(
@@ -66,7 +66,7 @@ class AgenticMonologueThread(MonologueThread):
         # TODO: Check if the called action is allowed, since the action service does not check this
         
         new_thought = Thought(
-            timestamp=datetime.now(),
+            timestamp=datetime.now(tz=UTC),
             invocation=invocation,
             result=result
         )

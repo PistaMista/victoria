@@ -649,8 +649,10 @@ def test_monologue_service_can_get_monologue_agent_id(db_serv, sample_monologue)
     assert res == 75
     
 
-def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, sample_monologue):
+@mock.patch("app.services.monologues.datetime")
+def test_monologue_service_can_append_thought_to_monologue(mock_datetime, db_serv, db_session, sample_monologue):
     # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(120, tz=UTC)
     mock_action_serv = mock.MagicMock()    
     service = MonologueService(
         database_service=db_serv,
@@ -691,6 +693,8 @@ def test_monologue_service_can_append_thought_to_monologue(db_serv, db_session, 
     assert sample_monologue.thoughts[3].invocation.params["the_mega_param"] == "foobar"
     assert sample_monologue.thoughts[3].result == "Suboptimal"
     assert sample_monologue.thoughts[3].timestamp == datetime.fromtimestamp(50)
+    # The current time is taken to be the modified_at time, not the timestamp of the added thought
+    assert sample_monologue.modified_at == datetime.fromtimestamp(120, tz=UTC)
 
     
     
