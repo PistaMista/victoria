@@ -4,7 +4,7 @@ from app.services.llm import UserMessage, AssistantMessage
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import Invocation
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 import json
@@ -32,6 +32,10 @@ class MonologueService:
 
     def get_user_monologue_thoughts(self, user_id: int, monologue_id: int) -> List[Thought]:
         """Gets the Thoughts of the given Monologue."""
+        pass
+
+    def set_monologue_context(self, id: int, context: Dict[str, Any]):
+        """Sets the context of the given Monologue."""
         pass
     
     def set_monologue_status(self, id: int, status: MonologueStatus):

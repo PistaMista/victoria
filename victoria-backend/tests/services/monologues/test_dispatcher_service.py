@@ -28,7 +28,8 @@ def dispatcher(db_container, runner, db_factory):
     with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
         yield DispatcherService(
             db_service=db,
-            runner_service=runner
+            runner_service=runner,
+            base_url="golem:11435"
         )
 
 @pytest.fixture(scope="function")
@@ -137,6 +138,133 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(mock_
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived..."
+
+def test_dispatcher_sets_basic_monologue_context_when_dispatching_monologue(db_session, dispatcher, owner):
+    # Arrange
+    trigger = PollTrigger( 
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent( 
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+    
+    # Assert
+    assert event.monologues[0].context["FINISHED"] == False
+    assert event.monologues[0].context["MONOLOGUE_ID"] == event.monologues[0].id
+    assert event.monologues[0].context["BASE_URL"] == "golem:11435"
+
+@mock.patch("app.services.monologues.dispatcher.os.urandom")
+def test_dispatcher_sets_monologue_agent_token_when_dispatching_monologue(mock_urandom, db_session, dispatcher, owner):
+    # Arrange
+    mock_urandom.return_value = b'aaaa'
+    trigger = PollTrigger( 
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent( 
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+
+    # Act
+    assert event.monologues[0].agent_token == b'aaaa'
+    assert event.monologues[0].context["TOKEN"] == (b'aaaa').decode('utf-8')
+
+@mock.patch("app.services.monologues.dispatcher.os.urandom")
+def test_dispatcher_generates_monologue_context_token_again_after_token_collision_when_dispatching_monologue(mock_urandom, db_session, dispatcher, owner):
+    # Arrange
+    mock_urandom.side_effect = [b'aaaa', b'bbbb']
+    trigger = PollTrigger( 
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent( 
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    existing_event = Event(
+        id=50,
+        content="W",
+        trigger=trigger,
+        dispatched=True
+    )
+    existing_monologue = Monologue(
+        status=MonologueStatus.PENDING,
+        event=existing_event,
+        agent=agent,
+        agent_token=b'aaaa'
+    )
+
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.add(existing_monologue)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+
+    # Act
+    assert event.monologues[0].agent_token == b'bbbb'
+    assert event.monologues[0].context["TOKEN"] == (b'bbbb').decode('utf-8')
 
 def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, owner):
     # Arrange

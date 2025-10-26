@@ -6,15 +6,18 @@ from app.model.monologue import Monologue, MonologueStatus
 from app.services.db import DatabaseService
 from app.services.monologues.runner import RunnerService
 from datetime import datetime, timezone
+import os
 
 class DispatcherService:
     def __init__(
         self, 
         db_service: DatabaseService,
-        runner_service: RunnerService
+        runner_service: RunnerService,
+        base_url: str
     ):
         self._db = db_service
         self._runner = runner_service
+        self._base_url = base_url
 
     def stop(self):
         event.remove(Session, 'after_commit', self.after_commit)

@@ -73,7 +73,8 @@ class Container(containers.DeclarativeContainer):
     dispatcher = providers.Singleton(
         DispatcherService,
         db_service=db,
-        runner_service=runner
+        runner_service=runner,
+        base_url=providers.Callable(lambda c: f"{c.ADDRESS}:{c.PORT}", config)
     )
 
     chat = providers.Singleton(
