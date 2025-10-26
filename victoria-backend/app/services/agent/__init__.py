@@ -194,11 +194,24 @@ class AgentService:
 
     def remove_user_agent(self, user_id: int, agent_id: int):
         """Deletes a given User's Agent."""
-        pass
+        with self._db.session() as db:
+            agent = self._load_user_agent(db, user_id, agent_id)
+            db.delete(agent)
+            db.commit()
 
     def get_user_agent_monologues(self, user_id: int, agent_id: int) -> List[Monologue]:
         """Gets all running monologues of a given Agent."""
-        pass
+        with self._db.session() as db:
+            agent = self._load_user_agent(db, user_id, agent_id)
+            res = db.scalars(
+                select(Monologue)
+                .where(
+                    Monologue.agent_id == agent.id,
+                    Monologue.status == MonologueStatus.RUNNING
+                )
+            ).all()
+
+            return res
 
     def _load_user_agent(self, db: Session, user_id: int, agent_id: int) -> Agent:
         agent = db.scalar(

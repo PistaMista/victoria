@@ -1795,6 +1795,91 @@ def test_agent_service_can_remove_agent(db_serv, db_session):
     )
     assert first_monologue is None
 
+def test_agent_service_can_get_agent_monologues(db_serv, db_session):
+    # Arrange
+    serv = AgentService(
+        database_service=db_serv
+    )
+
+    trigger = PollTrigger(
+        id=45,
+        name="Poll",
+        template="",
+        url="seznam.cz",
+        interval=200
+    )
+    event = Event(
+        trigger=trigger,
+        content="",
+        dispatched=True
+    )
+    user = User(
+        id=777,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        allowed_actions=[],
+        allowed_triggers=[trigger]
+    )
+
+    agent_sysadmin = Agent(
+        id=32,
+        name="Sysadmin",
+        prompt="You are a thing",
+        owner=user,
+        model_params={
+            "lol": 20,
+            "foo": 40.2
+        },
+        allowed_triggers=[trigger],
+        monologues=[
+            Monologue(
+                id=1,
+                title="one",
+                event=event,
+                status=MonologueStatus.SUCCESS
+            ),
+            Monologue(
+                id=3,
+                title="three",
+                event=event,
+                status=MonologueStatus.RUNNING
+            )
+        ]
+    )
+    agent_cook = Agent(
+        id=10,
+        name="Cook",
+        prompt="Lol",
+        owner=user,
+        model_params={},
+        monologues=[
+            Monologue(
+                id=2,
+                title="two",
+                event=event,
+                status=MonologueStatus.SUCCESS
+            )
+        ]
+    )
+
+    db_session.add(user)
+    db_session.add(trigger)
+    db_session.add(agent_sysadmin)
+    db_session.add(agent_cook)
+    db_session.commit()
+
+    # Act
+    res = serv.get_user_agent_monologues(
+        user_id=777,
+        agent_id=32
+    )
+
+    # Assert
+    assert len(res) == 1
+    assert res[0].id == 3
+    assert res[0].title == "three"
+
 def test_agent_service_throws_when_trying_to_manipulate_nonexistent_agent(db_serv, db_session):
     # Arrange
     serv = AgentService(
