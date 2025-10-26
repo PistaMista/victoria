@@ -283,8 +283,8 @@ def test_agent_service_can_create_a_new_agent_with_valid_settings(db_serv, db_se
     assert agent is not None
     assert agent.name == "Mega"
     assert agent.model.name == "gemma3:12b"
-    assert agent.system_prompt == "Hello"
-    assert agent.model_parameters == {
+    assert agent.prompt == "Hello"
+    assert agent.model_params == {
         "top_k": 0.95,
         "temperature": 1.2
     }

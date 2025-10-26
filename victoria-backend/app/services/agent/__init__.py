@@ -2,8 +2,11 @@ from pydantic import BaseModel
 from app.services.db import DatabaseService
 from app.model.agent import Agent
 from app.model.user import User
-from app.model.monologue import Monologue
-from sqlalchemy import select
+from app.model.language_model import LanguageModel
+from app.model.monologue import Monologue, MonologueStatus
+from app.model.trigger import Trigger
+from app.model.action import Action
+from sqlalchemy import select, exists
 from typing import Optional, Dict, Any, List
 
 class AgentService:
@@ -24,7 +27,23 @@ class AgentService:
 
     def is_agent_running_monologues(self, agent_id: int) -> bool:
         """Finds out if the agent with the given id is currently running any monologues."""
-        pass
+        with self._db.session() as db:
+            agent = db.scalar(
+                select(Agent).where(Agent.id == agent_id)
+            )
+
+            if agent is None:
+                raise NonexistentAgentError(agent_id)
+
+            monologues_running = db.scalar(
+                select(exists()
+                       .where(
+                           Monologue.agent_id == agent_id,
+                           Monologue.status == MonologueStatus.RUNNING
+                        ))
+            )
+
+            return monologues_running
 
     def add_user_agent(
         self,
@@ -37,7 +56,60 @@ class AgentService:
         enabled_action_ids: List[int]
     ):
         """Creates a new Agent for the given user."""
-        pass
+        with self._db.session() as db:
+            owner = db.scalar(
+                select(User).where(User.id == user_id)
+            )
+
+            if owner is None:
+                raise InvalidAgentSettingError(f"Nonexistent user {user_id} can't be owner of this agent.")
+
+            model = None
+            if model_id is not None:
+                model = db.scalar(
+                    select(LanguageModel).where(LanguageModel.id == model_id)
+                )
+
+                if model is None or not model.enabled:
+                    raise InvalidAgentSettingError(f"Model with ID {model_id} is nonexistent or disabled.")
+
+            triggers = db.scalars(
+                select(Trigger)
+                .join(Trigger.allowed_on_users)
+                .where(
+                    User.id == owner.id,
+                    Trigger.id.in_(enabled_trigger_ids)
+                )
+            ).unique().all()
+
+            if len(triggers) < len(enabled_trigger_ids):
+                raise InvalidAgentSettingError("Cannot allow nonexistent or forbidden triggers for this agent.")
+
+            actions = db.scalars(
+                select(Action)
+                .join(Action.allowed_on_users)
+                .where(
+                    User.id == owner.id,
+                    Action.id.in_(enabled_action_ids)
+                )
+            ).unique().all()
+
+            if len(actions) < len(enabled_action_ids):
+                raise InvalidAgentSettingError("Cannot allow nonexistent or forbidden actions for this agent.")
+
+            new_agent = Agent(
+                name=name,
+                prompt=system_prompt,
+                owner=owner,
+                model=model,
+                model_params=model_parameters,
+                allowed_triggers=triggers,
+                allowed_actions=actions
+            )
+
+            db.add(new_agent)
+            db.commit()
+
 
     def get_user_agent_by_id(self, user_id: int, agent_id: int) -> Agent:
         """Gets a given User's Agent by id."""
