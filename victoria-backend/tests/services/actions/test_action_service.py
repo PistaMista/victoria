@@ -561,7 +561,7 @@ def test_action_service_can_get_all_action_repositories_and_their_actions(db_ser
     assert res[0].actions[1].function_name == "end_workflow"
 
     assert res[1].name == "Github"
-    assert res[1].name == "github"
+    assert res[1].url == "github"
     assert len(res[1].actions) == 1
     assert res[1].actions[0].id == 30
     assert res[1].actions[0].function_name == "search_web"
