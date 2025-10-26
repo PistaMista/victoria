@@ -7,6 +7,7 @@ from app.model.monologue import Monologue, MonologueStatus
 from app.model.trigger import Trigger
 from app.model.action import Action
 from sqlalchemy import select, exists
+from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any, List
 
 class AgentService:
@@ -113,7 +114,10 @@ class AgentService:
 
     def get_user_agent_by_id(self, user_id: int, agent_id: int) -> Agent:
         """Gets a given User's Agent by id."""
-        pass
+        with self._db.session() as db:
+            agent = self._load_user_agent(db, user_id, agent_id)
+            db.refresh(agent, attribute_names=["allowed_actions", "allowed_triggers"])
+            return agent
 
     def update_user_agent(self, user_id: int, agent_id: int, diff: "AgentDiff"):
         """Updates a given User's Agent."""
@@ -126,6 +130,21 @@ class AgentService:
     def get_user_agent_monologues(self, user_id: int, agent_id: int) -> List[Monologue]:
         """Gets all running monologues of a given Agent."""
         pass
+
+    def _load_user_agent(self, db: Session, user_id: int, agent_id: int) -> Agent:
+        agent = db.scalar(
+            select(Agent)
+            .where(
+                Agent.id == agent_id,
+                Agent.owner_id == user_id
+            )
+        )
+
+        if agent is None:
+            raise NonexistentAgentError(agent_id)
+
+        return agent
+        
 
 
 
