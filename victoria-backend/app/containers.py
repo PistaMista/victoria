@@ -77,17 +77,20 @@ class Container(containers.DeclarativeContainer):
         base_url=providers.Callable(lambda c: f"{c.ADDRESS}:{c.PORT}", config)
     )
 
-    chat = providers.Singleton(
-        ChatService
-    )
-
     trigger = providers.Singleton(
         TriggerService,
         database_service=db
     )
 
+    chat = providers.Singleton(
+        ChatService,
+        database_service=db,
+        trigger_service=trigger
+    )
+
     agent = providers.Singleton(
-        AgentService
+        AgentService,
+        database_service=db
     )
 
     user = providers.Singleton(
