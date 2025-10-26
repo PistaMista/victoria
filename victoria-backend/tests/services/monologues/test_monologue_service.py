@@ -512,7 +512,66 @@ def test_monologue_service_can_change_monologue_status(db_serv, db_session, samp
     # Assert
     db_session.refresh(sample_monologue)
     assert sample_monologue.status == MonologueStatus.FAILURE
+
+def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_to_success(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
     
+    # Act
+    service.set_monologue_status(sample_monologue.id, MonologueStatus.SUCCESS)
+    
+    # Assert
+    db_session.refresh(sample_monologue)
+    assert sample_monologue.context["FINISHED"]
+
+def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_to_failure(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+    
+    # Act
+    service.set_monologue_status(sample_monologue.id, MonologueStatus.FAILURE)
+    
+    # Assert
+    db_session.refresh(sample_monologue)
+    assert sample_monologue.context["FINISHED"]
+
+def test_monologue_service_unsets_context_FINISHED_when_changing_monologue_status_to_pending(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+    
+    # Act
+    service.set_monologue_status(sample_monologue.id, MonologueStatus.PENDING)
+    
+    # Assert
+    db_session.refresh(sample_monologue)
+    assert not sample_monologue.context["FINISHED"]
+
+def test_monologue_service_unsets_context_FINISHED_when_changing_monologue_status_to_running(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+    
+    # Act
+    service.set_monologue_status(sample_monologue.id, MonologueStatus.RUNNING)
+    
+    # Assert
+    db_session.refresh(sample_monologue)
+    assert not sample_monologue.context["FINISHED"]
 
 def test_monologue_service_can_change_monologue_title(db_serv, db_session, sample_monologue):
     # Arrange
@@ -543,6 +602,21 @@ def test_monologue_service_can_change_monologue_summary(db_serv, db_session, sam
     # Assert
     db_session.refresh(sample_monologue)
     assert sample_monologue.summary == "summarized something"
+
+def test_monologue_service_can_set_monologue_context(db_serv, db_session, sample_monologue):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv        
+    )
+
+    # Act
+    service.set_monologue_context(sample_monologue.id, { "mykey": "myval", "num": 42 })
+
+    # Assert
+    db_session.refresh(sample_monologue)
+    assert sample_monologue.context == { "mykey": "myval", "num": 42 }
     
 def test_monologue_service_can_get_monologue_thoughts(db_serv, db_session, sample_monologue):
     # Arrange
