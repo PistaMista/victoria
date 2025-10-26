@@ -112,12 +112,34 @@ def test_agentic_thread_calls_action_service_to_convert_llm_message_to_invocatio
     # Assert
     mock_action_serv.parse_invocation.assert_called_once_with(mock_llm_serv.get_chat_completion.return_value._content)
 
-def test_agentic_thread_calls_action_service_to_execute_invocation_on_iteration(thread_sut, mock_action_serv):
+def test_agentic_thread_calls_execute_invocation_with_fresh_context_when_no_context_set_on_iteration(thread_sut, mock_action_serv, mock_monologue_serv):
+    # Arrange
+    mock_monologue_serv.get_monologue_by_id.return_value.context = None
+
     # Act
     thread_sut.do_iteration()
-    
+
     # Assert
-    mock_action_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value)
+    mock_monologue_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value, {})
+
+def test_agentic_thread_calls_execute_invocation_with_existing_context_when_context_set_on_iteration(thread_sut, mock_action_serv, mock_monologue_serv):
+    # Arrange
+    mock_monologue_serv.get_monologue_by_id.return_value.context = {
+        "BASE_URL": "MEGAURL",
+        "TOKEN": 420
+    }
+
+    # Act
+    thread_sut.do_iteration()
+
+    # Assert
+    mock_monologue_serv.execute_invocation.assert_called_once_with(
+        mock_action_serv.parse_invocation.return_value, 
+        {
+            "BASE_URL": "MEGAURL",
+            "TOKEN": 420
+        }
+    )
     
 @mock.patch("app.services.monologues.runner.monologue_thread.datetime")
 def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(mock_datetime, thread_sut, mock_monologue_serv, mock_action_serv):
@@ -136,6 +158,30 @@ def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(mock_datet
     assert arg.invocation.params["content"] == "hello"
     assert arg.result == "hello"
     assert arg.timestamp == datetime.fromtimestamp(5001, tz=UTC)
+
+def test_agentic_thread_sets_monologue_context_on_iteration(thread_sut, mock_monologue_serv, mock_action_serv):
+    # Arrange
+    mock_monologue_serv.get_monologue_by_id.return_value.context = {
+        "BASE_URL": "MEGAURL",
+        "TOKEN": 420
+    }
+    def mock_exec(_, context):
+        context["Woo"] = True
+        return ""
+    mock_action_serv.execute_invocation.side_effect = mock_exec
+
+    # Act
+    thread_sut.do_iteration()
+
+    # Assert
+    mock_monologue_serv.set_monologue_context.assert_called_once_with(
+        1,
+        {
+            "BASE_URL": "MEGAURL",
+            "TOKEN": 420,
+            "Woo": True
+        }
+    )
 
 def test_agentic_thread_stops_when_monologue_is_marked_as_succeeded(thread_sut, mock_monologue_serv, mock_on_finish):
     # Act
