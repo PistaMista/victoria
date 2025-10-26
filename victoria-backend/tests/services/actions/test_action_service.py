@@ -1272,7 +1272,7 @@ def test_action_service_allows_executed_action_to_access_and_modify_provided_con
         function_docstring="Increments the number provided in the context.",
         function_source_code="""
 @tool
-def factorial(**kwargs):
+def increment(**kwargs):
     kwargs["context"]["x"] = kwargs["context"]["x"] + 1
         """
     )
@@ -1294,6 +1294,8 @@ def factorial(**kwargs):
     
     # Act
     serv.execute_invocation(invocation, context)
+
+    # Assert
     assert context["x"] == 11
     
 def test_action_service_executes_invalid_invocation_with_error_result_as_string(db_serv, db_session):

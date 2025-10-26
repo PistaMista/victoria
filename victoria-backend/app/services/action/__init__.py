@@ -1,5 +1,6 @@
 from app.services.db import DatabaseService
 from app.services.action.tool import convert_to_action
+from app.model.user import User
 from app.model.action import Action
 from app.model.invocation import Invocation
 from app.model.action_repository import ActionRepository
@@ -78,11 +79,25 @@ class ActionService:
 
     def get_user_permitted_actions(self, user_id: int) -> List[Action]:
         """Gets the actions that agents of the user with the given id can take."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Action)
+                .join(Action.allowed_on_users)
+                .where(User.id == user_id)
+                .order_by(Action.function_name)
+            ).all() or []
+
+            return res
 
     def get_all_actions(self) -> List[Action]:
         """Gets all the currently registered actions."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Action)
+                .order_by(Action.function_name)
+            ).all() or []
+
+            return res
 
 
     def add_action_repository(self, name: str, url: str) -> int:
@@ -244,7 +259,7 @@ class ActionService:
                 invocation.action.function_source_code,
                 namespace
             )
-            return str(namespace[invocation.action.function_name](**invocation.params))
+            return str(namespace[invocation.action.function_name](context=context, **invocation.params))
         except Exception as e:
             return str(e)
 
