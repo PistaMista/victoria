@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 from app.services.db import DatabaseService
 from app.model.agent import Agent
+from app.model.user import User
 from app.model.monologue import Monologue
+from sqlalchemy import select
 from typing import Optional, Dict, Any, List
 
 class AgentService:
@@ -13,7 +15,12 @@ class AgentService:
 
     def get_user_agents(self, user_id: int) -> List[Agent]:
         """Gets all agents of the user with the given id."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Agent).join(Agent.owner).where(User.id == user_id)
+            ).all()
+
+            return res
 
     def is_agent_running_monologues(self, agent_id: int) -> bool:
         """Finds out if the agent with the given id is currently running any monologues."""
