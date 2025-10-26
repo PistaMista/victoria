@@ -15,7 +15,7 @@ from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from app.services.db import DatabaseService
 from app.services.monologues.dispatcher import DispatcherService
-from datetime import datetime
+from datetime import datetime, UTC
 
 @pytest.fixture(scope="function")
 def runner():
@@ -39,8 +39,10 @@ def owner():
         role=Role.USER
     )
 
-def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_session, dispatcher, owner):
+@mock.patch("app.services.monologues.dispatcher.datetime")
+def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(mock_datetime, db_session, dispatcher, owner):
     # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
     trigger = PollTrigger( # A trigger generates events (by polling a website for example)
         name="Emails", 
         url="http://mycooldomain.com",
@@ -81,16 +83,19 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_sessio
     assert len(event.monologues) == 1
     # 3. the monologue is assigned to the agent
     assert event.monologues[0].agent.id == 75
-    # 4. the monologue starts off with the event as the first thought
+    # 4. the monologue is given a dispatch time
+    assert event.monologues[0].dispatched_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert event.monologues[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
+    # 5. the monologue starts off with the event as the first thought
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
-    # TODO: Test dispatch time being set properly for the monologue
-    assert False
 
-def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, dispatcher, owner):
+@mock.patch("app.services.monologues.dispatcher.datetime")
+def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(mock_datetime, db_session, dispatcher, owner):
     # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
     trigger = PollTrigger(
         name="Emails", 
         url="http://mycooldomain.com",
@@ -127,12 +132,11 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert event.dispatched
     assert len(event.monologues) == 1
     assert event.monologues[0].agent.id == 75
+    assert event.monologues[0].dispatched_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert event.monologues[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived..."
-
-    # TODO: Test dispatch time being set properly for the monologue
-    assert False
 
 def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, owner):
     # Arrange
