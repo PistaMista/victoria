@@ -1226,9 +1226,10 @@ def test_action_service_executes_valid_invocation_with_function_result_as_string
             "x": "int"
         },
         function_docstring="Calculates the factorial of the given number",
+        # NOTE: All action functions MUST have a **kwargs parameter
         function_source_code="""
 @tool
-def factorial(x: int):
+def factorial(x: int, **kwargs):
     if x <= 0:
         return 1
     
