@@ -1,10 +1,11 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func, distinct, or_
 from sqlalchemy.orm import Session
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
+from app.model.trigger import ChatTrigger
 from app.model.user import User
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
@@ -83,7 +84,15 @@ class ChatService:
 
     def get_user_chat_receivers(self, user_id: int) -> List[str]:
         """Gets all the valid chat receivers for the given User."""
-        pass
+        with self._db.session() as db:
+            stmt = (
+                select(distinct(ChatTrigger.receiver))
+                .join(User.allowed_triggers.of_type(ChatTrigger))
+                .where(User.id == user_id)
+            )
+            res = db.scalars(stmt).all()
+
+            return res
 
     def remove_user_chat(self, user_id: int, chat_id: int):
         """Deletes the given Chat."""
