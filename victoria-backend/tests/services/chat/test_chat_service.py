@@ -93,7 +93,7 @@ def test_chat_service_can_get_all_chats_owned_by_user(db_serv, db_session, trigg
     )
     res_filtered = serv.get_user_chats(
         user_id=10,
-        search_query="goat"
+        search_query="GoAT"
     )
 
     # Assert

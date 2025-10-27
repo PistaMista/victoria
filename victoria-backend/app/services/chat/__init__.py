@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
+from sqlalchemy import select, func, or_
+from sqlalchemy.orm import aliased
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
 from app.model.chat import Chat
@@ -10,7 +12,7 @@ from datetime import datetime
 
 class ChatSortMode(Enum):
     LONGEST = 0
-    RECENT = 0
+    RECENT = 1
 
 class ChatService:
     def __init__(
@@ -22,7 +24,29 @@ class ChatService:
 
     def get_user_chats(self, user_id: int, sort_by: ChatSortMode = ChatSortMode.RECENT, search_query: Optional[str] = None) -> List[Chat]:
         """Gets all chats of the given User."""
-        pass
+        with self._db.session() as db:
+            stmt = select(Chat).where(Chat.owner_id == user_id)
+
+            if search_query is not None:
+                stmt = stmt.where(or_(
+                    func.lower(Chat.title).like(f"%{search_query.lower()}%"),
+                    func.lower(Chat.summary).like(f"%{search_query.lower()}%")
+                ))
+
+            match sort_by:
+                case ChatSortMode.RECENT:
+                    stmt = stmt.order_by(Chat.modified_at.desc())
+                case ChatSortMode.LONGEST:
+                    stmt = (
+                        stmt
+                        .outerjoin(Chat.exchanges)
+                        .group_by(Chat.id)
+                        .order_by(func.count(ChatExchange.id).desc())
+                    )
+
+            res = db.scalars(stmt).all()
+            return res
+
 
     def create_user_chat(self, user_id: int) -> int:
         """Creates a new blank chat for a user and returns its id."""
