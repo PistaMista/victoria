@@ -5,10 +5,11 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.orm import aliased
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
+from app.model.user import User
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessage
-from datetime import datetime
+from datetime import datetime, UTC
 
 class ChatSortMode(Enum):
     LONGEST = 0
@@ -50,7 +51,27 @@ class ChatService:
 
     def create_user_chat(self, user_id: int) -> int:
         """Creates a new blank chat for a user and returns its id."""
-        pass
+        with self._db.session() as db:
+            user = db.scalar(
+                select(User).where(User.id == user_id)
+            )
+
+            if user is None:
+                raise CannotCreateChatForNonexistentUserError(user_id)
+
+            new_chat = Chat(
+                title="Untitled",
+                summary="No summary",
+                receiver="",
+                created_at=datetime.now(tz=UTC),
+                modified_at=datetime.now(tz=UTC),
+                owner=user
+            )
+
+            db.add(new_chat)
+            db.commit()
+
+            return new_chat.id
 
     def get_user_chat(self, user_id: int, chat_id: int) -> Chat:
         """Gets a User's chat."""
