@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
 from sqlalchemy import select, func, or_
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import Session
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
 from app.model.user import User
@@ -75,7 +75,11 @@ class ChatService:
 
     def get_user_chat(self, user_id: int, chat_id: int) -> Chat:
         """Gets a User's chat."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+
+            db.refresh(chat, ["allowed_actions"])
+            return chat
 
     def get_user_chat_receivers(self, user_id: int) -> List[str]:
         """Gets all the valid chat receivers for the given User."""
@@ -132,6 +136,17 @@ class ChatService:
     def set_user_query_answer(self, user_id: int, message_id: int, answer: Any):
         """Sets the answer to the given query."""
         pass
+
+    def _load_user_chat(self, db: Session, user_id: int, chat_id: int):
+        res = db.scalar(
+            select(Chat)
+            .where(Chat.id == chat_id, Chat.owner_id == user_id)
+        )
+
+        if res is None:
+            raise NonexistentChatError(chat_id)
+
+        return res
 
 
 class ChatOptionsDiff(BaseModel):
