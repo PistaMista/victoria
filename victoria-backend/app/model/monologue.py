@@ -26,8 +26,8 @@ class Monologue(Base):
     context: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=True)
     agent_token: Mapped[bytes] = mapped_column(LargeBinary(32), nullable=True, unique=True)
 
-    dispatched_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=datetime.fromtimestamp(0, tz=UTC), server_default=func.now())
-    modified_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=datetime.fromtimestamp(0, tz=UTC), server_default=func.now())
+    dispatched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.fromtimestamp(0, tz=UTC), server_default=func.now())
+    modified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.fromtimestamp(0, tz=UTC), server_default=func.now())
 
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), nullable=False)
     event: Mapped["Event"] = relationship("Event", back_populates="monologues")

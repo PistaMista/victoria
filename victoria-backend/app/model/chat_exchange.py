@@ -10,7 +10,7 @@ class ChatExchange(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    timestamp: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     user_message: Mapped["ChatMessage"] = relationship(
             "ChatMessage",

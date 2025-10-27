@@ -18,8 +18,8 @@ class Chat(Base):
 
     exchanges: Mapped[List["ChatExchange"]] = relationship("ChatExchange", back_populates="chat", cascade="all,delete", order_by="ChatExchange.timestamp.asc()")
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
-    modified_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    modified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_chat_action_association, back_populates="allowed_on_chats")
 
