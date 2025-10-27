@@ -96,7 +96,10 @@ class ChatService:
 
     def remove_user_chat(self, user_id: int, chat_id: int):
         """Deletes the given Chat."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+            db.delete(chat)
+            db.commit()
 
     def duplicate_user_chat(self, user_id: int, chat_id: int, last_exchange_id: Optional[int] = None) -> int:
         """Duplicates the given Chat up to the given Exchange and returns the new id."""
