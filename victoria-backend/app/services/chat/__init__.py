@@ -242,7 +242,26 @@ class ChatService:
 
     def send_choice_reply_to_user_exchange(self, user_id: int, exchange_id: int, from_agent_id: Optional[int], prompt: str, choices: List[Any]) -> int:
         """Sends a Choice reply to the given Exchange and returns the query ID of the choice."""
-        pass
+        with self._db.session() as db:
+            exchange = self._load_user_exchange(db, user_id, exchange_id)
+            choices = [ChoiceMessageOption(value=x) for x in choices]
+            msg = ChatMessageChoicePrompt(
+                timestamp=datetime.now(tz=UTC),
+                prompt=prompt,
+                choices=choices
+            )
+
+            if from_agent_id is not None:
+                agent = db.scalar(
+                    select(Agent).where(Agent.id == from_agent_id)
+                )
+                msg.sending_agent = agent
+
+            exchange.agent_replies.append(msg)
+            exchange.chat.modified_at = datetime.now(tz=UTC)
+            db.commit()
+
+            return msg.id
 
     def get_user_chat_exchanges_after(self, user_id: int, chat_id: int, after: int) -> List[ChatExchange]:
         """Gets user chat exchanges created after the given point in time."""

@@ -1210,7 +1210,7 @@ def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(mock_d
 @mock.patch("app.services.chat.datetime")
 def test_chat_service_can_send_choice_reply_to_user_exchange_from_agent(mock_datetime, db_serv, db_session, trigger_mock):
     # Arrange
-    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
     serv = ChatService(
         database_service=db_serv,
         trigger_service=trigger_mock
@@ -1233,7 +1233,7 @@ def test_chat_service_can_send_choice_reply_to_user_exchange_from_agent(mock_dat
                         id=1,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
@@ -1279,7 +1279,7 @@ def test_chat_service_can_send_choice_reply_to_user_exchange_from_agent(mock_dat
 
     db_session.refresh(user_john)
     assert len(user_john.chats[0].exchanges) == 1
-    assert user_john.chats[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert user_john.chats[0].modified_at == datetime.fromtimestamp(15000, tz=UTC)
 
     exchange = user_john.chats[0].exchanges[0]
     assert exchange.timestamp == datetime.fromtimestamp(4200, tz=UTC)
@@ -1287,7 +1287,7 @@ def test_chat_service_can_send_choice_reply_to_user_exchange_from_agent(mock_dat
     assert exchange.agent_replies[0].id == query_id
 
     message = exchange.agent_replies[0]
-    assert message.timestamp == datetime.fromtimestamp(5000, tz=UTC)
+    assert message.timestamp == datetime.fromtimestamp(15000, tz=UTC)
     assert message.prompt == "What should I do?"
     assert len(message.choices) == 2
     assert message.choices[0].value == 20
@@ -1296,7 +1296,7 @@ def test_chat_service_can_send_choice_reply_to_user_exchange_from_agent(mock_dat
 @mock.patch("app.services.chat.datetime")
 def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent_agent_ids(mock_datetime, db_serv, db_session, trigger_mock):
     # Arrange
-    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
     serv = ChatService(
         database_service=db_serv,
         trigger_service=trigger_mock
@@ -1316,10 +1316,10 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
                 modified_at=datetime.fromtimestamp(4350, tz=UTC),
                 exchanges=[
                     ChatExchange(
-                        id=1,
+                        id=10,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
@@ -1385,7 +1385,7 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
     assert exchange_md.agent_replies[0].sending_user is None
     assert exchange_md.agent_replies[0].sending_agent is None
     exchange_choice = db_session.scalar(
-        select(ChatExchange).where(ChatExchange.id == exchange_id_choice)
+        select(ChatExchange).where(ChatExchange.id == exchange_id_choice[0])
     )
     assert exchange_choice.agent_replies[0].sending_user is None
     assert exchange_choice.agent_replies[0].sending_agent is None
