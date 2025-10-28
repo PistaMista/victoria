@@ -27,7 +27,12 @@ class LLMService:
 
     def get_enabled_models(self) -> List[LanguageModel]:
         """Gets all currently enabled LanguageModels."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(LanguageModel).where(LanguageModel.enabled)
+            ).all()
+
+            return res
 
     def get_all_models(self) -> List[LanguageModel]:
         """Gets all available LanguageModels."""
