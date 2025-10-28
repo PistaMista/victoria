@@ -11,7 +11,7 @@ from app.model.agent import Agent
 from app.model.chat import Chat
 from app.model.event import Event
 from app.model.chat_exchange import ChatExchange
-from app.model.chat_message import ChatMessage, ChatMessageMarkdown, ChatMessageChoicePrompt
+from app.model.chat_message import ChatMessage, ChatMessageMarkdown, ChatMessageChoicePrompt, ChoiceMessageOption
 from datetime import datetime, UTC
 import copy
 
@@ -144,13 +144,14 @@ class ChatService:
             new_exchange = ChatExchange(
                 timestamp=datetime.now(tz=UTC),
             )
+            msg = ChatMessageMarkdown(
+                timestamp=datetime.now(tz=UTC),
+                markdown=markdown
+            )
 
             if from_agent_id is None:
-                new_exchange.user_message = ChatMessageMarkdown(
-                    timestamp=datetime.now(tz=UTC),
-                    sending_user=chat.owner,
-                    markdown=markdown
-                )
+                new_exchange.user_message = msg
+                msg.sending_user = chat.owner
 
                 triggered_event_ids = self._trigger.receive_chat_message(
                     receiver=chat.receiver, 
@@ -170,11 +171,8 @@ class ChatService:
                 agent = db.scalar(
                     select(Agent).where(Agent.id == from_agent_id)
                 )
-                new_exchange.agent_replies.append(ChatMessageMarkdown(
-                    timestamp=datetime.now(tz=UTC),
-                    sending_agent=agent,
-                    markdown=markdown
-                ))
+                msg.sending_agent = agent
+                new_exchange.agent_replies.append(msg)
                 new_exchange.triggered_chat_events = []
 
 
@@ -186,7 +184,39 @@ class ChatService:
 
     def send_choice_message_to_user_chat(self, user_id: int, chat_id: int, from_agent_id: Optional[int], prompt: str, choices: List[Any]) -> Tuple[int, int]:
         """Sends a Choice message to the given Chat and returns the id of the created Exchange and the query ID of the choice."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+            new_exchange = ChatExchange(
+                timestamp=datetime.now(tz=UTC),
+            )
+
+            choices = [ChoiceMessageOption(value=x) for x in choices]
+            msg = ChatMessageChoicePrompt(
+                timestamp=datetime.now(tz=UTC),
+                prompt=prompt,
+                choices=choices
+            )
+
+            if from_agent_id is None:
+                new_exchange.user_message = msg
+                msg.sending_user = chat.owner
+            else:
+                # TODO: Change the method signature so from_agent_id is from_monologue_id - then it is possible
+                # to add event metadata to this exchange - right now, if an agent sends a message the responsible
+                # monologue is not shown.
+                agent = db.scalar(
+                    select(Agent).where(Agent.id == from_agent_id)
+                )
+                msg.sending_agent = agent
+                new_exchange.agent_replies.append(msg)
+                new_exchange.triggered_chat_events = []
+
+
+            chat.modified_at = datetime.now(tz=UTC)
+            chat.exchanges.append(new_exchange)
+            db.commit()
+
+            return new_exchange.id, msg.id
 
     def send_markdown_reply_to_user_exchange(self, user_id: int, exchange_id: int, from_agent_id: Optional[int], markdown: str):
         """Sends a Markdown reply to the given Exchange."""
