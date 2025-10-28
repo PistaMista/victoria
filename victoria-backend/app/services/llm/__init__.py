@@ -2,7 +2,7 @@ from app.services.db import DatabaseService
 from app.model.llm_connection import OllamaConnection, LLMConnection
 from app.model.language_model import LanguageModel
 from sqlalchemy import select
-from sqlalchemy.orm import undefer, with_polymorphic
+from sqlalchemy.orm import undefer, with_polymorphic, Session
 from pydantic import BaseModel
 import requests
 from typing import List, Optional
@@ -21,7 +21,8 @@ class LLMService:
             
             for conn in connections:
                 try:
-                    self._refresh_ollama_connection_models(conn.id)
+                    self._refresh_ollama_connection_models(db, conn.id)
+                    db.commit()
                 except OllamaCommunicationError:
                     # TODO: Log the connection failure?
                     pass
@@ -89,7 +90,25 @@ class LLMService:
 
     def update_ollama_connection(self, id: int, changes: "OllamaConnectionDiff"):
         """Updates the given Connection's settings."""
-        pass
+        with self._db.session() as db:
+            with db.no_autoflush:
+                con = db.scalar(
+                    select(LLMConnection)
+                    .where(LLMConnection.id == id)
+                )
+
+                if not isinstance(con, OllamaConnection):
+                    raise NonexistentConnectionError(id)
+
+                if changes.name is not None:
+                    con.name = changes.name
+
+                if changes.url is not None:
+                    con.url = changes.url
+                    self._refresh_ollama_connection_models(db, id)
+                
+                db.commit()
+
     
     def add_ollama_connection(self, name: str, url: str) -> int:
         with self._db.session() as db:
@@ -101,6 +120,8 @@ class LLMService:
             
             db.add(connection)
             db.commit()
+
+            return connection.id
     
     def remove_connection(self, id: int):
         with self._db.session() as db:
@@ -147,29 +168,27 @@ class LLMService:
         except (requests.RequestException, requests.HTTPError):
             raise OllamaCommunicationError()
 
-    def _refresh_ollama_connection_models(self, id: int):
-        with self._db.session() as db:
-            connection = db.scalar(
-                select(OllamaConnection)
-                .where(OllamaConnection.id == id)
-            )
-            
-            if connection is None:
-                raise NonexistentConnectionError(id)
+    def _refresh_ollama_connection_models(self, db: Session, id: int):
+        connection = db.scalar(
+            select(OllamaConnection)
+            .where(OllamaConnection.id == id)
+        )
+        
+        if connection is None:
+            raise NonexistentConnectionError(id)
 
-            current_models = self._import_ollama_models(connection.url)
-            
-            # Delete models that no longer exist on the remote
-            for model in connection.models:
-                if not any(m.name == model.name for m in current_models):
-                    db.delete(model)
+        current_models = self._import_ollama_models(connection.url)
+        
+        # Delete models that no longer exist on the remote
+        for model in connection.models:
+            if not any(m.name == model.name for m in current_models):
+                db.delete(model)
 
-            # Add models that are new on the remote
-            for model in current_models:
-                if not any(m.name == model.name for m in connection.models):
-                    connection.models.append(model)
+        # Add models that are new on the remote
+        for model in current_models:
+            if not any(m.name == model.name for m in connection.models):
+                connection.models.append(model)
             
-            db.commit()
 
     def _import_ollama_models(self, ollama_url: str) -> List[LanguageModel]:
         try:
@@ -199,7 +218,7 @@ class Message:
         self._content: str = content
     
     def __eq__(self, o: object) -> bool:
-        return type(self) is type(o) and self._content == o._content
+        return type(self) is type(o) and isinstance(o, Message) and self._content == o._content
     
     def to_json(self) -> dict:
         return {

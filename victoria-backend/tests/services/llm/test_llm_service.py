@@ -407,12 +407,12 @@ def test_llm_service_reimports_models_from_updated_ollama_connection(mock_get, d
         url="http://localhost:11434",
         models=[
             LanguageModel(
-                id=1,
+                id=10,
                 name="gemma3:12b",
                 enabled=True
             ),
             LanguageModel(
-                id=2,
+                id=20,
                 name="deepseek-r1:latest",
                 enabled=False
             )
@@ -424,12 +424,12 @@ def test_llm_service_reimports_models_from_updated_ollama_connection(mock_get, d
         url="http://chatgpt.com",
         models=[
             LanguageModel(
-                id=3,
+                id=30,
                 name="qwen2",
                 enabled=False
             ),
             LanguageModel(
-                id=4,
+                id=40,
                 name="gpt-oss",
                 enabled=False
             )
