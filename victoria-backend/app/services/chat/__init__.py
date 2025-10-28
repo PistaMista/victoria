@@ -396,7 +396,17 @@ class ChatService:
 
     def set_user_query_answer(self, user_id: int, message_id: int, answer: Any):
         """Sets the answer to the given query."""
-        pass
+        with self._db.session() as db:
+            msg = self._load_user_message(db, user_id, message_id)
+
+            if not isinstance(msg, ChatMessageChoicePrompt):
+                raise NonexistentMessageError(message_id)
+
+            if msg.answer is not None:
+                raise QueryAlreadyAnsweredError(message_id)
+
+            msg.answer = answer
+            db.commit()
 
     # TODO: Factor this out into a utility module and unit test it
     def _clone_scalar_fields(self, orm_obj):
