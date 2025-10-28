@@ -112,7 +112,7 @@ def test_llm_service_can_get_all_registered_models(mock_get, db_serv, db_session
     db_session.commit()
 
     # Act
-    res = serv.get_enabled_models()
+    res = serv.get_all_models()
 
     # Assert
     assert len(res) == 4

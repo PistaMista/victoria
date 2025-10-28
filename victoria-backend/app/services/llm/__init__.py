@@ -36,7 +36,9 @@ class LLMService:
 
     def get_all_models(self) -> List[LanguageModel]:
         """Gets all available LanguageModels."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(select(LanguageModel)).all()
+            return res
 
     def set_model_enabled_by_id(self, model_id: int, enabled: bool):
         """Enables or disables the given LanguageModel."""
