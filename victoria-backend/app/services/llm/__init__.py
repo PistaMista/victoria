@@ -42,7 +42,16 @@ class LLMService:
 
     def set_model_enabled_by_id(self, model_id: int, enabled: bool):
         """Enables or disables the given LanguageModel."""
-        pass
+        with self._db.session() as db:
+            model = db.scalar(
+                select(LanguageModel).where(LanguageModel.id == model_id)
+            )
+
+            if model is None:
+                raise NonexistentModelError(model_id)
+
+            model.enabled = enabled
+            db.commit()
 
     def get_all_connections(self) -> List[LLMConnection]:
         """Gets all registered connections."""
