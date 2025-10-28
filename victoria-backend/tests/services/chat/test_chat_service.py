@@ -1153,7 +1153,7 @@ def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(mock_d
                         id=1,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=10,
+                            id=20,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
@@ -1372,7 +1372,7 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
     )
     serv.send_choice_reply_to_user_exchange(
         user_id=5,
-        exchange_id=1,
+        exchange_id=10,
         from_agent_id=9999,
         prompt="What should I do?",
         choices=[20, "no"]
@@ -1390,7 +1390,7 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
     assert exchange_choice.agent_replies[0].sending_user is None
     assert exchange_choice.agent_replies[0].sending_agent is None
     reply_exchange = db_session.scalar(
-        select(ChatExchange).where(ChatExchange.id == 1)
+        select(ChatExchange).where(ChatExchange.id == 10)
     )
     assert reply_exchange.agent_replies[0].sending_user is None
     assert reply_exchange.agent_replies[0].sending_agent is None
