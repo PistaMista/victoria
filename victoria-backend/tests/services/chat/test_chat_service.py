@@ -1366,7 +1366,7 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
     )
     serv.send_markdown_reply_to_user_exchange(
         user_id=5,
-        exchange_id=1,
+        exchange_id=10,
         from_agent_id=9999,
         markdown="Hello, what can I do for you?"
     )
