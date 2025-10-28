@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
 from sqlalchemy import select, func, distinct, or_
-from sqlalchemy.orm import Session, joinedload, undefer
+from sqlalchemy.orm import Session, joinedload, undefer, with_polymorphic
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
 from app.model.trigger import ChatTrigger
@@ -271,17 +271,52 @@ class ChatService:
             res = db.scalars(
                 select(ChatExchange)
                 .options(
+                    # Eager load Markdown contents
                     joinedload(ChatExchange.user_message.of_type(ChatMessageMarkdown))
-                    .options(undefer(ChatMessageMarkdown.markdown))
+                    .options(undefer(ChatMessageMarkdown.markdown)),
+
+                    # Eager load ChoicePrompt options
+                    joinedload(ChatExchange.user_message.of_type(ChatMessageChoicePrompt))
+                    .options(undefer(ChatMessageChoicePrompt.prompt))
+                    .joinedload(ChatMessageChoicePrompt.choices)
+                    .options(undefer(ChoiceMessageOption.value))
                 )
                 .where(ChatExchange.chat_id == chat.id, ChatExchange.timestamp > after_dt)
-            ).all()
+                .order_by(ChatExchange.timestamp.asc())
+            ).unique().all()
 
             return res
 
     def get_user_exchange_replies_after(self, user_id: int, exchange_id: int, after: int) -> List[ChatMessage]:
         """Gets replies to an Exchange sent after the given point in time."""
-        pass
+        with self._db.session() as db:
+            exchange = self._load_user_exchange(db, user_id, exchange_id)
+            after_dt = datetime.fromtimestamp(after, tz=UTC)
+
+            ChatMessagePoly = with_polymorphic(
+                base=ChatMessage, 
+                classes=[ChatMessageMarkdown, ChatMessageChoicePrompt]
+            )
+            res = db.scalars(
+                select(ChatMessagePoly)
+                .options(
+                    # Eager load Markdown contents
+                    undefer(ChatMessagePoly.ChatMessageMarkdown.markdown),
+
+                    # Eager load ChoicePrompt choices
+                    joinedload(ChatMessagePoly.ChatMessageChoicePrompt.choices)
+                    .options(
+                        undefer(ChoiceMessageOption.value)
+                    )
+                )
+                .where(
+                    ChatMessage.reply_exchange_id == exchange.id, 
+                    ChatMessage.timestamp > after_dt
+                )
+                .order_by(ChatMessage.timestamp.asc())
+            ).unique().all()
+
+            return res
 
     def update_user_chat_options(self, user_id: int, chat_id: int, options: "ChatOptionsDiff"):
         """Updates the options of the given Chat."""

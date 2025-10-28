@@ -7,7 +7,7 @@ from app.services.chat import ChatService, ChatSortMode, NonexistentChatError, N
 from app.model.user import User, Role
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
-from app.model.chat_message import ChatMessageMarkdown, ChatMessageChoicePrompt, ChatMessage
+from app.model.chat_message import ChatMessageMarkdown, ChatMessageChoicePrompt, ChatMessage, ChoiceMessageOption
 from app.model.action import Action
 from app.model.action_repository import ActionRepository
 from app.model.trigger import ChatTrigger
@@ -1573,10 +1573,14 @@ def test_chat_service_can_get_exchange_replies_after_timestamp(db_serv, db_sessi
                                 timestamp=datetime.fromtimestamp(6000, tz=UTC),
                                 markdown="Second reply"
                             ),
-                            ChatMessageMarkdown(
+                            ChatMessageChoicePrompt(
                                 id=4,
                                 timestamp=datetime.fromtimestamp(7000, tz=UTC),
-                                markdown="Third reply"
+                                prompt="Third reply",
+                                choices=[
+                                    ChoiceMessageOption(value=10),
+                                    ChoiceMessageOption(value="lol")
+                                ]
                             )
                         ]
                     ),
@@ -1647,18 +1651,27 @@ def test_chat_service_can_get_exchange_replies_after_timestamp(db_serv, db_sessi
     assert res3[0].markdown == "First reply"
     assert isinstance(res3[1], ChatMessageMarkdown)
     assert res3[1].markdown == "Second reply"
-    assert isinstance(res3[2], ChatMessageMarkdown)
-    assert res3[2].markdown == "Third reply"
+    assert isinstance(res3[2], ChatMessageChoicePrompt)
+    assert res3[2].prompt == "Third reply"
+    assert len(res3[2].choices) == 2
+    assert res3[2].choices[0].value == 10
+    assert res3[2].choices[1].value == "lol"
 
     assert len(res2) == 2
     assert isinstance(res2[0], ChatMessageMarkdown)
     assert res2[0].markdown == "Second reply"
-    assert isinstance(res2[1], ChatMessageMarkdown)
-    assert res2[1].markdown == "Third reply"
+    assert isinstance(res2[1], ChatMessageChoicePrompt)
+    assert res2[1].prompt == "Third reply"
+    assert len(res2[1].choices) == 2
+    assert res2[1].choices[0].value == 10
+    assert res2[1].choices[1].value == "lol"
 
     assert len(res1) == 1
-    assert isinstance(res3[0], ChatMessageMarkdown)
-    assert res3[0].markdown == "Third reply"
+    assert isinstance(res1[0], ChatMessageChoicePrompt)
+    assert res1[0].prompt == "Third reply"
+    assert len(res1[0].choices) == 2
+    assert res1[0].choices[0].value == 10
+    assert res1[0].choices[1].value == "lol"
 
     assert len(res0) == 0
 
