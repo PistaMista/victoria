@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
 from sqlalchemy import select, func, distinct, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, make_transient
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
 from app.model.trigger import ChatTrigger
@@ -11,6 +11,7 @@ from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessage
 from datetime import datetime, UTC
+import copy
 
 class ChatSortMode(Enum):
     LONGEST = 0
@@ -103,7 +104,35 @@ class ChatService:
 
     def duplicate_user_chat(self, user_id: int, chat_id: int, last_exchange_id: Optional[int] = None) -> int:
         """Duplicates the given Chat up to the given Exchange and returns the new id."""
-        pass
+        with self._db.session() as db:
+            old_chat = self._load_user_chat(db, user_id, chat_id)
+            new_chat = self._clone_scalar_fields(old_chat)
+
+            required_last_exchange_found = last_exchange_id is None
+            for old_exchange in old_chat.exchanges:
+                new_exchange = self._clone_scalar_fields(old_exchange)
+
+                if old_exchange.user_message is not None:
+                    new_user_message = self._clone_scalar_fields(old_exchange.user_message)
+                    new_exchange.user_message = new_user_message
+
+                for old_reply in old_exchange.agent_replies:
+                    new_reply = self._clone_scalar_fields(old_reply)
+                    new_exchange.agent_replies.append(new_reply)
+
+                new_chat.exchanges.append(new_exchange)
+
+                if old_exchange.id == last_exchange_id:
+                    required_last_exchange_found = True
+                    break
+
+            if not required_last_exchange_found:
+                raise NonexistentExchangeError(last_exchange_id or 0)
+
+            db.add(new_chat)
+            db.commit()
+
+            return new_chat.id
 
     def send_markdown_message_to_user_chat(self, user_id: int, chat_id: int, from_agent_id: Optional[int], markdown: str) -> int:
         """Sends a Markdown message to the given Chat and returns the id of the created Exchange."""
@@ -148,6 +177,18 @@ class ChatService:
     def set_user_query_answer(self, user_id: int, message_id: int, answer: Any):
         """Sets the answer to the given query."""
         pass
+
+    # TODO: Factor this out into a utility module and unit test it
+    def _clone_scalar_fields(self, orm_obj):
+        """Clones an SQLAlchemy ORM object, but only the non-primary-key scalar fields."""
+        cls = type(orm_obj)
+        res = cls()
+
+        for col in orm_obj.__mapper__.columns:
+            if not col.primary_key:
+                setattr(res, col.key, getattr(orm_obj, col.key))
+
+        return res
 
     def _load_user_chat(self, db: Session, user_id: int, chat_id: int):
         res = db.scalar(

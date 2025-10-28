@@ -472,7 +472,7 @@ def test_chat_service_can_duplicate_entire_user_chat(db_serv, db_session, trigge
         role=Role.USER,
         chats=[
             Chat(
-                id=1,
+                id=10,
                 title="Carrots",
                 summary="Sommery",
                 receiver="general",
@@ -480,32 +480,32 @@ def test_chat_service_can_duplicate_entire_user_chat(db_serv, db_session, trigge
                 modified_at=datetime.fromtimestamp(4350, tz=UTC),
                 exchanges=[
                     ChatExchange(
-                        id=1,
+                        id=10,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=2,
+                                id=20,
                                 timestamp=datetime.fromtimestamp(4200, tz=UTC),
                                 markdown="What needs to be done?"
                             )
                         ]
                     ),
                     ChatExchange(
-                        id=2,
+                        id=20,
                         timestamp=datetime.fromtimestamp(4300, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=3,
+                            id=30,
                             timestamp=datetime.fromtimestamp(4300, tz=UTC),
                             markdown="Find a book."
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=4,
+                                id=40,
                                 timestamp=datetime.fromtimestamp(4350, tz=UTC),
                                 markdown="Book found."
                             )
@@ -514,7 +514,7 @@ def test_chat_service_can_duplicate_entire_user_chat(db_serv, db_session, trigge
                 ]
             ),
             Chat(
-                id=2,
+                id=20,
                 title="Potatoes",
                 summary="KARTOFFELSALAD",
                 receiver="general",
@@ -532,7 +532,7 @@ def test_chat_service_can_duplicate_entire_user_chat(db_serv, db_session, trigge
         role=Role.USER,
         chats=[
             Chat(
-                id=3,
+                id=30,
                 title="Cars",
                 summary="",
                 receiver="technical",
@@ -547,15 +547,16 @@ def test_chat_service_can_duplicate_entire_user_chat(db_serv, db_session, trigge
     db_session.commit()
 
     # Act
-    duplicate_id = serv.duplicate_user_chat(user_id=5, chat_id=1)
+    duplicate_id = serv.duplicate_user_chat(user_id=5, chat_id=10)
 
     # Assert
     new_chat = db_session.scalar(
         select(Chat).where(Chat.id == duplicate_id)
     )
 
+    assert len(user_john.chats) == 3
     assert new_chat is not None
-    assert new_chat.id not in [1, 2, 3]
+    assert new_chat.id not in [10, 20, 30]
     assert new_chat.id == duplicate_id
     assert new_chat.title == "Carrots"
     assert new_chat.summary == "Sommery"
@@ -563,17 +564,19 @@ def test_chat_service_can_duplicate_entire_user_chat(db_serv, db_session, trigge
     assert new_chat.created_at == datetime.fromtimestamp(4000, tz=UTC)
     assert new_chat.modified_at == datetime.fromtimestamp(4350, tz=UTC)
     assert len(new_chat.exchanges) == 2
-    assert new_chat.exchanges[0].id not in [1, 2]
+    assert new_chat.exchanges[0].id not in [10, 20]
+    assert new_chat.exchanges[0].chat_id == duplicate_id
     assert new_chat.exchanges[0].timestamp == datetime.fromtimestamp(4200, tz=UTC)
-    assert new_chat.exchanges[0].user_message.id not in [1, 2, 3, 4]
+    assert new_chat.exchanges[0].user_message.id not in [10, 20, 30, 40]
     assert new_chat.exchanges[0].user_message.markdown == "Hello!"
-    assert new_chat.exchanges[0].agent_replies[0].id not in [1, 2, 3, 4]
+    assert new_chat.exchanges[0].agent_replies[0].id not in [10, 20, 30, 40]
     assert new_chat.exchanges[0].agent_replies[0].markdown == "What needs to be done?"
-    assert new_chat.exchanges[1].id not in [1, 2]
+    assert new_chat.exchanges[1].id not in [10, 20]
+    assert new_chat.exchanges[1].chat_id == duplicate_id
     assert new_chat.exchanges[1].timestamp == datetime.fromtimestamp(4300, tz=UTC)
-    assert new_chat.exchanges[1].user_message.id not in [1, 2, 3, 4]
+    assert new_chat.exchanges[1].user_message.id not in [10, 20, 30, 40]
     assert new_chat.exchanges[1].user_message.markdown == "Find a book."
-    assert new_chat.exchanges[1].agent_replies[0].id not in [1, 2, 3, 4]
+    assert new_chat.exchanges[1].agent_replies[0].id not in [10, 20, 30, 40]
     assert new_chat.exchanges[1].agent_replies[0].markdown == "Book found."
 
 
@@ -590,7 +593,7 @@ def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(db_serv, db
         role=Role.USER,
         chats=[
             Chat(
-                id=1,
+                id=10,
                 title="Carrots",
                 summary="Sommery",
                 receiver="general",
@@ -598,32 +601,32 @@ def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(db_serv, db
                 modified_at=datetime.fromtimestamp(4350, tz=UTC),
                 exchanges=[
                     ChatExchange(
-                        id=1,
+                        id=10,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=2,
+                                id=20,
                                 timestamp=datetime.fromtimestamp(4200, tz=UTC),
                                 markdown="What needs to be done?"
                             )
                         ]
                     ),
                     ChatExchange(
-                        id=2,
+                        id=20,
                         timestamp=datetime.fromtimestamp(4300, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=3,
+                            id=30,
                             timestamp=datetime.fromtimestamp(4300, tz=UTC),
                             markdown="Find a book."
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=4,
+                                id=40,
                                 timestamp=datetime.fromtimestamp(4350, tz=UTC),
                                 markdown="Book found."
                             )
@@ -650,7 +653,7 @@ def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(db_serv, db
         role=Role.USER,
         chats=[
             Chat(
-                id=3,
+                id=30,
                 title="Cars",
                 summary="",
                 receiver="technical",
@@ -665,7 +668,7 @@ def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(db_serv, db
     db_session.commit()
 
     # Act
-    duplicate_id = serv.duplicate_user_chat(user_id=5, chat_id=1, last_exchange_id=1)
+    duplicate_id = serv.duplicate_user_chat(user_id=5, chat_id=10, last_exchange_id=10)
 
     # Assert
     new_chat = db_session.scalar(
@@ -673,7 +676,7 @@ def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(db_serv, db
     )
 
     assert new_chat is not None
-    assert new_chat.id not in [1, 2, 3]
+    assert new_chat.id not in [10, 20, 30]
     assert new_chat.id == duplicate_id
     assert new_chat.title == "Carrots"
     assert new_chat.summary == "Sommery"
@@ -681,11 +684,11 @@ def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(db_serv, db
     assert new_chat.created_at == datetime.fromtimestamp(4000, tz=UTC)
     assert new_chat.modified_at == datetime.fromtimestamp(4350, tz=UTC)
     assert len(new_chat.exchanges) == 1
-    assert new_chat.exchanges[0].id not in [1, 2]
+    assert new_chat.exchanges[0].id not in [10, 20]
     assert new_chat.exchanges[0].timestamp == datetime.fromtimestamp(4200, tz=UTC)
-    assert new_chat.exchanges[0].user_message.id not in [1, 2, 3, 4]
+    assert new_chat.exchanges[0].user_message.id not in [10, 20, 30, 40]
     assert new_chat.exchanges[0].user_message.markdown == "Hello!"
-    assert new_chat.exchanges[0].agent_replies[0].id not in [1, 2, 3, 4]
+    assert new_chat.exchanges[0].agent_replies[0].id not in [10, 20, 30, 40]
     assert new_chat.exchanges[0].agent_replies[0].markdown == "What needs to be done?"
 
 def test_chat_service_throws_when_invalid_last_exchange_id_specified_during_duplicate(db_serv, db_session, trigger_mock):
