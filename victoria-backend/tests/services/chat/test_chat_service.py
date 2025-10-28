@@ -792,8 +792,8 @@ def test_chat_service_throws_when_invalid_last_exchange_id_specified_during_dupl
 @mock.patch("app.services.chat.datetime")
 def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_datetime, db_serv, db_session, trigger_mock):
     # Arrange
-    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
-    def receive_chat_message_mock():
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
+    def receive_chat_message_mock(receiver: str, message: str):
         event1 = ChatEvent(
             id=1,
             content="A message has arrived: That's not it",
@@ -829,32 +829,32 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_date
                 modified_at=datetime.fromtimestamp(4350, tz=UTC),
                 exchanges=[
                     ChatExchange(
-                        id=1,
+                        id=10,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=2,
+                                id=20,
                                 timestamp=datetime.fromtimestamp(4200, tz=UTC),
                                 markdown="What needs to be done?"
                             )
                         ]
                     ),
                     ChatExchange(
-                        id=2,
+                        id=20,
                         timestamp=datetime.fromtimestamp(4300, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=3,
+                            id=30,
                             timestamp=datetime.fromtimestamp(4300, tz=UTC),
                             markdown="Find a book."
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=4,
+                                id=40,
                                 timestamp=datetime.fromtimestamp(4350, tz=UTC),
                                 markdown="Book found."
                             )
@@ -894,14 +894,14 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_date
 
     db_session.refresh(user_john)
     assert len(user_john.chats[0].exchanges) == 3
-    assert user_john.chats[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert user_john.chats[0].modified_at == datetime.fromtimestamp(15000, tz=UTC)
     assert user_john.chats[0].exchanges[2].id == exchange_id
 
     exchange = db_session.scalar(
         select(ChatExchange).where(ChatExchange.id == exchange_id)
     )
-    assert exchange.timestamp == datetime.fromtimestamp(5000, tz=UTC)
-    assert exchange.user_message.timestamp == datetime.fromtimestamp(5000, tz=UTC)
+    assert exchange.timestamp == datetime.fromtimestamp(15000, tz=UTC)
+    assert exchange.user_message.timestamp == datetime.fromtimestamp(15000, tz=UTC)
     assert exchange.user_message.markdown == "That's not it"
     assert exchange.user_message.sending_user.id == 5
     assert exchange.user_message.sending_user.username == "John"
@@ -911,7 +911,7 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_date
 @mock.patch("app.services.chat.datetime")
 def test_chat_service_can_send_markdown_message_to_user_chat_from_agent(mock_datetime, db_serv, db_session, trigger_mock):
     # Arrange
-    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
     serv = ChatService(
         database_service=db_serv,
         trigger_service=trigger_mock
@@ -931,32 +931,32 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_agent(mock_dat
                 modified_at=datetime.fromtimestamp(4350, tz=UTC),
                 exchanges=[
                     ChatExchange(
-                        id=1,
+                        id=10,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=2,
+                                id=20,
                                 timestamp=datetime.fromtimestamp(4200, tz=UTC),
                                 markdown="What needs to be done?"
                             )
                         ]
                     ),
                     ChatExchange(
-                        id=2,
+                        id=20,
                         timestamp=datetime.fromtimestamp(4300, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=3,
+                            id=30,
                             timestamp=datetime.fromtimestamp(4300, tz=UTC),
                             markdown="Find a book."
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
-                                id=4,
+                                id=40,
                                 timestamp=datetime.fromtimestamp(4350, tz=UTC),
                                 markdown="Book found."
                             )
@@ -1000,16 +1000,16 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_agent(mock_dat
 
     db_session.refresh(user_john)
     assert len(user_john.chats[0].exchanges) == 3
-    assert user_john.chats[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert user_john.chats[0].modified_at == datetime.fromtimestamp(15000, tz=UTC)
     assert user_john.chats[0].exchanges[2].id == exchange_id
 
     exchange = db_session.scalar(
         select(ChatExchange).where(ChatExchange.id == exchange_id)
     )
-    assert exchange.timestamp == datetime.fromtimestamp(5000, tz=UTC)
+    assert exchange.timestamp == datetime.fromtimestamp(15000, tz=UTC)
     assert exchange.user_message is None
     assert len(exchange.agent_replies) == 1
-    assert exchange.agent_replies[0].timestamp == datetime.fromtimestamp(5000, tz=UTC)
+    assert exchange.agent_replies[0].timestamp == datetime.fromtimestamp(15000, tz=UTC)
     assert exchange.agent_replies[0].markdown == "Oops"
     assert exchange.agent_replies[0].sending_agent.id == 12
     assert exchange.agent_replies[0].sending_agent.name == "Librarian"
