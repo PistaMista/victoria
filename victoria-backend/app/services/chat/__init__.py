@@ -386,7 +386,13 @@ class ChatService:
 
     def get_user_query_answer(self, user_id: int, message_id: int) -> Any:
         """Returns the user's answer to the given query."""
-        pass
+        with self._db.session() as db:
+            msg = self._load_user_message(db, user_id, message_id)
+
+            if not isinstance(msg, ChatMessageChoicePrompt):
+                raise NonexistentMessageError(message_id)
+
+            return msg.answer
 
     def set_user_query_answer(self, user_id: int, message_id: int, answer: Any):
         """Sets the answer to the given query."""
@@ -424,6 +430,25 @@ class ChatService:
 
         if res is None:
             raise NonexistentExchangeError(exchange_id)
+
+        return res
+
+    def _load_user_message(self, db: Session, user_id: int, message_id: int):
+        res = db.scalar(
+            select(ChatMessage)
+            .join(ChatExchange, or_(
+                ChatExchange.id == ChatMessage.usermsg_exchange_id,
+                ChatExchange.id == ChatMessage.reply_exchange_id
+            ))
+            .join(ChatExchange.chat)
+            .where(
+                Chat.owner_id == user_id, 
+                ChatMessage.id == message_id
+            )
+        )
+
+        if res is None:
+            raise NonexistentMessageError(message_id)
 
         return res
 
