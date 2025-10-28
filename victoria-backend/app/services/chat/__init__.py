@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload, undefer, with_polymorphic
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
 from app.model.trigger import ChatTrigger
+from app.model.action import Action
 from app.model.user import User
 from app.model.agent import Agent
 from app.model.chat import Chat
@@ -320,7 +321,29 @@ class ChatService:
 
     def update_user_chat_options(self, user_id: int, chat_id: int, options: "ChatOptionsDiff"):
         """Updates the options of the given Chat."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+
+            if options.receiver is not None:
+                chat.receiver = options.receiver
+
+            if options.enabled_action_ids is not None:
+                chat.allowed_actions = []
+
+                for action_id in options.enabled_action_ids:
+                    action = db.scalar(
+                        select(Action)
+                        .join(User.allowed_actions)
+                        .where(
+                            Action.id == action_id,
+                            User.id == user_id
+                        )
+                    )
+
+                    if action is not None:
+                        chat.allowed_actions.append(action)
+
+            db.commit()
 
     def set_user_chat_summary(self, user_id: int, chat_id: int, summary: str):
         """Sets the summary of the given Chat."""
