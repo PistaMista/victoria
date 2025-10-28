@@ -2,6 +2,7 @@ from app.services.db import DatabaseService
 from app.model.llm_connection import OllamaConnection, LLMConnection
 from app.model.language_model import LanguageModel
 from sqlalchemy import select
+from sqlalchemy.orm import undefer, with_polymorphic
 from pydantic import BaseModel
 import requests
 from typing import List, Optional
@@ -56,14 +57,35 @@ class LLMService:
     def get_all_connections(self) -> List[LLMConnection]:
         """Gets all registered connections."""
         with self._db.session() as db:
+            ConnectionPoly = with_polymorphic(
+                base=LLMConnection,
+                classes=[OllamaConnection]
+            )
             res = db.scalars(
-                select(LLMConnection)
+                select(ConnectionPoly)
+                .options(undefer(ConnectionPoly.OllamaConnection.url))
             ).all()
             return res
 
     def get_connection_by_id(self, id: int) -> LLMConnection:
         """Gets the connection with the given ID."""
-        pass
+        with self._db.session() as db:
+            ConnectionPoly = with_polymorphic(
+                base=LLMConnection,
+                classes=[OllamaConnection]
+            )
+            res = db.scalar(
+                select(ConnectionPoly)
+                .options(
+                    undefer(ConnectionPoly.OllamaConnection.url)
+                )
+                .where(LLMConnection.id == id)
+            )
+            
+            if res is None:
+                raise NonexistentConnectionError(id)
+
+            return res
 
     def update_ollama_connection(self, id: int, changes: "OllamaConnectionDiff"):
         """Updates the given Connection's settings."""

@@ -232,8 +232,12 @@ def test_llm_service_can_get_all_registered_connections(mock_get, db_serv, db_se
 
     # Assert
     assert len(res) == 2
+    assert isinstance(res[0], OllamaConnection)
     assert res[0].name == "Megacenter"
+    assert res[0].url == "http://localhost:11434"
+    assert isinstance(res[1], OllamaConnection)
     assert res[1].name == "ChatGPT"
+    assert res[1].url == "http://chatgpt.com"
 
 @mock.patch('app.services.llm.requests.get')
 def test_llm_service_can_get_connection_by_id(mock_get, db_serv, db_session):
