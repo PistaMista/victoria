@@ -1130,7 +1130,7 @@ def test_chat_service_can_send_choice_message_to_user_chat_from_agent(mock_datet
 @mock.patch("app.services.chat.datetime")
 def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(mock_datetime, db_serv, db_session, trigger_mock):
     # Arrange
-    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
     serv = ChatService(
         database_service=db_serv,
         trigger_service=trigger_mock
@@ -1153,7 +1153,7 @@ def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(mock_d
                         id=1,
                         timestamp=datetime.fromtimestamp(4200, tz=UTC),
                         user_message=ChatMessageMarkdown(
-                            id=1,
+                            id=10,
                             timestamp=datetime.fromtimestamp(4200, tz=UTC),
                             markdown="Hello!"
                         ),
@@ -1197,12 +1197,12 @@ def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(mock_d
 
     db_session.refresh(user_john)
     assert len(user_john.chats[0].exchanges) == 1
-    assert user_john.chats[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert user_john.chats[0].modified_at == datetime.fromtimestamp(15000, tz=UTC)
 
     exchange = user_john.chats[0].exchanges[0]
     assert exchange.timestamp == datetime.fromtimestamp(4200, tz=UTC)
     assert len(exchange.agent_replies) == 1
-    assert exchange.agent_replies[0].timestamp == datetime.fromtimestamp(5000, tz=UTC)
+    assert exchange.agent_replies[0].timestamp == datetime.fromtimestamp(15000, tz=UTC)
     assert exchange.agent_replies[0].markdown == "What can I do for you?"
     assert exchange.agent_replies[0].sending_agent.id == 12
     assert exchange.agent_replies[0].sending_agent.name == "Librarian"

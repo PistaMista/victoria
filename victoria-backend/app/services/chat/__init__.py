@@ -220,7 +220,25 @@ class ChatService:
 
     def send_markdown_reply_to_user_exchange(self, user_id: int, exchange_id: int, from_agent_id: Optional[int], markdown: str):
         """Sends a Markdown reply to the given Exchange."""
-        pass
+        with self._db.session() as db:
+            exchange = self._load_user_exchange(db, user_id, exchange_id)
+            msg = ChatMessageMarkdown(
+                timestamp=datetime.now(tz=UTC),
+                markdown=markdown
+            )
+
+            if from_agent_id is not None:
+                agent = db.scalar(
+                    select(Agent).where(Agent.id == from_agent_id)
+                )
+                msg.sending_agent = agent
+
+            exchange.agent_replies.append(msg)
+            exchange.chat.modified_at = datetime.now(tz=UTC)
+            db.commit()
+
+
+
 
     def send_choice_reply_to_user_exchange(self, user_id: int, exchange_id: int, from_agent_id: Optional[int], prompt: str, choices: List[Any]) -> int:
         """Sends a Choice reply to the given Exchange and returns the query ID of the choice."""
@@ -274,6 +292,18 @@ class ChatService:
 
         if res is None:
             raise NonexistentChatError(chat_id)
+
+        return res
+    
+    def _load_user_exchange(self, db: Session, user_id: int, exchange_id: int):
+        res = db.scalar(
+            select(ChatExchange)
+            .join(ChatExchange.chat)
+            .where(ChatExchange.id == exchange_id, Chat.owner_id == user_id)
+        )
+
+        if res is None:
+            raise NonexistentExchangeError(exchange_id)
 
         return res
 
