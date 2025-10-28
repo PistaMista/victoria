@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Any, Tuple
 from enum import Enum
 from sqlalchemy import select, func, distinct, or_
-from sqlalchemy.orm import Session, make_transient
+from sqlalchemy.orm import Session, joinedload, undefer
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
 from app.model.trigger import ChatTrigger
@@ -265,7 +265,19 @@ class ChatService:
 
     def get_user_chat_exchanges_after(self, user_id: int, chat_id: int, after: int) -> List[ChatExchange]:
         """Gets user chat exchanges created after the given point in time."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+            after_dt = datetime.fromtimestamp(after, tz=UTC)
+            res = db.scalars(
+                select(ChatExchange)
+                .options(
+                    joinedload(ChatExchange.user_message.of_type(ChatMessageMarkdown))
+                    .options(undefer(ChatMessageMarkdown.markdown))
+                )
+                .where(ChatExchange.chat_id == chat.id, ChatExchange.timestamp > after_dt)
+            ).all()
+
+            return res
 
     def get_user_exchange_replies_after(self, user_id: int, exchange_id: int, after: int) -> List[ChatMessage]:
         """Gets replies to an Exchange sent after the given point in time."""

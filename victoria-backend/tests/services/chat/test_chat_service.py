@@ -1400,6 +1400,7 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
 
 def test_chat_service_can_get_exchanges_after_timestamp_including_user_message(db_serv, db_session, trigger_mock):
     # Arrange
+    # TODO: Test how the user message behaves when its a ChatMessageChoicePrompt?
     serv = ChatService(
         database_service=db_serv,
         trigger_service=trigger_mock
