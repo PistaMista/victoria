@@ -55,7 +55,11 @@ class LLMService:
 
     def get_all_connections(self) -> List[LLMConnection]:
         """Gets all registered connections."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(LLMConnection)
+            ).all()
+            return res
 
     def get_connection_by_id(self, id: int) -> LLMConnection:
         """Gets the connection with the given ID."""
