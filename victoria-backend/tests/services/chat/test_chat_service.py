@@ -1947,29 +1947,29 @@ def test_chat_service_can_get_all_messages_from_user_chat_flattened(db_serv, db_
                         timestamp=datetime.fromtimestamp(4300, tz=UTC),
                         user_message=ChatMessageMarkdown(
                             id=5,
-                            timestamp=datetime.fromtimestamp(4300, tz=UTC),
+                            timestamp=datetime.fromtimestamp(9000, tz=UTC),
                             markdown="Find a book."
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
                                 id=6,
-                                timestamp=datetime.fromtimestamp(4350, tz=UTC),
+                                timestamp=datetime.fromtimestamp(10000, tz=UTC),
                                 markdown="Book found."
                             )
                         ]
                     ),
                     ChatExchange(
                         id=3,
-                        timestamp=datetime.fromtimestamp(4300, tz=UTC),
+                        timestamp=datetime.fromtimestamp(11000, tz=UTC),
                         user_message=ChatMessageMarkdown(
                             id=7,
-                            timestamp=datetime.fromtimestamp(4300, tz=UTC),
+                            timestamp=datetime.fromtimestamp(11000, tz=UTC),
                             markdown="That's not it!"
                         ),
                         agent_replies=[
                             ChatMessageMarkdown(
                                 id=8,
-                                timestamp=datetime.fromtimestamp(4350, tz=UTC),
+                                timestamp=datetime.fromtimestamp(12000, tz=UTC),
                                 markdown="Really?"
                             )
                         ]

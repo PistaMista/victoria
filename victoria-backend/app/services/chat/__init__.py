@@ -354,7 +354,35 @@ class ChatService:
 
     def get_user_chat_messages(self, user_id: int, chat_id: int) -> List[ChatMessage]:
         """Returns all the messages sent in the current chat (flattened from all exchanges)."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+
+            ChatMessagePoly = with_polymorphic(
+                base=ChatMessage, 
+                classes=[ChatMessageMarkdown, ChatMessageChoicePrompt]
+            )
+            res = db.scalars(
+                select(ChatMessagePoly)
+                .join(ChatExchange, or_(
+                    ChatExchange.id == ChatMessage.usermsg_exchange_id,
+                    ChatExchange.id == ChatMessage.reply_exchange_id
+                ))
+                .join(ChatExchange.chat)
+                .options(
+                    # Eager load Markdown contents
+                    undefer(ChatMessagePoly.ChatMessageMarkdown.markdown),
+
+                    # Eager load ChoicePrompt choices
+                    joinedload(ChatMessagePoly.ChatMessageChoicePrompt.choices)
+                    .options(
+                        undefer(ChoiceMessageOption.value)
+                    )
+                )
+                .where(Chat.id == chat_id)
+                .order_by(ChatMessage.timestamp.asc())
+            ).unique().all()
+
+            return res
 
     def get_user_query_answer(self, user_id: int, message_id: int) -> Any:
         """Returns the user's answer to the given query."""
