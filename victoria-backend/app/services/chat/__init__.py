@@ -347,7 +347,10 @@ class ChatService:
 
     def set_user_chat_summary(self, user_id: int, chat_id: int, summary: str):
         """Sets the summary of the given Chat."""
-        pass
+        with self._db.session() as db:
+            chat = self._load_user_chat(db, user_id, chat_id)
+            chat.summary = summary
+            db.commit()
 
     def get_user_chat_messages(self, user_id: int, chat_id: int) -> List[ChatMessage]:
         """Returns all the messages sent in the current chat (flattened from all exchanges)."""
