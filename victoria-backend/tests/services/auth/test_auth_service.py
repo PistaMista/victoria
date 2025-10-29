@@ -5,6 +5,7 @@ from app.model.event import Event
 from app.model.agent import Agent
 from app.model.monologue import Monologue
 from app.model.event import Event
+from base64 import b64encode
 from app.model.user import User, Role
 from app.services.user import UserService, NonexistentUserError
 from app.services.auth import AuthService, InvalidLoginError, ExpiredLoginError, AdminRequiredError, NotLoggedInError
@@ -94,7 +95,7 @@ def test_auth_service_verifies_valid_agent_token(auth_serv):
     # Agent tokens are only valid as long as the monologue they come from is running
     # and they represent the User who owns the given Agent
     # Arrange
-    token = (b'aaaa').decode("utf-8")
+    token = b64encode(b'aaaa').decode("utf-8")
 
     # Act
     user = auth_serv.get_as_non_admin_user(token)
@@ -150,7 +151,7 @@ def test_auth_service_rejects_nonadmin_token_when_verifying_admin_token(time, au
 
 def test_auth_service_rejects_agent_token_when_verifying_admin_token(auth_serv):
     # Arrange
-    token = (b'aaaa').decode("utf-8")
+    token = b64encode(b'aaaa').decode("utf-8")
 
     # Act / Assert
     with pytest.raises(AdminRequiredError):
@@ -158,7 +159,7 @@ def test_auth_service_rejects_agent_token_when_verifying_admin_token(auth_serv):
 
 def test_auth_service_rejects_agent_token_from_finished_monologue(auth_serv):
     # Arrange
-    token = (b'bbbb').decode("utf-8")
+    token = b64encode(b'bbbb').decode("utf-8")
 
     # Act / Assert
     with pytest.raises(InvalidLoginError):

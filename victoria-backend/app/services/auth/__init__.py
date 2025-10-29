@@ -1,6 +1,7 @@
 from app.services.user import UserService, NonexistentUserError
 from app.model.user import User, Role
 import jwt
+from base64 import b64decode
 from typing import Optional
 import time
 from bcrypt import checkpw
@@ -64,7 +65,7 @@ class AuthService:
             
         except jwt.DecodeError as e:
             # If the given token is not a JWT token, it is a Monologue agent_token
-            agent_token = token.encode("utf-8")
+            agent_token = b64decode(token.encode("utf-8"))
 
             try:
                 user = self._user.get_user_by_running_monologue_agent_token(agent_token)
