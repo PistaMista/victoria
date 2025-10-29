@@ -68,7 +68,7 @@ def sample_monologue(db_session, owner):
     )
 
     trigger_thought = Thought(
-        timestamp=datetime.fromtimestamp(1),
+        timestamp=datetime.fromtimestamp(1, tz=UTC),
         invocation=None,
         result="An email has arrived..."
     )
@@ -80,7 +80,7 @@ def sample_monologue(db_session, owner):
         }
     )
     verbatim_thought = Thought(
-        timestamp=datetime.fromtimestamp(2),
+        timestamp=datetime.fromtimestamp(2, tz=UTC),
         invocation=verbatim_invocation,
         result="I should notify the user of the new email"
     )
@@ -93,7 +93,7 @@ def sample_monologue(db_session, owner):
         }
     )
     action_thought = Thought(
-        timestamp=datetime.fromtimestamp(3),
+        timestamp=datetime.fromtimestamp(3, tz=UTC),
         invocation=action_invocation,
         result="Message sent successfully"
     )
@@ -781,7 +781,7 @@ def test_monologue_service_can_append_thought_to_monologue(mock_datetime, db_ser
         }
     )
     thought = Thought(
-        timestamp=datetime.fromtimestamp(50),
+        timestamp=datetime.fromtimestamp(50, tz=UTC),
         invocation=invocation,
         result="Suboptimal"
     )
@@ -800,7 +800,7 @@ def test_monologue_service_can_append_thought_to_monologue(mock_datetime, db_ser
     assert sample_monologue.thoughts[3].invocation.action.function_name == "mega_func"
     assert sample_monologue.thoughts[3].invocation.params["the_mega_param"] == "foobar"
     assert sample_monologue.thoughts[3].result == "Suboptimal"
-    assert sample_monologue.thoughts[3].timestamp == datetime.fromtimestamp(50)
+    assert sample_monologue.thoughts[3].timestamp == datetime.fromtimestamp(50, tz=UTC)
     # The current time is taken to be the modified_at time, not the timestamp of the added thought
     assert sample_monologue.modified_at == datetime.fromtimestamp(120, tz=UTC)
 

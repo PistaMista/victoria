@@ -8,6 +8,7 @@ from app.model.invocation import Invocation
 from typing import List, Optional, Dict, Any
 from sqlalchemy import select, func, case, or_
 from sqlalchemy.orm import joinedload, Session
+from datetime import datetime, UTC
 from copy import copy
 import json
 
@@ -218,6 +219,7 @@ class MonologueService:
                 raise NonexistentMonologueError(id)
             
             monologue.thoughts.append(thought)
+            monologue.modified_at = datetime.now(tz=UTC)
             db.commit()
 
     def _load_user_monologue(self, db: Session, user_id: int, monologue_id: int):
