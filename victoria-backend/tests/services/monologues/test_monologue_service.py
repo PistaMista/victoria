@@ -465,7 +465,7 @@ def test_monologue_service_can_get_user_monologue_by_id(db_serv, db_session):
     assert isinstance(res, Monologue)
     assert res.id == 4
     assert res.title == "Write stories"
-    assert res.summary == "Exporting to Zettelkasten"
+    assert res.summary == "Exporting to Zettelkasten..."
     assert res.status == MonologueStatus.RUNNING
 
 def test_monologue_service_can_get_user_monologue_thoughts_including_invocations(db_serv, db_session, sample_monologue):

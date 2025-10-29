@@ -7,7 +7,7 @@ from app.model.thought import Thought
 from app.model.invocation import Invocation
 from typing import List, Optional, Dict, Any
 from sqlalchemy import select, func, case, or_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, Session
 import json
 
 class MonologueService:
@@ -50,7 +50,9 @@ class MonologueService:
 
     def get_user_monologue(self, user_id: int, monologue_id: int) -> Monologue:
         """Gets the given Monologue."""
-        pass
+        with self._db.session() as db:
+            res = self._load_user_monologue(db, user_id, monologue_id)
+            return res
 
     def end_user_monologue(self, user_id: int, monologue_id: int, successful: bool):
         """Ends the given Monologue with either SUCCESS or FAILURE."""
@@ -188,6 +190,18 @@ class MonologueService:
             
             monologue.thoughts.append(thought)
             db.commit()
+
+    def _load_user_monologue(self, db: Session, user_id: int, monologue_id: int):
+        res = db.scalar(
+            select(Monologue)
+            .join(Monologue.agent)
+            .where(Agent.owner_id == user_id, Monologue.id == monologue_id)
+        )
+
+        if res is None:
+            raise NonexistentMonologueError(monologue_id)
+
+        return res
             
         
 class NonexistentMonologueError(Exception):
