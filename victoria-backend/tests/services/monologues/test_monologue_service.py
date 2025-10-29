@@ -104,6 +104,8 @@ def sample_monologue(db_session, owner):
         event=event,
         agent=agent,
         status=MonologueStatus.PENDING,
+        context={
+        },
         thoughts=[
             trigger_thought,
             verbatim_thought,
@@ -813,6 +815,12 @@ def test_monologue_service_throws_when_manipulating_nonexistent_monologue(db_ser
     )
     db_session.add(non_owner)
     db_session.commit()
+
+    thought = Thought(
+        timestamp=datetime.fromtimestamp(1),
+        invocation=None,
+        result="An email has arrived..."
+    )
 
     non_owner_id = non_owner.id
     owner_id = sample_monologue.agent.owner.id

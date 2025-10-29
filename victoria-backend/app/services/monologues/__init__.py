@@ -8,6 +8,7 @@ from app.model.invocation import Invocation
 from typing import List, Optional, Dict, Any
 from sqlalchemy import select, func, case, or_
 from sqlalchemy.orm import joinedload, Session
+from copy import copy
 import json
 
 class MonologueService:
@@ -78,7 +79,16 @@ class MonologueService:
 
     def set_monologue_context(self, id: int, context: Dict[str, Any]):
         """Sets the context of the given Monologue."""
-        pass
+        with self._db.session() as db:
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == id)
+            )
+
+            if monologue is None:
+                raise NonexistentMonologueError(id)
+
+            monologue.context = context
+            db.commit()
     
     def set_monologue_status(self, id: int, status: MonologueStatus):
         with self._db.session() as db:
@@ -90,6 +100,11 @@ class MonologueService:
                 raise NonexistentMonologueError(id)
             
             monologue.status = status
+            if monologue.context is not None:
+                ctx = copy(monologue.context)
+                ctx["FINISHED"] = monologue.is_finished()
+                monologue.context = ctx
+
             db.commit()
     
     def set_monologue_title(self, id: int, title: str):
