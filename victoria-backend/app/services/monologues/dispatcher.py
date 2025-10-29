@@ -1,5 +1,6 @@
-from sqlalchemy import event, select, or_
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import event, select, or_, exists
+from sqlalchemy.orm import Session
+from base64 import b64encode
 from app.model.event import Event
 from app.model.thought import Thought
 from app.model.monologue import Monologue, MonologueStatus
@@ -75,8 +76,9 @@ class DispatcherService:
 
             matching_agents = event.trigger.allowed_on_agents
             for agent in matching_agents:
+                now = datetime.now(tz=timezone.utc)
                 trigger_thought = Thought(
-                    timestamp=datetime.now(tz=timezone.utc),
+                    timestamp=now,
                     invocation=None,
                     result=event.content
                 )
@@ -85,6 +87,8 @@ class DispatcherService:
                     summary="No summary",
                     event=event,
                     agent=agent,
+                    dispatched_at=now,
+                    modified_at=now,
                     status=MonologueStatus.PENDING,
                     thoughts=[
                         trigger_thought
@@ -92,6 +96,28 @@ class DispatcherService:
                 )
                 db.add(trigger_thought)
                 db.add(new_monologue)
+
+                # Generate an agent token
+                while new_monologue.agent_token is None:
+                    new_token = os.urandom(32)
+
+                    taken = db.scalar(
+                        select(exists().where(Monologue.agent_token == new_token))
+                    )
+
+                    if taken:
+                        continue
+
+                    new_monologue.agent_token = new_token
+
+                db.flush() # So new_monologue.id is available
+                new_monologue.context = {
+                    "FINISHED": False,
+                    "BASE_URL": self._base_url,
+                    "MONOLOGUE_ID": new_monologue.id,
+                    "TOKEN": b64encode(new_monologue.agent_token).decode("utf-8")
+                }
+
                 
             event.dispatched = True
             db.commit()
@@ -105,6 +131,5 @@ class DispatcherService:
             if monologue is None:
                 return
             
-            monologue.status = MonologueStatus.RUNNING
             self._runner.start_monologue_process(monologue.id)
             db.commit()

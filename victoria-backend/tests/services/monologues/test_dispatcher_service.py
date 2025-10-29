@@ -1,8 +1,6 @@
 import pytest
 from unittest import mock
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import sessionmaker
-import threading as t
+from base64 import b64encode
 from sqlalchemy import select
 from app.model.user import User, Role
 from app.model.agent import Agent
@@ -212,7 +210,7 @@ def test_dispatcher_sets_monologue_agent_token_when_dispatching_monologue(mock_u
 
     # Act
     assert event.monologues[0].agent_token == b'aaaa'
-    assert event.monologues[0].context["TOKEN"] == (b'aaaa').decode('utf-8')
+    assert event.monologues[0].context["TOKEN"] == b64encode(b'aaaa').decode("utf-8")
 
 @mock.patch("app.services.monologues.dispatcher.os.urandom")
 def test_dispatcher_generates_monologue_context_token_again_after_token_collision_when_dispatching_monologue(mock_urandom, db_session, dispatcher, owner):
@@ -264,7 +262,7 @@ def test_dispatcher_generates_monologue_context_token_again_after_token_collisio
 
     # Act
     assert event.monologues[0].agent_token == b'bbbb'
-    assert event.monologues[0].context["TOKEN"] == (b'bbbb').decode('utf-8')
+    assert event.monologues[0].context["TOKEN"] == b64encode(b'bbbb').decode("utf-8")
 
 def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, owner):
     # Arrange
