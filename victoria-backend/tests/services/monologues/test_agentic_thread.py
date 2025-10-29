@@ -32,14 +32,16 @@ def mock_monologue_serv():
         title="None",
         summary="None",
         # event=event,
-        # agent=agent,
+        agent=Agent(
+            name="Cook",
+            model_id=5
+        ),
         # lets say the server crashed while the monologue was running
         status=MonologueStatus.RUNNING, 
         thoughts=[ ]
     )
     serv.get_monologue_thoughts_as_llm_chat_history.return_value = chat_history    
     serv.get_monologue_system_prompt.return_value = "MY SYSTEM PROMPT"
-    serv.get_monologue_llm_model_id.return_value = 5
     return serv
 
 @pytest.fixture(scope="function")
@@ -91,7 +93,7 @@ def test_agentic_thread_calls_monologue_service_properly_on_iteration(thread_sut
     # Assert
     mock_monologue_serv.get_monologue_thoughts_as_llm_chat_history.assert_called_once_with(1)
     mock_monologue_serv.get_monologue_system_prompt.assert_called_once_with(1)
-    mock_monologue_serv.get_monologue_llm_model_id.assert_called_once_with(1)
+    mock_monologue_serv.get_monologue_by_id.assert_called_once_with(1)
 
 def test_agentic_thread_calls_llm_service_properly_on_iteration(thread_sut, mock_monologue_serv, mock_llm_serv):
     # Act
@@ -120,7 +122,7 @@ def test_agentic_thread_calls_execute_invocation_with_fresh_context_when_no_cont
     thread_sut.do_iteration()
 
     # Assert
-    mock_monologue_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value, {})
+    mock_action_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value, {})
 
 def test_agentic_thread_calls_execute_invocation_with_existing_context_when_context_set_on_iteration(thread_sut, mock_action_serv, mock_monologue_serv):
     # Arrange
@@ -133,7 +135,7 @@ def test_agentic_thread_calls_execute_invocation_with_existing_context_when_cont
     thread_sut.do_iteration()
 
     # Assert
-    mock_monologue_serv.execute_invocation.assert_called_once_with(
+    mock_action_serv.execute_invocation.assert_called_once_with(
         mock_action_serv.parse_invocation.return_value, 
         {
             "BASE_URL": "MEGAURL",

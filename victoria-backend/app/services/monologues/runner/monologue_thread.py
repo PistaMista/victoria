@@ -52,16 +52,18 @@ class AgenticMonologueThread(MonologueThread):
 
     
     def do_iteration(self):
+        monologue = self._monologue.get_monologue_by_id(self._id)
         thoughts = self._monologue.get_monologue_thoughts_as_llm_chat_history(self._id)
         prompt = self._monologue.get_monologue_system_prompt(self._id)
-        model_id = self._monologue.get_monologue_llm_model_id(self._id)
+        model_id = monologue.agent.model_id
+        context = monologue.context or { }
         
         thoughts.insert(0, SystemMessage(prompt))
         
-        llm_response = self._llm.get_chat_completion(5, thoughts)
+        llm_response = self._llm.get_chat_completion(model_id, thoughts)
         
         invocation = self._action.parse_invocation(llm_response._content)
-        result = self._action.execute_invocation(invocation)
+        result = self._action.execute_invocation(invocation, context)
         
         # TODO: Check if the called action is allowed, since the action service does not check this
         
@@ -72,3 +74,4 @@ class AgenticMonologueThread(MonologueThread):
         )
         
         self._monologue.append_thought_to_monologue(self._id, new_thought)
+        self._monologue.set_monologue_context(self._id, context)
