@@ -65,7 +65,16 @@ class MonologueService:
 
     def get_user_monologue_thoughts(self, user_id: int, monologue_id: int) -> List[Thought]:
         """Gets the Thoughts of the given Monologue."""
-        pass
+        with self._db.session() as db:
+            monologue = self._load_user_monologue(db, user_id, monologue_id)
+
+            res = monologue.thoughts
+
+            for thought in res:
+                if thought.invocation is not None:
+                    db.refresh(thought.invocation)
+
+            return list(res)
 
     def set_monologue_context(self, id: int, context: Dict[str, Any]):
         """Sets the context of the given Monologue."""
