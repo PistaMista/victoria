@@ -1,11 +1,12 @@
 from app.services.db import DatabaseService
 from app.services.action import ActionService
 from app.services.llm import UserMessage, AssistantMessage
+from app.model.agent import Agent
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
 from app.model.invocation import Invocation
 from typing import List, Optional, Dict, Any
-from sqlalchemy import select
+from sqlalchemy import select, func, case, or_
 from sqlalchemy.orm import joinedload
 import json
 
@@ -20,7 +21,32 @@ class MonologueService:
 
     def get_user_monologues(self, user_id: int, status_filter: Optional[MonologueStatus] = None, search_query: Optional[str] = None) -> List[Monologue]:
         """Gets all of the given User's monologues."""
-        pass
+        with self._db.session() as db:
+            stmt = select(Monologue).join(Monologue.agent).where(Agent.owner_id == user_id)
+
+            if status_filter is not None:
+                stmt = stmt.where(Monologue.status == status_filter)
+
+            if search_query is not None:
+                stmt = stmt.where(or_(
+                    func.lower(Monologue.title).like(f"%{search_query.lower()}%"),
+                    func.lower(Monologue.summary).like(f"%{search_query.lower()}%")
+                ))
+
+            status_order = case(
+                {
+                    MonologueStatus.RUNNING.name: 1,
+                    MonologueStatus.PENDING.name: 2,
+                    MonologueStatus.SUCCESS.name: 3,
+                    MonologueStatus.FAILURE.name: 3
+                },
+                value=Monologue.status
+            )
+
+            stmt = stmt.order_by(status_order.asc(), Monologue.modified_at.desc())
+
+            res = db.scalars(stmt).all()
+            return res
 
     def get_user_monologue(self, user_id: int, monologue_id: int) -> Monologue:
         """Gets the given Monologue."""
