@@ -468,6 +468,38 @@ def test_monologue_service_can_get_user_monologue_by_id(db_serv, db_session):
     assert res.summary == "Exporting to Zettelkasten..."
     assert res.status == MonologueStatus.RUNNING
 
+@mock.patch("app.services.monologues.MonologueService.set_monologue_status")
+def test_monologue_service_can_end_user_monologue_with_success(mock_set_status, sample_monologue, db_serv):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+
+    # Act
+    service.end_user_monologue(sample_monologue.agent.owner_id, sample_monologue.id, True)
+
+    # Assert
+    mock_set_status.assert_called_once_with(id=sample_monologue.id, status=MonologueStatus.SUCCESS)
+
+@mock.patch("app.services.monologues.MonologueService.set_monologue_status")
+def test_monologue_service_can_end_user_monologue_with_failure(mock_set_status, sample_monologue, db_serv):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv
+    )
+
+    # Act
+    service.end_user_monologue(sample_monologue.agent.owner_id, sample_monologue.id, False)
+
+    # Assert
+    mock_set_status.assert_called_once_with(id=sample_monologue.id, status=MonologueStatus.FAILURE)
+
+
+
 def test_monologue_service_can_get_user_monologue_thoughts_including_invocations(db_serv, db_session, sample_monologue):
     # Arrange
     mock_action_serv = mock.MagicMock()

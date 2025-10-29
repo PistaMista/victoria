@@ -56,7 +56,12 @@ class MonologueService:
 
     def end_user_monologue(self, user_id: int, monologue_id: int, successful: bool):
         """Ends the given Monologue with either SUCCESS or FAILURE."""
-        pass
+        with self._db.session() as db:
+            monologue = self._load_user_monologue(db, user_id, monologue_id)
+            self.set_monologue_status(
+                id=monologue.id, 
+                status=MonologueStatus.SUCCESS if successful else MonologueStatus.FAILURE
+            )
 
     def get_user_monologue_thoughts(self, user_id: int, monologue_id: int) -> List[Thought]:
         """Gets the Thoughts of the given Monologue."""
