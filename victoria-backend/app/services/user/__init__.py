@@ -42,6 +42,7 @@ class UserService:
 
     def update_user(self, id: int, changes: "UserDiff"):
         """Updates the given User."""
+
         pass
         
     def create_user(self, username: str, password: str, role: Role, permitted_action_ids: List[int] = [], permitted_trigger_ids: List[int] = []) -> int:
@@ -89,19 +90,24 @@ class UserService:
             return first_user is not None
 
     def get_user_by_id(self, id: int) -> User:
-        # TODO: Throw NonexistentUserError when the user does not exist
         with self._db.session() as db:
             user = db.scalar(
                 select(User).where(User.id == id)
             )
 
+            if user is None:
+                raise NonexistentUserError(id)
+
             return user
     
-    def get_user_by_name(self, username: str) -> Optional[User]:
+    def get_user_by_name(self, username: str) -> User:
         with self._db.session() as db:
             user = db.scalar(
                 select(User).where(User.username == username)
             )
+
+            if user is None:
+                raise NonexistentUserError(username)
             
             return user
     
