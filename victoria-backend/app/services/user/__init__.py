@@ -2,7 +2,9 @@ from app.services.db import DatabaseService
 from bcrypt import hashpw, gensalt
 from typing import Optional, List
 from app.model.user import User, Role
-from sqlalchemy import select, delete
+from app.model.agent import Agent
+from app.model.monologue import Monologue, MonologueStatus
+from sqlalchemy import select
 from pydantic import BaseModel
 
 class UserService:
@@ -20,7 +22,21 @@ class UserService:
     
     def get_user_by_running_monologue_agent_token(self, token: bytes) -> User:
         """Gets the owner of the Monologue given by the token, if it is running."""
-        pass
+        with self._db.session() as db:
+            res = db.scalar(
+                select(User)
+                .join(User.agents)
+                .join(Agent.monologues)
+                .where(
+                    Monologue.agent_token == token,
+                    Monologue.status == MonologueStatus.RUNNING
+                )
+            )
+
+            if res is None:
+                raise NonexistentUserError("")
+
+            return res
 
     def update_user(self, id: int, changes: "UserDiff"):
         """Updates the given User."""
