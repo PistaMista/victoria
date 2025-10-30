@@ -109,7 +109,17 @@ class TriggerService:
 
     def add_webhook_trigger(self, name: str, template: str, endpoint: str) -> int:
         """Creates a new webhook trigger and returns its id."""
-        pass
+        with self._db.session() as db:
+            new = WebhookTrigger(
+                name=name,
+                template=template,
+                endpoint=endpoint
+            )
+            
+            db.add(new)
+            db.commit()
+
+            return new.id
 
     def get_trigger_by_id(self, id: int) -> Trigger:
         """Gets the given Trigger."""
