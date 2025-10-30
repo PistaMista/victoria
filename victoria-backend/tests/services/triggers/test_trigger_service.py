@@ -929,11 +929,11 @@ def test_trigger_service_can_remove_trigger(db_serv, db_session):
     # Assert
     triggers = db_session.scalars(
         select(Trigger)
-    )
+    ).all()
 
     assert len(triggers) == 2
     assert triggers[0].id == 5
-    assert triggers[0].id == 15
+    assert triggers[1].id == 15
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer")
 def test_trigger_service_removing_timer_trigger_tries_to_stop_trigger_timer(mock_stop, db_serv, db_session):

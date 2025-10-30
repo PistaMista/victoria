@@ -249,7 +249,19 @@ class TriggerService:
 
     def remove_trigger(self, id: int):
         """Deletes the given Trigger."""
-        pass
+        with self._db.session() as db:
+            trigger = db.scalar(
+                select(Trigger).where(Trigger.id == id)
+            )
+
+            if trigger is None:
+                raise NonexistentTriggerError(id)
+
+            if isinstance(trigger, TimerTrigger) or isinstance(trigger, PollTrigger):
+                self.stop_trigger_timer(trigger_id=trigger.id)
+
+            db.delete(trigger)
+            db.commit()
 
     def start_stopped_trigger_timers(self):
         with self._db.session() as db:
