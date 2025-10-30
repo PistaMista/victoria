@@ -4,6 +4,8 @@ from typing import Optional, List
 from app.model.user import User, Role
 from app.model.agent import Agent
 from app.model.monologue import Monologue, MonologueStatus
+from app.model.action import Action
+from app.model.trigger import Trigger
 from sqlalchemy import select
 from pydantic import BaseModel
 
@@ -56,8 +58,27 @@ class UserService:
                 password_hash=hashpw(password.encode('utf-8'), gensalt()).decode('utf-8'),
                 role=role
             )
+
+            permitted_actions = db.scalars(
+                select(Action).where(Action.id.in_(permitted_action_ids))
+            ).all()
+            permitted_triggers = db.scalars(
+                select(Trigger).where(Trigger.id.in_(permitted_trigger_ids))
+            ).all()
+
+            if len(permitted_actions) < len(permitted_action_ids):
+                raise InvalidUserSettingError("Invalid action ID for permitted action")
+            
+            if len(permitted_triggers) < len(permitted_trigger_ids):
+                raise InvalidUserSettingError("Invalid trigger ID from permitted trigger")
+
+            new_user.allowed_actions = permitted_actions
+            new_user.allowed_triggers = permitted_triggers
+
             db.add(new_user)
             db.commit()
+
+            return new_user.id
     
     def is_any_user_registered(self) -> bool:
         with self._db.session() as db:
