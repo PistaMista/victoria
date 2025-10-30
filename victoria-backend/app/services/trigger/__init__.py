@@ -374,6 +374,8 @@ class TriggerService:
             db.add(event)
             db.commit()
 
+            return event.id
+
 class TriggerDiff(BaseModel):
     name: Optional[str] = None
     parser: Optional[Literal["identity"]] = None
