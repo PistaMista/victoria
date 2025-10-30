@@ -2,7 +2,7 @@ from app.services.db import DatabaseService
 from typing import Dict, Any, Optional, Literal, List
 from itertools import chain
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, with_polymorphic, undefer
 from app.model.user import User
 from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
 from app.model.event import Event
@@ -81,9 +81,18 @@ class TriggerService:
     def get_trigger_by_id(self, id: int) -> Trigger:
         """Gets the given Trigger."""
         with self._db.session() as db:
+            TriggerPoly = with_polymorphic(
+                base=Trigger,
+                classes=[ChatTrigger, PollTrigger, TimerTrigger, WebhookTrigger]
+            )
             res = db.scalar(
-                select(Trigger)
+                select(TriggerPoly)
                 .where(Trigger.id == id)
+                .options(
+                    undefer(TriggerPoly.template),
+                    undefer(TriggerPoly.ChatTrigger.receiver),
+                    undefer(TriggerPoly.WebhookTrigger.endpoint),
+                )
             )
 
             if res is None:

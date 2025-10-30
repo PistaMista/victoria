@@ -306,6 +306,8 @@ def test_trigger_service_can_get_trigger_by_id(db_serv, db_session):
     assert isinstance(res, ChatTrigger)
     assert res.id == 10
     assert res.name == "Simple chat"
+    assert res.receiver == "general"
+    assert res.template == "Hello"
 
     # Teardown
     serv.stop_trigger_timers()
