@@ -2,6 +2,8 @@ from app.services.db import DatabaseService
 from typing import Dict, Any, Optional, Literal, List
 from itertools import chain
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from app.model.user import User
 from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
 from app.model.event import Event
 from pydantic import BaseModel
@@ -20,7 +22,24 @@ class TriggerService:
 
     def get_user_event(self, user_id: int, event_id: int) -> Event:
         """Gets the given Event."""
-        pass
+        with self._db.session() as db:
+            res = db.scalar(
+                select(Event)
+                .join(Event.trigger)
+                .join(Trigger.allowed_on_users)
+                .where(
+                    Event.id == event_id,
+                    User.id == user_id
+                )
+                .options(
+                    joinedload(Event.trigger)
+                )
+            )
+
+            if res is None:
+                raise NonexistentEventError(event_id)
+
+            return res
 
     def get_user_allowed_triggers(self, user_id: int) -> List[Trigger]:
         """Gets all the Triggers allowed for the User's Agents."""
