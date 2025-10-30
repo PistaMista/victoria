@@ -80,7 +80,16 @@ class TriggerService:
 
     def get_trigger_by_id(self, id: int) -> Trigger:
         """Gets the given Trigger."""
-        pass
+        with self._db.session() as db:
+            res = db.scalar(
+                select(Trigger)
+                .where(Trigger.id == id)
+            )
+
+            if res is None:
+                raise NonexistentTriggerError(id)
+
+            return res
 
     def update_trigger(self, trigger_id: int, changes: "TriggerDiff"):
         """Updates the given Trigger."""
