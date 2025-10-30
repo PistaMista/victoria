@@ -64,7 +64,18 @@ class TriggerService:
 
     def add_timer_trigger(self, name: str, template: str, interval: int) -> int:
         """Creates a new timer trigger and returns its id."""
-        pass
+        with self._db.session() as db:
+            new = TimerTrigger(
+                name=name,
+                template=template,
+                interval=interval
+            )
+
+            db.add(new)
+            db.commit()
+
+            self.restart_trigger_timer(trigger_id=new.id)
+            return new.id
 
     def add_poll_trigger(self, name: str, template: str, interval: int, url: str) -> int:
         """Creates a new poll trigger and returns its id."""
@@ -91,6 +102,7 @@ class TriggerService:
                 .options(
                     undefer(TriggerPoly.template),
                     undefer(TriggerPoly.ChatTrigger.receiver),
+                    undefer(TriggerPoly.PollTrigger.url),
                     undefer(TriggerPoly.WebhookTrigger.endpoint),
                 )
             )

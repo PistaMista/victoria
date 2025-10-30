@@ -439,7 +439,7 @@ def test_trigger_service_can_add_timer_trigger(db_serv, db_session):
         select(Trigger).where(Trigger.id == new_id)
     )
     trigger_count = db_session.scalar(
-        select(func.count()).select_from(Event)
+        select(func.count()).select_from(Trigger)
     )
 
     assert trigger_count == 2
