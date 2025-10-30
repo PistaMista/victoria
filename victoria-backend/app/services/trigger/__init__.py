@@ -2,7 +2,8 @@ from app.services.db import DatabaseService
 from typing import Dict, Any, Optional, Literal, List
 from itertools import chain
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, with_polymorphic, undefer
+from sqlalchemy.orm import joinedload, with_polymorphic, undefer, make_transient
+from sqlalchemy.inspection import inspect
 from app.model.user import User
 from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
 from app.model.event import Event
@@ -146,7 +147,105 @@ class TriggerService:
 
     def update_trigger(self, trigger_id: int, changes: "TriggerDiff"):
         """Updates the given Trigger."""
-        pass
+
+        with self._db.session() as db:
+            with db.no_autoflush:
+                old = db.scalar(
+                    select(Trigger).where(Trigger.id == trigger_id)
+                )
+                new = old
+                
+                if old is None:
+                    raise NonexistentTriggerError(trigger_id)
+
+                # Store old relationships
+                rel_data = {}
+                for rel in inspect(Trigger).relationships:
+                    rel_data[rel.key] = getattr(old, rel.key)
+
+                # Apply type-specific changes by creating a new trigger instance
+                match (old, changes):
+                    case (TimerTrigger(), TimerTriggerDiff()):
+                        new = TimerTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            interval=changes.interval or old.interval
+                        )
+                    case (Trigger(), TimerTriggerDiff()):
+                        new = TimerTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            interval=changes.interval or 3600
+                        )
+                    case (PollTrigger(), PollTriggerDiff()):
+                        new = PollTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            interval=changes.interval or old.interval,
+                            url=changes.url or old.url
+                        )
+                    case (Trigger(), PollTriggerDiff()):
+                        new = PollTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            interval=changes.interval or 3600,
+                            url=changes.url or ""
+                        )
+                    case (ChatTrigger(), ChatTriggerDiff()):
+                        new = ChatTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            receiver=changes.receiver or old.receiver
+                        )
+                    case (Trigger(), ChatTriggerDiff()):
+                        new = ChatTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            receiver=changes.receiver or ""
+                        )
+                    case (WebhookTrigger(), WebhookTriggerDiff()):
+                        new = WebhookTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            endpoint=changes.endpoint or old.endpoint
+                        )
+                    case (Trigger(), WebhookTriggerDiff()):
+                        new = WebhookTrigger(
+                            id=old.id,
+                            name=old.name,
+                            template=old.template,
+                            endpoint=changes.endpoint or ""
+                        )
+
+                # Apply base changes
+                if changes.name is not None:
+                    new.name = changes.name
+
+                if changes.template is not None:
+                    new.template = changes.template
+
+                if new is not old:
+                    db.delete(old)
+                    db.flush()
+
+                    # Restore relationships
+                    for key, value in rel_data.items():
+                        setattr(new, key, value)
+
+                    db.add(new)
+
+                db.commit()
+
+                if isinstance(new, TimerTrigger) or isinstance(new, PollTrigger):
+                    self.restart_trigger_timer(trigger_id=new.id)
+
 
     def remove_trigger(self, id: int):
         """Deletes the given Trigger."""

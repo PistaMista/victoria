@@ -699,6 +699,12 @@ def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_pol
         receiver="advisory",
         template="Woo"
     )
+    event = Event(
+        trigger=trigger, # Foreign key constraint must not break during trigger type change
+        dispatched=False,
+        content=""
+    )
+    db_session.add(event)
     db_session.add(trigger)
     db_session.commit()
 
@@ -712,6 +718,7 @@ def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_pol
     )
 
     # Assert
+    db_session.expunge(trigger)
     trigger = db_session.scalar(
         select(Trigger).where(Trigger.id == 5)
     )
@@ -722,6 +729,10 @@ def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_pol
     # When unspecified, the default interval is one hour
     assert trigger.interval == 3600
     assert trigger.url == "seznam.cz"
+
+    # Relationships must not be broken
+    assert isinstance(event.trigger, PollTrigger)
+    assert event.trigger.id == 5
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
 def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(mock_restart, db_serv, db_session):
