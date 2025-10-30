@@ -5,7 +5,7 @@ from app.model.monologue import Monologue, MonologueStatus
 from app.model.agent import Agent
 from app.model.thought import Thought
 from app.model.invocation import Invocation
-from datetime import datetime
+from datetime import datetime, UTC
 from fastapi import status
 
 def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_client, auth_mock, monologue_mock, user):
@@ -85,6 +85,8 @@ def test_get_monologue_returns_200_and_monologue_on_valid_request(mock_client, a
         title="Yo dawg",
         summary="Summery",
         status=MonologueStatus.FAILURE,
+        dispatched_at=datetime.fromtimestamp(2000, tz=UTC),
+        modified_at=datetime.fromtimestamp(3000, tz=UTC),
         agent_id=600,
         agent=Agent(
             id=600
@@ -106,8 +108,8 @@ def test_get_monologue_returns_200_and_monologue_on_valid_request(mock_client, a
         "id": 1337,
         "agentId": 600,
         # TODO: Implement timestamps for Monologues
-        "startTimestamp": 0,
-        "endTimestamp": 0,
+        "startTimestamp": 2000,
+        "endTimestamp": 3000,
         "status": "FAILURE",
         "title": "Yo dawg",
         "summary": "Summery"

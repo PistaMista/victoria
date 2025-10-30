@@ -90,8 +90,8 @@ def to_monologue_response(x: Monologue) -> MonologueResponse:
     return MonologueResponse(
         id=x.id,
         agentId=x.agent_id,
-        startTimestamp=0,
-        endTimestamp=0,
+        startTimestamp=int(x.dispatched_at.timestamp()),
+        endTimestamp=int(x.modified_at.timestamp()),
         title=x.title,
         summary=x.summary,
         status=x.status.to_status_str()

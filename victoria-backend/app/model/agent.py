@@ -11,6 +11,9 @@ class Agent(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     prompt: Mapped[str] = mapped_column(Text(), nullable=False)
+
+    owner_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete='CASCADE'), nullable=False)
+    owner: Mapped["User"] = relationship("User", back_populates="agents")
     
     model_id: Mapped[int] = mapped_column(ForeignKey("language_model.id"), nullable=True)
     model: Mapped["LanguageModel"] = relationship("LanguageModel")
@@ -19,4 +22,4 @@ class Agent(Base):
     
     allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_agent_trigger_association, back_populates="allowed_on_agents")
     allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_agent_action_association, back_populates="allowed_on_agents")
-    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="agent")
+    monologues: Mapped[List["Monologue"]] = relationship("Monologue", back_populates="agent", cascade='all,delete')

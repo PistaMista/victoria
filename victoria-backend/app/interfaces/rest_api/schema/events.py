@@ -1,6 +1,7 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class EventResponse(BaseModel):
-    triggerId: int
+    triggerId: Optional[int]
     content: str
 

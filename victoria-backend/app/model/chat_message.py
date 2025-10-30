@@ -10,7 +10,7 @@ class ChatMessage(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     type: Mapped[str] = mapped_column(String(10), nullable=False)
 
-    timestamp: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     usermsg_exchange_id: Mapped[int] = mapped_column(ForeignKey("chat_exchange.id", ondelete='CASCADE'), nullable=True, unique=True)
     usermsg_exchange: Mapped["ChatExchange"] = relationship(
@@ -53,6 +53,7 @@ class ChatMessageChoicePrompt(ChatMessage):
     id: Mapped[int] = mapped_column(ForeignKey('chat_message.id'), primary_key=True)
 
     prompt: Mapped[str] = mapped_column(String(120), nullable=False)
+    answer: Mapped[Any] = mapped_column(JSON(), nullable=True)
     choices: Mapped[List["ChoiceMessageOption"]] = relationship(
             "ChoiceMessageOption",
             back_populates="message",

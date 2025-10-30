@@ -1,10 +1,12 @@
 from app.services.db import DatabaseService
 from app.services.action.tool import convert_to_action
+from app.model.user import User
 from app.model.action import Action
 from app.model.invocation import Invocation
 from app.model.action_repository import ActionRepository
 from sqlalchemy import select
-from typing import List, Optional
+from sqlalchemy.orm import joinedload
+from typing import List, Optional, Dict, Any
 from git import Repo
 from pydantic import TypeAdapter, ValidationError, BaseModel
 from pydoc import locate
@@ -26,8 +28,79 @@ class ActionService:
         self._db: DatabaseService = database_service
         self._reimport_actions_for_existing_repositories()
 
+    def get_all_action_repositories(self) -> List[ActionRepository]:
+        """Returns all registered action repositories."""
+        with self._db.session() as db:
+            res = db.scalars(
+                select(ActionRepository)
+                .options(
+                    joinedload(ActionRepository.actions)
+                )
+            ).unique().all()
 
-    def add_action_repository(self, name: str, url: str):
+            return res
+    
+    def get_action_repository_by_id(self, id: int) -> ActionRepository:
+        """Gets the action repository with the given id."""
+        with self._db.session() as db:
+            res = db.scalar(
+                select(ActionRepository)
+                .where(ActionRepository.id == id)
+                .options(
+                    joinedload(ActionRepository.actions)
+                )
+            )
+
+            if res is None:
+                raise NonexistentActionRepositoryError(id)
+
+            return res
+
+    def update_action_repository(self, id: int, changes: "ActionRepositoryDiff"):
+        """Updates the action repository with the given id."""
+        with self._db.session() as db:
+            repo = db.scalar(
+                select(ActionRepository)
+                .where(ActionRepository.id == id)
+            )
+
+            if repo is None:
+                raise NonexistentActionRepositoryError(id)
+
+            if changes.name is not None:
+                repo.name = changes.name
+
+            if changes.url is not None:
+                repo.url = changes.url
+
+            db.commit()
+
+        self._reimport_actions_for_existing_repositories()
+
+    def get_user_permitted_actions(self, user_id: int) -> List[Action]:
+        """Gets the actions that agents of the user with the given id can take."""
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Action)
+                .join(Action.allowed_on_users)
+                .where(User.id == user_id)
+                .order_by(Action.function_name)
+            ).all() or []
+
+            return res
+
+    def get_all_actions(self) -> List[Action]:
+        """Gets all the currently registered actions."""
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Action)
+                .order_by(Action.function_name)
+            ).all() or []
+
+            return res
+
+
+    def add_action_repository(self, name: str, url: str) -> int:
         """Adds an action repository with the given name and url."""
         repo_id = 0
         with self._db.session() as db:
@@ -48,6 +121,8 @@ class ActionService:
         except:
             # TODO: Store an error somewhere indicating that the last import action failed
             pass
+
+        return repo_id
     
     def remove_action_repository(self, id: int):
         with self._db.session() as db:
@@ -155,7 +230,7 @@ class ActionService:
         
         return result
     
-    def execute_invocation(self, invocation: Invocation) -> str:
+    def execute_invocation(self, invocation: Invocation, context: Dict[str, Any]) -> str:
         errors = []
         
         if invocation.function_name is not None:
@@ -184,7 +259,7 @@ class ActionService:
                 invocation.action.function_source_code,
                 namespace
             )
-            return str(namespace[invocation.action.function_name](**invocation.params))
+            return str(namespace[invocation.action.function_name](context=context, **invocation.params))
         except Exception as e:
             return str(e)
 

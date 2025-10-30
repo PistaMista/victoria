@@ -4,8 +4,10 @@ from app.model.trigger import Trigger
 from app.model.event import Event
 from app.model.agent import Agent
 from app.model.monologue import Monologue
+from app.model.event import Event
+from base64 import b64encode
 from app.model.user import User, Role
-from app.services.user import UserService
+from app.services.user import UserService, NonexistentUserError
 from app.services.auth import AuthService, InvalidLoginError, ExpiredLoginError, AdminRequiredError, NotLoggedInError
 
 
@@ -24,14 +26,37 @@ def auth_serv():
             role=Role.USER
         )
     user_serv_mock = mock.Mock(spec=UserService)
-    user_serv_mock.get_user_by_name.side_effect = lambda name: {
-        "John": john,
-        "tom": tom
-    }.get(name)
-    user_serv_mock.get_user_by_id.side_effect = lambda id: {
-        1: john,
-        2: tom
-    }.get(id)
+
+    def get_user_by_name_mock(name: str) -> User:
+        match name:
+            case "John":
+                return john
+            case "tom":
+                return tom
+            case _:
+                raise NonexistentUserError(name)
+
+    def get_user_by_id_mock(id: int) -> User:
+        match id:
+            case 1:
+                return john
+            case 2:
+                return tom
+            case _:
+                raise NonexistentUserError(id)
+
+
+    user_serv_mock.get_user_by_name.side_effect = get_user_by_name_mock
+    user_serv_mock.get_user_by_id.side_effect = get_user_by_id_mock
+
+    def get_user_by_agent_token_mock(token: bytes) -> User:
+        match token:
+            case b'aaaa':
+                return john
+            case _:
+                raise NonexistentUserError(0)
+
+    user_serv_mock.get_user_by_running_monologue_agent_token.side_effect = get_user_by_agent_token_mock
 
     return AuthService(
         user_service=user_serv_mock,
@@ -80,6 +105,19 @@ def test_auth_service_verifies_valid_nonadmin_token(time, auth_serv):
     assert user.username == "tom"
     assert user.role == Role.USER
 
+def test_auth_service_verifies_valid_agent_token(auth_serv):
+    # Agent tokens are only valid as long as the monologue they come from is running
+    # and they represent the User who owns the given Agent
+    # Arrange
+    token = b64encode(b'aaaa').decode("utf-8")
+
+    # Act
+    user = auth_serv.get_as_non_admin_user(token)
+
+    # Assert
+    assert user.username == "John"
+    assert user.role == Role.USER
+
 @mock.patch('time.time', return_value=1753211036)
 def test_auth_service_verifies_valid_admin_token(time, auth_serv):
     # Arrange
@@ -124,7 +162,19 @@ def test_auth_service_rejects_nonadmin_token_when_verifying_admin_token(time, au
     with pytest.raises(AdminRequiredError):
         auth_serv.get_as_admin_user(token)
 
-def test_auth_service_treats_agent_token_as_user_token():
-    # Agent tokens are only valid as long as the monologue they come from is running
-    # and they represent the User who owns the given Agent
-    assert False
+
+def test_auth_service_rejects_agent_token_when_verifying_admin_token(auth_serv):
+    # Arrange
+    token = b64encode(b'aaaa').decode("utf-8")
+
+    # Act / Assert
+    with pytest.raises(AdminRequiredError):
+        auth_serv.get_as_admin_user(token)
+
+def test_auth_service_rejects_agent_token_from_finished_monologue(auth_serv):
+    # Arrange
+    token = b64encode(b'bbbb').decode("utf-8")
+
+    # Act / Assert
+    with pytest.raises(InvalidLoginError):
+        auth_serv.get_as_non_admin_user(token)

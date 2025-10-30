@@ -73,11 +73,8 @@ class Container(containers.DeclarativeContainer):
     dispatcher = providers.Singleton(
         DispatcherService,
         db_service=db,
-        runner_service=runner
-    )
-
-    chat = providers.Singleton(
-        ChatService
+        runner_service=runner,
+        base_url=providers.Callable(lambda c: f"{c.ADDRESS}:{c.PORT}", config)
     )
 
     trigger = providers.Singleton(
@@ -85,8 +82,15 @@ class Container(containers.DeclarativeContainer):
         database_service=db
     )
 
+    chat = providers.Singleton(
+        ChatService,
+        database_service=db,
+        trigger_service=trigger
+    )
+
     agent = providers.Singleton(
-        AgentService
+        AgentService,
+        database_service=db
     )
 
     user = providers.Singleton(

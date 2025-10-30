@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from dependency_injector.wiring import inject, Provide
-from app.services.llm import LLMService, DisabledModelError, NonexistentModelError
+from app.services.llm import LLMService, NonexistentModelError
 from app.containers import Container
 from app.model.user import User
 from .schema.models import ModelResponse

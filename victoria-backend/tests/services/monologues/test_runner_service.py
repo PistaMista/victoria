@@ -5,6 +5,7 @@ from typing import Callable
 from app.services.monologues.runner import RunnerService, AlreadyRunningError
 from app.services.monologues.runner.monologue_thread import MonologueThread
 from app.services.db import DatabaseService
+from app.model.user import User, Role
 from app.model.agent import Agent
 from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
@@ -13,6 +14,13 @@ from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from datetime import datetime
 
+@pytest.fixture(scope="function")
+def owner():
+    return User(
+        username="John",
+        password_hash="",
+        role=Role.USER
+    )
 
 @pytest.fixture(scope="function")
 def db_serv(db_factory, db_container):
@@ -21,7 +29,7 @@ def db_serv(db_factory, db_container):
     with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
         yield db
         
-def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session):
+def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session, owner):
     # Arrange
     mock_thread = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
@@ -40,6 +48,7 @@ def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session):
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -77,7 +86,7 @@ def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session):
     mock_thread.start.assert_called_once()
 
 
-def test_runner_marks_running_monologues_as_running(db_serv, db_session):
+def test_runner_marks_running_monologues_as_running(db_serv, db_session, owner):
     # Arrange
     mock_thread = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
@@ -96,6 +105,7 @@ def test_runner_marks_running_monologues_as_running(db_serv, db_session):
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -132,7 +142,7 @@ def test_runner_marks_running_monologues_as_running(db_serv, db_session):
     assert monologue.status == MonologueStatus.RUNNING
     
 
-def test_runner_marks_queued_monologues_as_pending(db_serv, db_session):
+def test_runner_marks_queued_monologues_as_pending(db_serv, db_session, owner):
     # Arrange
     mock_thread = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
@@ -151,6 +161,7 @@ def test_runner_marks_queued_monologues_as_pending(db_serv, db_session):
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -187,7 +198,7 @@ def test_runner_marks_queued_monologues_as_pending(db_serv, db_session):
     # Assert
     assert monologue.status == MonologueStatus.PENDING    
 
-def test_runner_ignores_finished_monologues(db_serv, db_session):
+def test_runner_ignores_finished_monologues(db_serv, db_session, owner):
     # Arrange
     mock_thread1 = mock.MagicMock()
     mock_thread2 = mock.MagicMock()
@@ -207,6 +218,7 @@ def test_runner_ignores_finished_monologues(db_serv, db_session):
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -252,7 +264,7 @@ def test_runner_ignores_finished_monologues(db_serv, db_session):
     mock_thread2.start.assert_not_called()
 
 
-def test_runner_cannot_start_running_monologue(db_serv, db_session):
+def test_runner_cannot_start_running_monologue(db_serv, db_session, owner):
     # Arrange
     mock_thread = mock.MagicMock()
     mock_thread._id = 7
@@ -272,6 +284,7 @@ def test_runner_cannot_start_running_monologue(db_serv, db_session):
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -313,7 +326,7 @@ def test_runner_cannot_start_running_monologue(db_serv, db_session):
 
 
 
-def test_runner_queues_excess_monologues(db_serv, db_session):
+def test_runner_queues_excess_monologues(db_serv, db_session, owner):
     # Arrange
     mock_thread1 = mock.MagicMock()
     mock_thread2 = mock.MagicMock()
@@ -333,6 +346,7 @@ def test_runner_queues_excess_monologues(db_serv, db_session):
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -376,7 +390,7 @@ def test_runner_queues_excess_monologues(db_serv, db_session):
     assert mon1.status == MonologueStatus.RUNNING
     assert mon2.status == MonologueStatus.PENDING
 
-def test_runner_starts_first_queued_thread_after_a_thread_finishes(db_serv, db_session):
+def test_runner_starts_first_queued_thread_after_a_thread_finishes(db_serv, db_session, owner):
     # Arrange
     thread_factory = mock.MagicMock()
     runner = RunnerService(
@@ -416,6 +430,7 @@ def test_runner_starts_first_queued_thread_after_a_thread_finishes(db_serv, db_s
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -477,7 +492,7 @@ def test_runner_starts_first_queued_thread_after_a_thread_finishes(db_serv, db_s
 
     
     
-def test_runner_marks_prematurely_exited_threads_as_failed_monologues(db_serv, db_session):
+def test_runner_marks_prematurely_exited_threads_as_failed_monologues(db_serv, db_session, owner):
     # Arrange
     thread_factory = mock.MagicMock()
     runner = RunnerService(
@@ -514,6 +529,7 @@ def test_runner_marks_prematurely_exited_threads_as_failed_monologues(db_serv, d
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(
@@ -544,7 +560,7 @@ def test_runner_marks_prematurely_exited_threads_as_failed_monologues(db_serv, d
     # ...threads that end without being marked as success are considered failed
     assert mon1.status == MonologueStatus.FAILURE
 
-def test_runner_does_not_mark_exited_threads_as_failed_monologues_if_already_marked(db_serv, db_session):
+def test_runner_does_not_mark_exited_threads_as_failed_monologues_if_already_marked(db_serv, db_session, owner):
     # Arrange
     thread_factory = mock.MagicMock()
     runner = RunnerService(
@@ -584,6 +600,7 @@ def test_runner_does_not_mark_exited_threads_as_failed_monologues_if_already_mar
     agent = Agent(
         name="Reporter",
         prompt="Notify the user of important world news",
+        owner=owner,
         allowed_triggers=[trigger]
     )
     event = Event(

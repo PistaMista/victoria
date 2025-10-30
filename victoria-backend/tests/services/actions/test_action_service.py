@@ -1,8 +1,9 @@
 import pytest
 import os
 from unittest import mock
-from app.services.action import ActionService, NonexistentActionError, NonexistentActionRepositoryError
+from app.services.action import ActionService, NonexistentActionError, NonexistentActionRepositoryError, ActionRepositoryDiff
 from app.services.db import DatabaseService
+from app.model.user import User, Role
 from app.model.action_repository import ActionRepository
 from app.model.action import Action
 from app.model.invocation import Invocation
@@ -27,7 +28,7 @@ def test_action_service_can_add_action_git_repository(mock_import_actions, mock_
     mock_import_actions.return_value = []
     
     # Act
-    serv.add_action_repository("Home Assistant", "http://mygit.com/HATools")
+    created_id = serv.add_action_repository("Home Assistant", "http://mygit.com/HATools")
     
     # Assert
     repos = db_session.scalars(
@@ -38,6 +39,16 @@ def test_action_service_can_add_action_git_repository(mock_import_actions, mock_
     assert repos[0].name == "Home Assistant"
     assert repos[0].url == "http://mygit.com/HATools"
     assert repos[0].actions == []
+
+    repo = db_session.scalar(
+        select(ActionRepository)
+        .where(ActionRepository.id == created_id)
+    )
+
+    assert repo.name == "Home Assistant"
+    assert repo.url == "http://mygit.com/HATools"
+    assert repo.actions == []
+
 
 @mock.patch("tests.services.actions.test_action_service.ActionService.set_action_repository_actions")
 @mock.patch("tests.services.actions.test_action_service.ActionService.import_actions_from_git_url")
@@ -486,6 +497,396 @@ def test_action_service_can_get_action_descriptions(db_serv, db_session):
     }
 }"""
 
+def test_action_service_can_get_all_action_repositories_and_their_actions(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    think_action = Action(
+        id=10,
+        function_name="think",
+        function_param_schema={
+            "content": "str"
+        },
+        function_docstring="Returns its parameter. Use to append a thought verbatim to the workflow.",
+        function_source_code=""
+    )
+    end_action = Action(
+        id=20,
+        function_name="end_workflow",
+        function_param_schema={
+            "successful": "bool",
+            "reason": "str"
+        },
+        function_docstring="Ends the workflow either with success or failure for the given reason.",
+        function_source_code=""
+    )
+    search_action = Action(
+        id=30,
+        function_name="search_web",
+        function_param_schema={
+            "query": "str"
+        },
+        function_docstring="Searches the web.",
+        function_source_code=""
+    )
+
+    repo_gitea = ActionRepository(
+        name="Gitea",
+        url="gitea",
+        actions=[think_action, end_action]
+    )
+    repo_github = ActionRepository(
+        name="Github",
+        url="github",
+        actions=[search_action]
+    )
+
+    db_session.add(repo_gitea)
+    db_session.add(repo_github)
+    db_session.commit()
+
+    # Act
+    res = serv.get_all_action_repositories()
+
+    # Assert
+    assert len(res) == 2
+    assert res[0].name == "Gitea"
+    assert res[0].url == "gitea"
+    assert len(res[0].actions) == 2
+    assert res[0].actions[0].id == 10
+    assert res[0].actions[0].function_name == "think"
+    assert res[0].actions[1].id == 20
+    assert res[0].actions[1].function_name == "end_workflow"
+
+    assert res[1].name == "Github"
+    assert res[1].url == "github"
+    assert len(res[1].actions) == 1
+    assert res[1].actions[0].id == 30
+    assert res[1].actions[0].function_name == "search_web"
+
+def test_action_service_can_get_action_repository_by_id_and_its_actions(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    think_action = Action(
+        id=10,
+        function_name="think",
+        function_param_schema={
+            "content": "str"
+        },
+        function_docstring="Returns its parameter. Use to append a thought verbatim to the workflow.",
+        function_source_code=""
+    )
+    end_action = Action(
+        id=20,
+        function_name="end_workflow",
+        function_param_schema={
+            "successful": "bool",
+            "reason": "str"
+        },
+        function_docstring="Ends the workflow either with success or failure for the given reason.",
+        function_source_code=""
+    )
+    search_action = Action(
+        id=30,
+        function_name="search_web",
+        function_param_schema={
+            "query": "str"
+        },
+        function_docstring="Searches the web.",
+        function_source_code=""
+    )
+
+    repo_gitea = ActionRepository(
+        id=32,
+        name="Gitea",
+        url="gitea",
+        actions=[think_action, end_action]
+    )
+    repo_github = ActionRepository(
+        id=40,
+        name="Github",
+        url="github",
+        actions=[search_action]
+    )
+
+    db_session.add(repo_gitea)
+    db_session.add(repo_github)
+    db_session.commit()
+
+    # Act
+    res = serv.get_action_repository_by_id(40)
+
+    # Assert
+    assert res is not None
+    assert res.name == "Github"
+    assert res.url == "github"
+    assert len(res.actions) == 1
+    assert res.actions[0].function_name == "search_web"
+
+@mock.patch("tests.services.actions.test_action_service.ActionService.import_actions_from_git_url")
+def test_action_service_can_update_action_repository(mock_import_actions, db_serv, db_session):
+    # Arrange
+    mock_import_actions.return_value = []
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    repo_gitea = ActionRepository(
+        id=32,
+        name="Gitea",
+        url="gitea",
+        actions=[]
+    )
+    repo_github = ActionRepository(
+        id=40,
+        name="Github",
+        url="github",
+        actions=[]
+    )
+
+    db_session.add(repo_gitea)
+    db_session.add(repo_github)
+    db_session.commit()
+
+    # Act
+    serv.update_action_repository(32, ActionRepositoryDiff(name = "LOL"))
+    serv.update_action_repository(40, ActionRepositoryDiff(name = "Guthib", url="woo"))
+
+    # Assert
+    db_session.refresh(repo_gitea)
+    db_session.refresh(repo_github)
+
+    assert repo_gitea.name == "LOL"
+    assert repo_gitea.url == "gitea"
+    assert repo_github.name == "Guthib"
+    assert repo_github.url == "woo"
+
+@mock.patch("tests.services.actions.test_action_service.ActionService._reimport_actions_for_existing_repositories")
+def test_action_service_update_action_repository_triggers_action_reimport(mock_reimport, db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    repo_gitea = ActionRepository(
+        id=32,
+        name="Gitea",
+        url="gitea",
+        actions=[]
+    )
+    repo_github = ActionRepository(
+        id=40,
+        name="Github",
+        url="github",
+        actions=[]
+    )
+
+    db_session.add(repo_gitea)
+    db_session.add(repo_github)
+    db_session.commit()
+
+    # Act
+    mock_reimport.reset_mock()
+    serv.update_action_repository(32, ActionRepositoryDiff(name = "LOL"))
+
+    # Assert
+    db_session.refresh(repo_gitea)
+    mock_reimport.assert_called_once()
+
+def test_action_service_can_get_user_allowed_actions(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    think_action = Action(
+        id=10,
+        function_name="think",
+        function_param_schema={
+            "content": "str"
+        },
+        function_docstring="Returns its parameter. Use to append a thought verbatim to the workflow.",
+        function_source_code=""
+    )
+    end_action = Action(
+        id=20,
+        function_name="end_workflow",
+        function_param_schema={
+            "successful": "bool",
+            "reason": "str"
+        },
+        function_docstring="Ends the workflow either with success or failure for the given reason.",
+        function_source_code=""
+    )
+    search_action = Action(
+        id=30,
+        function_name="search_web",
+        function_param_schema={
+            "query": "str"
+        },
+        function_docstring="Searches the web.",
+        function_source_code=""
+    )
+
+    user_john = User(
+        id=2,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        allowed_actions=[think_action, end_action]
+    )
+    user_mark = User(
+        id=5,
+        username="Mark",
+        password_hash="",
+        role=Role.USER,
+        allowed_actions=[search_action, think_action]
+    )
+
+    repo_gitea = ActionRepository(
+        id=32,
+        name="Gitea",
+        url="gitea",
+        actions=[search_action, think_action, end_action]
+    )
+    db_session.add(repo_gitea)
+    db_session.add(user_john)
+    db_session.add(user_mark)
+    db_session.commit()
+
+    # Act
+    res = serv.get_user_permitted_actions(2)
+
+    # Assert
+    assert len(res) == 2
+    assert res[0].function_name == "end_workflow"
+    assert res[1].function_name == "think"
+
+def test_action_service_returns_empty_list_when_getting_allowed_actions_for_nonexistent_user(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    think_action = Action(
+        id=10,
+        function_name="think",
+        function_param_schema={
+            "content": "str"
+        },
+        function_docstring="Returns its parameter. Use to append a thought verbatim to the workflow.",
+        function_source_code=""
+    )
+    end_action = Action(
+        id=20,
+        function_name="end_workflow",
+        function_param_schema={
+            "successful": "bool",
+            "reason": "str"
+        },
+        function_docstring="Ends the workflow either with success or failure for the given reason.",
+        function_source_code=""
+    )
+    search_action = Action(
+        id=30,
+        function_name="search_web",
+        function_param_schema={
+            "query": "str"
+        },
+        function_docstring="Searches the web.",
+        function_source_code=""
+    )
+
+    user_john = User(
+        id=2,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        allowed_actions=[think_action, end_action]
+    )
+    user_mark = User(
+        id=5,
+        username="Mark",
+        password_hash="",
+        role=Role.USER,
+        allowed_actions=[search_action, think_action]
+    )
+
+    repo_gitea = ActionRepository(
+        id=32,
+        name="Gitea",
+        url="gitea",
+        actions=[search_action, think_action, end_action]
+    )
+    db_session.add(repo_gitea)
+    db_session.add(user_john)
+    db_session.add(user_mark)
+    db_session.commit()
+
+    # Act
+    res = serv.get_user_permitted_actions(20)
+
+    # Assert
+    assert res == []
+
+def test_action_service_can_get_all_actions(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+
+    think_action = Action(
+        id=10,
+        function_name="think",
+        function_param_schema={
+            "content": "str"
+        },
+        function_docstring="Returns its parameter. Use to append a thought verbatim to the workflow.",
+        function_source_code=""
+    )
+    end_action = Action(
+        id=20,
+        function_name="end_workflow",
+        function_param_schema={
+            "successful": "bool",
+            "reason": "str"
+        },
+        function_docstring="Ends the workflow either with success or failure for the given reason.",
+        function_source_code=""
+    )
+    search_action = Action(
+        id=30,
+        function_name="search_web",
+        function_param_schema={
+            "query": "str"
+        },
+        function_docstring="Searches the web.",
+        function_source_code=""
+    )
+
+    repo_gitea = ActionRepository(
+        id=32,
+        name="Gitea",
+        url="gitea",
+        actions=[search_action, think_action, end_action]
+    )
+    db_session.add(repo_gitea)
+    db_session.commit()
+
+    # Act
+    res = serv.get_all_actions()
+
+    # Assert
+    assert len(res) == 3
+    assert res[0].function_name == "end_workflow"
+    assert res[1].function_name == "search_web"
+    assert res[2].function_name == "think"
+
 def test_action_service_parses_valid_invocation_json(db_serv, db_session):
     # Arrange
     serv = ActionService(
@@ -825,9 +1226,10 @@ def test_action_service_executes_valid_invocation_with_function_result_as_string
             "x": "int"
         },
         function_docstring="Calculates the factorial of the given number",
+        # NOTE: All action functions MUST have a **kwargs parameter
         function_source_code="""
 @tool
-def factorial(x: int):
+def factorial(x: int, **kwargs):
     if x <= 0:
         return 1
     
@@ -853,8 +1255,49 @@ def factorial(x: int):
     )
     
     # Act
-    res = serv.execute_invocation(invocation)
+    res = serv.execute_invocation(invocation, {})
     assert res == "24"
+
+def test_action_service_allows_executed_action_to_access_and_modify_provided_context(db_serv, db_session):
+    # Arrange
+    serv = ActionService(
+        database_service=db_serv
+    )
+    context = {
+        "x": 10
+    }
+    increment_action = Action(
+        id=20,
+        function_name="increment",
+        function_param_schema={},
+        function_docstring="Increments the number provided in the context.",
+        function_source_code="""
+@tool
+def increment(**kwargs):
+    kwargs["context"]["x"] = kwargs["context"]["x"] + 1
+        """
+    )
+    repo = ActionRepository(
+        name="Gitea",
+        url="gitea",
+        actions=[increment_action]
+    )
+    db_session.add(repo)
+    db_session.commit()
+    
+    invocation = Invocation(
+        action=increment_action,
+        function_name="factorial",
+        params={ },
+        function_name_semantically_valid=True,
+        params_semantically_valid=True
+    )
+    
+    # Act
+    serv.execute_invocation(invocation, context)
+
+    # Assert
+    assert context["x"] == 11
     
 def test_action_service_executes_invalid_invocation_with_error_result_as_string(db_serv, db_session):
     # Arrange
@@ -921,10 +1364,10 @@ def factorial(x: int):
     )
     
     # Act
-    res_failed_name_parse = serv.execute_invocation(inv_failed_name_parse)
-    res_failed_arg_parse = serv.execute_invocation(inv_failed_arg_parse)
-    res_func_wrong = serv.execute_invocation(inv_func_wrong)
-    res_param_wrong = serv.execute_invocation(inv_param_wrong)
+    res_failed_name_parse = serv.execute_invocation(inv_failed_name_parse, {})
+    res_failed_arg_parse = serv.execute_invocation(inv_failed_arg_parse, {})
+    res_func_wrong = serv.execute_invocation(inv_func_wrong, {})
+    res_param_wrong = serv.execute_invocation(inv_param_wrong, {})
     
     # Assert
     assert isinstance(res_failed_name_parse, str)
@@ -954,6 +1397,12 @@ def test_action_service_throws_when_trying_to_manipulate_nonexistent_repo(db_ser
 
     with pytest.raises(NonexistentActionRepositoryError):
         serv.set_action_repository_actions(43, [])
+
+    with pytest.raises(NonexistentActionRepositoryError):
+        serv.get_action_repository_by_id(43)
+
+    with pytest.raises(NonexistentActionRepositoryError):
+        serv.update_action_repository(43, ActionRepositoryDiff())
 
 
 def test_action_service_throws_when_trying_to_manipulate_nonexistent_action(db_serv, db_session):

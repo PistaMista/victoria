@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: 0aa8093342cb
+Revision ID: 21ccba515e70
 Revises: 
-Create Date: 2025-10-04 11:32:27.155182+00:00
+Create Date: 2025-10-11 13:41:38.979441+00:00
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0aa8093342cb'
+revision: str = '21ccba515e70'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,27 +25,27 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=80), nullable=False),
     sa.Column('url', sa.String(length=300), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_action_repository'))
     )
     op.create_table('llm_connection',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('type', sa.String(length=10), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_llm_connection'))
     )
     op.create_table('trigger',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('type', sa.String(length=10), nullable=False),
     sa.Column('template', sa.Text(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_trigger'))
     )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('password_hash', sa.String(length=128), nullable=False),
     sa.Column('role', sa.Enum('USER', 'ADMIN', name='role', native_enum=False), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_user'))
     )
     op.create_table('action',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -54,14 +54,15 @@ def upgrade() -> None:
     sa.Column('function_source_code', sa.Text(), nullable=False),
     sa.Column('function_docstring', sa.Text(), nullable=False),
     sa.Column('repository_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['repository_id'], ['action_repository.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['repository_id'], ['action_repository.id'], name=op.f('fk_action_repository_id_action_repository'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_action'))
     )
     op.create_table('allowed_user_trigger',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('trigger_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['trigger_id'], ['trigger.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE')
+    sa.ForeignKeyConstraint(['trigger_id'], ['trigger.id'], name=op.f('fk_allowed_user_trigger_trigger_id_trigger'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_allowed_user_trigger_user_id_user'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('user_id', 'trigger_id', name=op.f('pk_allowed_user_trigger'))
     )
     op.create_table('chat',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -71,84 +72,88 @@ def upgrade() -> None:
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('modified_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], name=op.f('fk_chat_owner_id_user'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_chat'))
     )
     op.create_table('event',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('type', sa.String(length=10), nullable=False),
-    sa.Column('trigger_id', sa.Integer(), nullable=False),
+    sa.Column('trigger_id', sa.Integer(), nullable=True),
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('dispatched', sa.Boolean(), nullable=False),
-    sa.ForeignKeyConstraint(['trigger_id'], ['trigger.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['trigger_id'], ['trigger.id'], name=op.f('fk_event_trigger_id_trigger')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_event'))
     )
     op.create_table('language_model',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('enabled', sa.Boolean(), nullable=False),
     sa.Column('connection_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['connection_id'], ['llm_connection.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['connection_id'], ['llm_connection.id'], name=op.f('fk_language_model_connection_id_llm_connection'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_language_model'))
     )
     op.create_table('llm_connection_ollama',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('url', sa.String(length=300), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['llm_connection.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['llm_connection.id'], name=op.f('fk_llm_connection_ollama_id_llm_connection')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_llm_connection_ollama'))
     )
     op.create_table('trigger_chat',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('receiver', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['trigger.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['trigger.id'], name=op.f('fk_trigger_chat_id_trigger')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_trigger_chat'))
     )
     op.create_table('trigger_poll',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('url', sa.String(length=300), nullable=False),
     sa.Column('interval', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['trigger.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['trigger.id'], name=op.f('fk_trigger_poll_id_trigger')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_trigger_poll'))
     )
     op.create_table('trigger_timer',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('interval', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['trigger.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['trigger.id'], name=op.f('fk_trigger_timer_id_trigger')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_trigger_timer'))
     )
     op.create_table('trigger_webhook',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('endpoint', sa.String(length=70), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['trigger.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['trigger.id'], name=op.f('fk_trigger_webhook_id_trigger')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_trigger_webhook'))
     )
     op.create_table('agent',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('prompt', sa.Text(), nullable=False),
+    sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('model_id', sa.Integer(), nullable=True),
     sa.Column('model_params', sa.JSON(), nullable=False),
-    sa.ForeignKeyConstraint(['model_id'], ['language_model.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['model_id'], ['language_model.id'], name=op.f('fk_agent_model_id_language_model')),
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], name=op.f('fk_agent_owner_id_user'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_agent'))
     )
     op.create_table('allowed_chat_action',
     sa.Column('chat_id', sa.Integer(), nullable=False),
     sa.Column('action_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['action_id'], ['action.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['chat_id'], ['chat.id'], ondelete='CASCADE')
+    sa.ForeignKeyConstraint(['action_id'], ['action.id'], name=op.f('fk_allowed_chat_action_action_id_action'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['chat_id'], ['chat.id'], name=op.f('fk_allowed_chat_action_chat_id_chat'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('chat_id', 'action_id', name=op.f('pk_allowed_chat_action'))
     )
     op.create_table('allowed_user_action',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('action_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['action_id'], ['action.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE')
+    sa.ForeignKeyConstraint(['action_id'], ['action.id'], name=op.f('fk_allowed_user_action_action_id_action'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_allowed_user_action_user_id_user'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('user_id', 'action_id', name=op.f('pk_allowed_user_action'))
     )
     op.create_table('chat_exchange',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.Column('chat_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['chat_id'], ['chat.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['chat_id'], ['chat.id'], name=op.f('fk_chat_exchange_chat_id_chat'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_chat_exchange'))
     )
     op.create_table('invocation',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -157,20 +162,22 @@ def upgrade() -> None:
     sa.Column('params', sa.JSON(), nullable=True),
     sa.Column('function_name_semantically_valid', sa.Boolean(), nullable=False),
     sa.Column('params_semantically_valid', sa.Boolean(), nullable=False),
-    sa.ForeignKeyConstraint(['action_id'], ['action.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['action_id'], ['action.id'], name=op.f('fk_invocation_action_id_action')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_invocation'))
     )
     op.create_table('allowed_agent_action',
     sa.Column('agent_id', sa.Integer(), nullable=False),
     sa.Column('action_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['action_id'], ['action.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], ondelete='CASCADE')
+    sa.ForeignKeyConstraint(['action_id'], ['action.id'], name=op.f('fk_allowed_agent_action_action_id_action'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], name=op.f('fk_allowed_agent_action_agent_id_agent'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('agent_id', 'action_id', name=op.f('pk_allowed_agent_action'))
     )
     op.create_table('allowed_agent_trigger',
     sa.Column('agent_id', sa.Integer(), nullable=False),
     sa.Column('trigger_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['trigger_id'], ['trigger.id'], ondelete='CASCADE')
+    sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], name=op.f('fk_allowed_agent_trigger_agent_id_agent'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['trigger_id'], ['trigger.id'], name=op.f('fk_allowed_agent_trigger_trigger_id_trigger'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('agent_id', 'trigger_id', name=op.f('pk_allowed_agent_trigger'))
     )
     op.create_table('chat_message',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -180,19 +187,19 @@ def upgrade() -> None:
     sa.Column('reply_exchange_id', sa.Integer(), nullable=True),
     sa.Column('sending_agent_id', sa.Integer(), nullable=True),
     sa.Column('sending_user_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['reply_exchange_id'], ['chat_exchange.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['sending_agent_id'], ['agent.id'], ),
-    sa.ForeignKeyConstraint(['sending_user_id'], ['user.id'], ),
-    sa.ForeignKeyConstraint(['usermsg_exchange_id'], ['chat_exchange.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('usermsg_exchange_id')
+    sa.ForeignKeyConstraint(['reply_exchange_id'], ['chat_exchange.id'], name=op.f('fk_chat_message_reply_exchange_id_chat_exchange'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sending_agent_id'], ['agent.id'], name=op.f('fk_chat_message_sending_agent_id_agent')),
+    sa.ForeignKeyConstraint(['sending_user_id'], ['user.id'], name=op.f('fk_chat_message_sending_user_id_user')),
+    sa.ForeignKeyConstraint(['usermsg_exchange_id'], ['chat_exchange.id'], name=op.f('fk_chat_message_usermsg_exchange_id_chat_exchange'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_chat_message')),
+    sa.UniqueConstraint('usermsg_exchange_id', name=op.f('uq_chat_message_usermsg_exchange_id'))
     )
     op.create_table('event_chat',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('triggering_chat_exchange_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['id'], ['event.id'], ),
-    sa.ForeignKeyConstraint(['triggering_chat_exchange_id'], ['chat_exchange.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['event.id'], name=op.f('fk_event_chat_id_event')),
+    sa.ForeignKeyConstraint(['triggering_chat_exchange_id'], ['chat_exchange.id'], name=op.f('fk_event_chat_triggering_chat_exchange_id_chat_exchange')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_event_chat'))
     )
     op.create_table('monologue',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -202,21 +209,22 @@ def upgrade() -> None:
     sa.Column('context', sa.JSON(), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=False),
     sa.Column('agent_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], ),
-    sa.ForeignKeyConstraint(['event_id'], ['event.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['agent_id'], ['agent.id'], name=op.f('fk_monologue_agent_id_agent'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_monologue_event_id_event')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_monologue'))
     )
     op.create_table('chat_message_markdown',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('markdown', sa.Text(), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['chat_message.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['id'], ['chat_message.id'], name=op.f('fk_chat_message_markdown_id_chat_message')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_chat_message_markdown'))
     )
     op.create_table('chat_message_prompt',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('prompt', sa.String(length=120), nullable=False),
-    sa.ForeignKeyConstraint(['id'], ['chat_message.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.Column('answer', sa.JSON(), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['chat_message.id'], name=op.f('fk_chat_message_prompt_id_chat_message')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_chat_message_prompt'))
     )
     op.create_table('thought',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -224,16 +232,16 @@ def upgrade() -> None:
     sa.Column('invocation_id', sa.Integer(), nullable=True),
     sa.Column('monologue_id', sa.Integer(), nullable=False),
     sa.Column('result', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['invocation_id'], ['invocation.id'], ),
-    sa.ForeignKeyConstraint(['monologue_id'], ['monologue.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['invocation_id'], ['invocation.id'], name=op.f('fk_thought_invocation_id_invocation')),
+    sa.ForeignKeyConstraint(['monologue_id'], ['monologue.id'], name=op.f('fk_thought_monologue_id_monologue')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_thought'))
     )
     op.create_table('chat_message_prompt_option',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('message_id', sa.Integer(), nullable=False),
     sa.Column('value', sa.JSON(), nullable=False),
-    sa.ForeignKeyConstraint(['message_id'], ['chat_message_prompt.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['message_id'], ['chat_message_prompt.id'], name=op.f('fk_chat_message_prompt_option_message_id_chat_message_prompt'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_chat_message_prompt_option'))
     )
     # ### end Alembic commands ###
 

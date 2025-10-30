@@ -9,7 +9,7 @@ from app.model.agent import Agent
 from app.model.action import Action
 from app.model.trigger import Trigger
 from unittest import mock
-import time
+from datetime import datetime, UTC
 
 # The agentic thread needs to:
 # 1. (MonologueService) Convert the thoughts, agent prompt and tool descriptions to a sequence of System/User/Assistant messages
@@ -32,14 +32,16 @@ def mock_monologue_serv():
         title="None",
         summary="None",
         # event=event,
-        # agent=agent,
+        agent=Agent(
+            name="Cook",
+            model_id=5
+        ),
         # lets say the server crashed while the monologue was running
         status=MonologueStatus.RUNNING, 
         thoughts=[ ]
     )
     serv.get_monologue_thoughts_as_llm_chat_history.return_value = chat_history    
     serv.get_monologue_system_prompt.return_value = "MY SYSTEM PROMPT"
-    serv.get_monologue_llm_model_id.return_value = 5
     return serv
 
 @pytest.fixture(scope="function")
@@ -91,7 +93,7 @@ def test_agentic_thread_calls_monologue_service_properly_on_iteration(thread_sut
     # Assert
     mock_monologue_serv.get_monologue_thoughts_as_llm_chat_history.assert_called_once_with(1)
     mock_monologue_serv.get_monologue_system_prompt.assert_called_once_with(1)
-    mock_monologue_serv.get_monologue_llm_model_id.assert_called_once_with(1)
+    mock_monologue_serv.get_monologue_by_id.assert_called_once_with(1)
 
 def test_agentic_thread_calls_llm_service_properly_on_iteration(thread_sut, mock_monologue_serv, mock_llm_serv):
     # Act
@@ -112,14 +114,41 @@ def test_agentic_thread_calls_action_service_to_convert_llm_message_to_invocatio
     # Assert
     mock_action_serv.parse_invocation.assert_called_once_with(mock_llm_serv.get_chat_completion.return_value._content)
 
-def test_agentic_thread_calls_action_service_to_execute_invocation_on_iteration(thread_sut, mock_action_serv):
+def test_agentic_thread_calls_execute_invocation_with_fresh_context_when_no_context_set_on_iteration(thread_sut, mock_action_serv, mock_monologue_serv):
+    # Arrange
+    mock_monologue_serv.get_monologue_by_id.return_value.context = None
+
     # Act
     thread_sut.do_iteration()
-    
+
     # Assert
-    mock_action_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value)
+    mock_action_serv.execute_invocation.assert_called_once_with(mock_action_serv.parse_invocation.return_value, {})
+
+def test_agentic_thread_calls_execute_invocation_with_existing_context_when_context_set_on_iteration(thread_sut, mock_action_serv, mock_monologue_serv):
+    # Arrange
+    mock_monologue_serv.get_monologue_by_id.return_value.context = {
+        "BASE_URL": "MEGAURL",
+        "TOKEN": 420
+    }
+
+    # Act
+    thread_sut.do_iteration()
+
+    # Assert
+    mock_action_serv.execute_invocation.assert_called_once_with(
+        mock_action_serv.parse_invocation.return_value, 
+        {
+            "BASE_URL": "MEGAURL",
+            "TOKEN": 420
+        }
+    )
     
-def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(thread_sut, mock_monologue_serv, mock_action_serv):
+@mock.patch("app.services.monologues.runner.monologue_thread.datetime")
+def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(mock_datetime, thread_sut, mock_monologue_serv, mock_action_serv):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(5001, tz=UTC)
+
+
     # Act
     thread_sut.do_iteration()
     
@@ -130,6 +159,31 @@ def test_agentic_thread_appends_new_thought_to_monologue_on_iteration(thread_sut
     assert arg.invocation.function_name == "think"
     assert arg.invocation.params["content"] == "hello"
     assert arg.result == "hello"
+    assert arg.timestamp == datetime.fromtimestamp(5001, tz=UTC)
+
+def test_agentic_thread_sets_monologue_context_on_iteration(thread_sut, mock_monologue_serv, mock_action_serv):
+    # Arrange
+    mock_monologue_serv.get_monologue_by_id.return_value.context = {
+        "BASE_URL": "MEGAURL",
+        "TOKEN": 420
+    }
+    def mock_exec(_, context):
+        context["Woo"] = True
+        return ""
+    mock_action_serv.execute_invocation.side_effect = mock_exec
+
+    # Act
+    thread_sut.do_iteration()
+
+    # Assert
+    mock_monologue_serv.set_monologue_context.assert_called_once_with(
+        1,
+        {
+            "BASE_URL": "MEGAURL",
+            "TOKEN": 420,
+            "Woo": True
+        }
+    )
 
 def test_agentic_thread_stops_when_monologue_is_marked_as_succeeded(thread_sut, mock_monologue_serv, mock_on_finish):
     # Act

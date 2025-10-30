@@ -1,9 +1,8 @@
 import pytest
 from unittest import mock
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import sessionmaker
-import threading as t
+from base64 import b64encode
 from sqlalchemy import select
+from app.model.user import User, Role
 from app.model.agent import Agent
 from app.model.event import Event
 from app.model.monologue import Monologue, MonologueStatus
@@ -14,7 +13,7 @@ from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from app.services.db import DatabaseService
 from app.services.monologues.dispatcher import DispatcherService
-from datetime import datetime
+from datetime import datetime, UTC
 
 @pytest.fixture(scope="function")
 def runner():
@@ -27,11 +26,22 @@ def dispatcher(db_container, runner, db_factory):
     with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
         yield DispatcherService(
             db_service=db,
-            runner_service=runner
+            runner_service=runner,
+            base_url="golem:11435"
         )
 
-def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_session, dispatcher):
+@pytest.fixture(scope="function")
+def owner():
+    return User(
+        username="John",
+        password_hash="",
+        role=Role.USER
+    )
+
+@mock.patch("app.services.monologues.dispatcher.datetime")
+def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(mock_datetime, db_session, dispatcher, owner):
     # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
     trigger = PollTrigger( # A trigger generates events (by polling a website for example)
         name="Emails", 
         url="http://mycooldomain.com",
@@ -42,6 +52,7 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_sessio
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         # An agent has a whitelist of triggers from which it takes events
         allowed_triggers=[trigger]
         # allowed_actions=[]
@@ -71,13 +82,19 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(db_sessio
     assert len(event.monologues) == 1
     # 3. the monologue is assigned to the agent
     assert event.monologues[0].agent.id == 75
-    # 4. the monologue starts off with the event as the first thought
+    # 4. the monologue is given a dispatch time
+    assert event.monologues[0].dispatched_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert event.monologues[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
+    # 5. the monologue starts off with the event as the first thought
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived: Hello, this is..."
 
-def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_session, dispatcher):
+
+@mock.patch("app.services.monologues.dispatcher.datetime")
+def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(mock_datetime, db_session, dispatcher, owner):
     # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
     trigger = PollTrigger(
         name="Emails", 
         url="http://mycooldomain.com",
@@ -88,6 +105,7 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         allowed_triggers=[trigger]
         # allowed_actions=[]
     )
@@ -113,11 +131,140 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(db_se
     assert event.dispatched
     assert len(event.monologues) == 1
     assert event.monologues[0].agent.id == 75
+    assert event.monologues[0].dispatched_at == datetime.fromtimestamp(5000, tz=UTC)
+    assert event.monologues[0].modified_at == datetime.fromtimestamp(5000, tz=UTC)
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived..."
 
-def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher):
+def test_dispatcher_sets_basic_monologue_context_when_dispatching_monologue(db_session, dispatcher, owner):
+    # Arrange
+    trigger = PollTrigger( 
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent( 
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+    
+    # Assert
+    assert event.monologues[0].context["FINISHED"] == False
+    assert event.monologues[0].context["MONOLOGUE_ID"] == event.monologues[0].id
+    assert event.monologues[0].context["BASE_URL"] == "golem:11435"
+
+@mock.patch("app.services.monologues.dispatcher.os.urandom")
+def test_dispatcher_sets_monologue_agent_token_when_dispatching_monologue(mock_urandom, db_session, dispatcher, owner):
+    # Arrange
+    mock_urandom.return_value = b'aaaa'
+    trigger = PollTrigger( 
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent( 
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+
+    # Act
+    assert event.monologues[0].agent_token == b'aaaa'
+    assert event.monologues[0].context["TOKEN"] == b64encode(b'aaaa').decode("utf-8")
+
+@mock.patch("app.services.monologues.dispatcher.os.urandom")
+def test_dispatcher_generates_monologue_context_token_again_after_token_collision_when_dispatching_monologue(mock_urandom, db_session, dispatcher, owner):
+    # Arrange
+    mock_urandom.side_effect = [b'aaaa', b'bbbb']
+    trigger = PollTrigger( 
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent( 
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    existing_event = Event(
+        id=50,
+        content="W",
+        trigger=trigger,
+        dispatched=True
+    )
+    existing_monologue = Monologue(
+        status=MonologueStatus.PENDING,
+        event=existing_event,
+        agent=agent,
+        agent_token=b'aaaa'
+    )
+
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.add(existing_monologue)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+
+    # Act
+    assert event.monologues[0].agent_token == b'bbbb'
+    assert event.monologues[0].context["TOKEN"] == b64encode(b'bbbb').decode("utf-8")
+
+def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, owner):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -129,6 +276,7 @@ def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher):
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         allowed_triggers=[trigger]
         # allowed_actions=[]
     )
@@ -153,7 +301,7 @@ def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher):
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
     
-def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_agent(dispatcher, db_session):
+def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_agent(dispatcher, db_session, owner):
     # Arrange
     trigger = PollTrigger( # A trigger generates events (by polling a website for example)
         name="Emails", 
@@ -165,6 +313,7 @@ def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_a
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         # The trigger whitelist is empty - no monologues can start
         allowed_triggers=[]
         # allowed_actions=[]
@@ -192,7 +341,7 @@ def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_a
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
 
-def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_with_no_matching_agent(dispatcher, db_session):
+def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_with_no_matching_agent(dispatcher, db_session, owner):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -204,6 +353,7 @@ def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         allowed_triggers=[]
         # allowed_actions=[]
     )
@@ -230,7 +380,7 @@ def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_
     assert db_session.scalars(select(Monologue)).first() is None
 
 
-def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added_to_db(dispatcher, runner, db_session):
+def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added_to_db(dispatcher, runner, db_session, owner):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -242,7 +392,8 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
-        allowed_triggers=[trigger]
+        allowed_triggers=[trigger],
+        owner=owner
         # allowed_actions=[]
     )
     event = Event(
@@ -284,7 +435,7 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
     runner.start_monologue_process.assert_called_once_with(42)
 
 
-def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(db_session, runner, dispatcher):
+def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(db_session, runner, dispatcher, owner):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -296,6 +447,7 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         allowed_triggers=[trigger]
         # allowed_actions=[]
     )
@@ -362,7 +514,7 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
     # Assert
     runner.start_monologue_process.assert_called_once_with(45)
         
-def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dispatcher):
+def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dispatcher, owner):
     # Arrange
     trigger = PollTrigger(
         name="Emails", 
@@ -374,6 +526,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
         id=75,
         name="Secretary",
         prompt="Manage the user's calendar and tasks",
+        owner=owner,
         allowed_triggers=[trigger]
         # allowed_actions=[]
     )
