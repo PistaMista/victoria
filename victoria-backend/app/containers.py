@@ -67,14 +67,14 @@ class Container(containers.DeclarativeContainer):
     runner = providers.Singleton(
         RunnerService,
         db_service=db,
-        thread_factory=agentic_thread_factory,
+        thread_factory=providers.Object(agentic_thread_factory),
         thread_limit=4
     )
     dispatcher = providers.Singleton(
         DispatcherService,
         db_service=db,
         runner_service=runner,
-        base_url=providers.Callable(lambda c: f"{c.ADDRESS}:{c.PORT}", config)
+        base_url=providers.Callable(lambda c: f"{c['ADDRESS']}:{c['PORT']}", config)
     )
 
     trigger = providers.Singleton(
