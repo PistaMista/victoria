@@ -43,11 +43,24 @@ class TriggerService:
 
     def get_user_allowed_triggers(self, user_id: int) -> List[Trigger]:
         """Gets all the Triggers allowed for the User's Agents."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Trigger)
+                .join(Trigger.allowed_on_users)
+                .where(User.id == user_id)
+            ).all()
+
+            return res
 
     def get_all_triggers(self) -> List[Trigger]:
         """Gets all available Triggers."""
-        pass
+        with self._db.session() as db:
+            res = db.scalars(
+                select(Trigger)
+                .order_by(Trigger.id.asc())
+            ).all()
+
+            return res
 
     def add_timer_trigger(self, name: str, template: str, interval: int) -> int:
         """Creates a new timer trigger and returns its id."""
