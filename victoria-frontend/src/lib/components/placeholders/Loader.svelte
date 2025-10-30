@@ -26,7 +26,7 @@
                 <CloseOutline class="mr-2"/> {rejectMessage}
             </div>
             <div class="text-red-500">
-                {error}
+                {err}
             </div>
         </div>
     </div>

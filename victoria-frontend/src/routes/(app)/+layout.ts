@@ -3,7 +3,7 @@ import { get } from 'svelte/store';
 import { isLoggedIn } from '$lib/api/auth';
 
 export async function load() {
-    if (!isLoggedIn()) {
+    if (!(await isLoggedIn())) {
         throw redirect(302, '/login')
     }
 }
