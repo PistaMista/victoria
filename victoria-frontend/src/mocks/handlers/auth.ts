@@ -5,7 +5,11 @@ export const loginHandler = await spy(async ({ request }) => {
     let body = await request.clone().json();
     
     if (body.username === 'tester' && body.password === 'lolec') {
-        return HttpResponse.json<string>("jwt-token");
+        return HttpResponse.json({}, {
+		headers: {
+			'Set-Cookie': 'token=jwt-token; Path=/; HttpOnly; Max-Age=3600'
+		}
+	  });
     } else {
         return HttpResponse.json({
             error: "Invalid credentials"

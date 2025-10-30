@@ -1,13 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
-import { authToken } from '$lib/stores/auth';
-
-// TODO: Implement this entirely via HTTP-only cookies
+import { isLoggedIn } from '$lib/api/auth';
 
 export async function load() {
-    const token = get(authToken);
-
-    if (!token) {
+    if (!isLoggedIn()) {
         throw redirect(302, '/login')
     }
 }

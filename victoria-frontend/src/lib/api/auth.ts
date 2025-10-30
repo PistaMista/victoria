@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { authToken } from "$lib/stores/auth";
 
 export async function login(username: string, password: string): Promise<void> {
     const res = await fetch('/api/auth/login', {
@@ -17,9 +16,6 @@ export async function login(username: string, password: string): Promise<void> {
     if (!res.ok) {
         throw Error(json);
     }
-    
-    const token = z.string().parse(json);
-    authToken.set(token);
 }
 
 export async function register(username: string, password: string): Promise<void> {
@@ -33,4 +29,13 @@ export async function register(username: string, password: string): Promise<void
             password: password  
         })
     })
+}
+
+export async function isLoggedIn(): Promise<bool> {
+    const res = await fetch('/api/auth/me', { 
+	  method: 'GET'
+    });
+    const json = await res.json();
+
+    return res.ok;
 }

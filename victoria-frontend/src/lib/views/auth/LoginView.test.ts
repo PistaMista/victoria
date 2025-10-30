@@ -2,7 +2,6 @@ import { expect, test, type Mock, vi } from "vitest";
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '@testing-library/svelte';
 import LoginView from "./LoginView.svelte";
-import { authToken } from "$lib/stores/auth";
 import { loginHandler } from "../../../mocks/handlers/auth";
 import { get } from "svelte/store";
 import { goto } from "$app/navigation";
@@ -30,23 +29,6 @@ test('login view sends correct login request', async () => {
         username: "lorien",
         password: "testard"
     });
-})
-
-test('login view sets session token after successful login', async () => {
-    const user = userEvent.setup();
-    const { findByLabelText } = render(LoginView);
-
-    const usernameBox = await findByLabelText("Username");
-    const passwordBox = await findByLabelText("Password");
-    const loginButton = await findByLabelText("Login");
-
-    await user.type(usernameBox, "tester");
-    await user.type(passwordBox, "lolec");
-    await user.click(loginButton);
-
-    await waitFor(() => {
-        expect(get(authToken)).toBe("jwt-token");
-    })
 })
 
 test('login view redirects to dashboard view after successful login', async () => {
