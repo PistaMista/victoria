@@ -26,14 +26,28 @@ def auth_serv():
             role=Role.USER
         )
     user_serv_mock = mock.Mock(spec=UserService)
-    user_serv_mock.get_user_by_name.side_effect = lambda name: {
-        "John": john,
-        "tom": tom
-    }.get(name)
-    user_serv_mock.get_user_by_id.side_effect = lambda id: {
-        1: john,
-        2: tom
-    }.get(id)
+
+    def get_user_by_name_mock(name: str) -> User:
+        match name:
+            case "John":
+                return john
+            case "tom":
+                return tom
+            case _:
+                raise NonexistentUserError(name)
+
+    def get_user_by_id_mock(id: int) -> User:
+        match id:
+            case 1:
+                return john
+            case 2:
+                return tom
+            case _:
+                raise NonexistentUserError(id)
+
+
+    user_serv_mock.get_user_by_name.side_effect = get_user_by_name_mock
+    user_serv_mock.get_user_by_id.side_effect = get_user_by_id_mock
 
     def get_user_by_agent_token_mock(token: bytes) -> User:
         match token:

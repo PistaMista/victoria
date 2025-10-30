@@ -18,9 +18,9 @@ class AuthService:
         self._login_lifetime: int = login_lifetime
     
     def get_login_token(self, username: str, password: str) -> str:
-        user = self._user.get_user_by_name(username)
+        try:
+            user = self._user.get_user_by_name(username)
 
-        if user is not None:
             actual_pw = password.encode('utf-8')
             expected_hash = user.password_hash.encode('utf-8')
             
@@ -33,6 +33,8 @@ class AuthService:
                 }
                 
                 return jwt.encode(payload, self._jwt_secret, algorithm="HS256")
+        except:
+            pass
 
         raise InvalidLoginError()
     
