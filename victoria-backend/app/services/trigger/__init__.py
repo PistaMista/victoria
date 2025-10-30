@@ -95,7 +95,17 @@ class TriggerService:
 
     def add_chat_trigger(self, name: str, template: str, receiver: str) -> int:
         """Creates a new chat trigger and returns its id."""
-        pass
+        with self._db.session() as db:
+            new = ChatTrigger(
+                name=name,
+                template=template,
+                receiver=receiver
+            )
+
+            db.add(new)
+            db.commit()
+
+            return new.id
 
     def add_webhook_trigger(self, name: str, template: str, endpoint: str) -> int:
         """Creates a new webhook trigger and returns its id."""
