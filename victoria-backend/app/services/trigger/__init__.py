@@ -325,15 +325,14 @@ class TriggerService:
         self.generate_event(trigger.id, {})
     
     def receive_chat_message(self, receiver: str, message: str) -> List[int]:
-        # TODO: Return list of generated ChatEvent IDs
         with self._db.session() as db:
             matching = db.scalars(
                 select(ChatTrigger)
                 .where(ChatTrigger.receiver == receiver)
             )
 
-            for trigger in matching:
-                self.generate_event(trigger.id, {"message": message})
+            return [self.generate_event(trigger.id, {"message": message}) for trigger in matching]
+
 
     def receive_webhook_payload(self, endpoint: str, content: str):
         # TODO: Make this method raise InvalidWebhookEndpointError when no matching endpoint is found
