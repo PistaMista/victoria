@@ -42,8 +42,53 @@ class UserService:
 
     def update_user(self, id: int, changes: "UserDiff"):
         """Updates the given User."""
+        with self._db.session() as db:
+            user = db.scalar(
+                select(User).where(User.id == id)
+            )
 
-        pass
+            if user is None:
+                raise NonexistentUserError(id)
+
+            if changes.username is not None:
+                user.username = changes.username
+
+            if changes.new_password is not None:
+                user.password_hash = self._hash_password(changes.new_password)
+
+            if changes.role is not None:
+                user.role = changes.role
+
+
+            if changes.permitted_trigger_ids is not None:
+                permitted_triggers = db.scalars(
+                    select(Trigger).where(Trigger.id.in_(changes.permitted_trigger_ids))
+                ).all()
+
+                if len(permitted_triggers) < len(changes.permitted_trigger_ids):
+                    raise InvalidUserSettingError("Invalid trigger ID from permitted trigger")
+
+                user.allowed_triggers = permitted_triggers
+
+                # Disallow newly forbidden triggers for all agents
+                for agent in user.agents:
+                    agent.allowed_triggers = [t for t in agent.allowed_triggers if t in user.allowed_triggers]
+
+            if changes.permitted_action_ids is not None:
+                permitted_actions = db.scalars(
+                    select(Action).where(Action.id.in_(changes.permitted_action_ids))
+                ).all()
+
+                if len(permitted_actions) < len(changes.permitted_action_ids):
+                    raise InvalidUserSettingError("Invalid action ID for permitted action")
+
+                user.allowed_actions = permitted_actions
+
+                # Disallow newly forbidden actions for all agents
+                for agent in user.agents:
+                    agent.allowed_actions = [t for t in agent.allowed_actions if t in user.allowed_actions]
+
+            db.commit()
         
     def create_user(self, username: str, password: str, role: Role, permitted_action_ids: List[int] = [], permitted_trigger_ids: List[int] = []) -> int:
         with self._db.session() as db:
@@ -56,7 +101,7 @@ class UserService:
 
             new_user = User(
                 username=username,
-                password_hash=hashpw(password.encode('utf-8'), gensalt()).decode('utf-8'),
+                password_hash=self._hash_password(password),
                 role=role
             )
 
@@ -116,10 +161,15 @@ class UserService:
             user = db.scalar(
                 select(User).where(User.id == id)
             )
+
+            if user is None:
+                raise NonexistentUserError(id)
             
-            if user:
-                db.delete(user)
-                db.commit()
+            db.delete(user)
+            db.commit()
+
+    def _hash_password(self, password: str) -> str:
+        return hashpw(password.encode('utf-8'), gensalt()).decode('utf-8')
 
 class UserDiff(BaseModel):
     username: Optional[str] = None
