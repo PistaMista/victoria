@@ -570,6 +570,9 @@ def test_trigger_service_can_update_base_trigger(db_serv, db_session):
     assert trigger.template == "Old"
     assert trigger.receiver == "technical"
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 def test_trigger_service_can_update_webhook_trigger(db_serv, db_session):
     # Arrange
     serv = TriggerService(
@@ -598,6 +601,9 @@ def test_trigger_service_can_update_webhook_trigger(db_serv, db_session):
     assert trigger.name == "Original"
     assert trigger.template == "Not salty anymore"
     assert trigger.endpoint == "/woo?"
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 
 def test_trigger_service_can_update_chat_trigger(db_serv, db_session):
@@ -628,6 +634,9 @@ def test_trigger_service_can_update_chat_trigger(db_serv, db_session):
     assert trigger.template == "Woo"
     assert trigger.receiver == "lol"
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 def test_trigger_service_can_update_timer_trigger(db_serv, db_session):
     # Arrange
     serv = TriggerService(
@@ -656,6 +665,9 @@ def test_trigger_service_can_update_timer_trigger(db_serv, db_session):
     assert trigger.name == "Czech"
     assert trigger.template == "Check the logs"
     assert trigger.interval == 20
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 def test_trigger_service_can_update_poll_trigger(db_serv, db_session):
     # Arrange
@@ -687,6 +699,9 @@ def test_trigger_service_can_update_poll_trigger(db_serv, db_session):
     assert trigger.template == "mm"
     assert trigger.interval == 120
     assert trigger.url == "woo.com"
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_poll_trigger(db_serv, db_session):
     # Arrange
@@ -734,6 +749,9 @@ def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_pol
     assert isinstance(event.trigger, PollTrigger)
     assert event.trigger.id == 5
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
 def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(mock_restart, db_serv, db_session):
     # Arrange
@@ -760,6 +778,9 @@ def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(mock
 
     # Assert
     mock_restart.assert_called_with(trigger_id=5)
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
@@ -790,6 +811,9 @@ def test_trigger_service_tries_to_restart_timer_when_updating_poll_trigger(mock_
     # Assert
     mock_restart.assert_called_with(trigger_id=5)
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
 def test_trigger_service_tries_to_restart_timer_when_changing_chat_trigger_to_timer_trigger(mock_restart, db_serv, db_session):
     # Arrange
@@ -817,6 +841,9 @@ def test_trigger_service_tries_to_restart_timer_when_changing_chat_trigger_to_ti
 
     # Assert
     mock_restart.assert_called_with(trigger_id=5)
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
 def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to_poll_trigger(mock_restart, db_serv, db_session):
@@ -846,6 +873,9 @@ def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to
     # Assert
     mock_restart.assert_called_with(trigger_id=5)
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
 def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_poll_trigger(mock_restart, db_serv, db_session):
     # Arrange
@@ -873,6 +903,9 @@ def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_p
 
     # Assert
     mock_restart.assert_called_with(trigger_id=5)
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 def test_trigger_service_can_remove_trigger(db_serv, db_session):
     # Arrange
@@ -935,6 +968,9 @@ def test_trigger_service_can_remove_trigger(db_serv, db_session):
     assert triggers[0].id == 5
     assert triggers[1].id == 15
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer")
 def test_trigger_service_removing_timer_trigger_tries_to_stop_trigger_timer(mock_stop, db_serv, db_session):
     # Arrange
@@ -991,6 +1027,9 @@ def test_trigger_service_removing_timer_trigger_tries_to_stop_trigger_timer(mock
     # Assert
     mock_stop.assert_called_once_with(trigger_id=15)
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer")
 def test_trigger_service_removing_poll_trigger_tries_to_stop_trigger_timer(mock_stop, db_serv, db_session):
     # Arrange
@@ -1046,6 +1085,9 @@ def test_trigger_service_removing_poll_trigger_tries_to_stop_trigger_timer(mock_
 
     # Assert
     mock_stop.assert_called_once_with(trigger_id=5)
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers")
 def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(mock_start_timers, db_serv):
@@ -1196,6 +1238,9 @@ def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_
     assert events[0].trigger_id == 5
     assert events[0].content == "New event - new user chat message in chat ID 404. The message is: MORE CHEESE!."
     assert not events[0].dispatched
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 def test_trigger_service_throws_when_trying_to_generate_event_with_invalid_trigger_id(db_serv, db_session):
     # Arrange
@@ -1538,6 +1583,9 @@ def test_trigger_service_webhook_trigger_receives_webhook_payload_and_generates_
     mock_generate.assert_any_call(2, {"payload": "load"})
     mock_generate.assert_any_call(2, {"payload": "foobar"})
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 @mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
 def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matching_endpoint(mock_generate, db_serv, db_session):
     # Arrange
@@ -1569,6 +1617,9 @@ def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matc
     assert mock_generate.call_count == 2
     mock_generate.assert_any_call(1, {"payload": "load"})
     mock_generate.assert_any_call(1, {"payload": "foobar"})
+
+    # Teardown
+    serv.stop_trigger_timers()
 
 def test_trigger_service_throws_when_manipulating_nonexistent_trigger(db_serv, db_session):
     # Arrange
@@ -1635,6 +1686,9 @@ def test_trigger_service_throws_when_manipulating_nonexistent_trigger(db_serv, d
     with pytest.raises(NonexistentTriggerError):
         serv.remove_trigger(id=99)
 
+    # Teardown
+    serv.stop_trigger_timers()
+
 
 def test_trigger_service_throws_when_manipulating_nonexistent_event(db_serv, db_session):
     # Arrange
@@ -1698,3 +1752,6 @@ def test_trigger_service_throws_when_manipulating_nonexistent_event(db_serv, db_
             user_id=20, # Does not allow poll_trigger
             event_id=3
         )
+
+    # Teardown
+    serv.stop_trigger_timers()
