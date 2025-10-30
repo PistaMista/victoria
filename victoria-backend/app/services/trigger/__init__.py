@@ -271,12 +271,7 @@ class TriggerService:
             timed = chain(polls, timers)
 
             for trigger in timed:
-                if trigger.id not in self._trigger_timers:
-                    timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
-                        "trigger": trigger
-                    })
-                    self._trigger_timers[trigger.id] = timer
-                    timer.start()
+                self.restart_trigger_timer(trigger.id)
 
     def stop_trigger_timers(self):
         for timer in self._trigger_timers.values():
@@ -287,11 +282,41 @@ class TriggerService:
 
     def restart_trigger_timer(self, trigger_id: int):
         """Restarts the specified trigger's timer if running or starts it if stopped."""
-        pass
+        with self._db.session() as db:
+            trigger = db.scalar(
+                select(Trigger).where(Trigger.id == trigger_id)
+            )
+
+            if not isinstance(trigger, TimerTrigger) and not isinstance(trigger, PollTrigger):
+                raise NonexistentTriggerError(trigger_id)
+
+            if trigger.id in self._trigger_timers:
+                timer = self._trigger_timers[trigger.id]
+                timer.cancel()
+                timer.join()
+
+            timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
+                "trigger": trigger
+            })
+            self._trigger_timers[trigger.id] = timer
+            timer.start()
+
+
 
     def stop_trigger_timer(self, trigger_id: int):
         """Stops the specified trigger's timer if running."""
-        pass
+        with self._db.session() as db:
+            trigger = db.scalar(
+                select(Trigger).where(Trigger.id == trigger_id)
+            )
+
+            if not isinstance(trigger, TimerTrigger) and not isinstance(trigger, PollTrigger):
+                raise NonexistentTriggerError(trigger_id)
+
+            if trigger.id in self._trigger_timers:
+                timer = self._trigger_timers[trigger.id]
+                timer.cancel()
+                timer.join()
 
     def _run_trigger_timer(self, trigger: Trigger):
         interval = 0.0
