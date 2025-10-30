@@ -79,7 +79,19 @@ class TriggerService:
 
     def add_poll_trigger(self, name: str, template: str, interval: int, url: str) -> int:
         """Creates a new poll trigger and returns its id."""
-        pass
+        with self._db.session() as db:
+            new = PollTrigger(
+                name=name,
+                template=template,
+                interval=interval,
+                url=url
+            )
+
+            db.add(new)
+            db.commit()
+
+            self.restart_trigger_timer(trigger_id=new.id)
+            return new.id
 
     def add_chat_trigger(self, name: str, template: str, receiver: str) -> int:
         """Creates a new chat trigger and returns its id."""

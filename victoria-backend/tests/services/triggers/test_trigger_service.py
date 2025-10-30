@@ -346,7 +346,7 @@ def test_trigger_service_can_add_webhook_trigger(db_serv, db_session):
         select(Trigger).where(Trigger.id == new_id)
     )
     trigger_count = db_session.scalar(
-        select(func.count()).select_from(Event)
+        select(func.count()).select_from(Trigger)
     )
 
     assert trigger_count == 2
@@ -393,7 +393,7 @@ def test_trigger_service_can_add_chat_trigger(db_serv, db_session):
         select(Trigger).where(Trigger.id == new_id)
     )
     trigger_count = db_session.scalar(
-        select(func.count()).select_from(Event)
+        select(func.count()).select_from(Trigger)
     )
 
     assert trigger_count == 2
@@ -486,7 +486,7 @@ def test_trigger_service_can_add_poll_trigger(db_serv, db_session):
         select(Trigger).where(Trigger.id == new_id)
     )
     trigger_count = db_session.scalar(
-        select(func.count()).select_from(Event)
+        select(func.count()).select_from(Trigger)
     )
 
     assert trigger_count == 2
