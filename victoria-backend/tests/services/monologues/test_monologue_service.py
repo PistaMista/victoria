@@ -502,7 +502,7 @@ def test_monologue_service_can_end_user_monologue_with_failure(mock_set_status, 
 
 
 
-def test_monologue_service_can_get_user_monologue_thoughts_including_invocations(db_serv, db_session, sample_monologue):
+def test_monologue_service_can_get_user_monologue_thoughts_including_invocations_and_monologues(db_serv, db_session, sample_monologue):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
@@ -520,6 +520,7 @@ def test_monologue_service_can_get_user_monologue_thoughts_including_invocations
     assert len(res) == 3
     assert res[0].invocation is None
     assert res[0].result == "An email has arrived..."
+    assert res[0].monologue.event_id == sample_monologue.event_id
     assert res[1].invocation.function_name == "think"
     assert res[1].invocation.params == {
         "content": "I should notify the user of the new email"
