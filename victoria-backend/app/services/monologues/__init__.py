@@ -186,6 +186,9 @@ class MonologueService:
             monologue = db.scalar(
                 select(Monologue)
                 .where(Monologue.id == id)
+                .options(
+                    joinedload(Monologue.agent)
+                )
             )
             
             if monologue is None:
