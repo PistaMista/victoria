@@ -8,10 +8,10 @@ from app.model.user import User, Role
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessageMarkdown, ChatMessageChoicePrompt, ChatMessage, ChoiceMessageOption
+from app.model.event import Event
 from app.model.action import Action
 from app.model.action_repository import ActionRepository
 from app.model.trigger import ChatTrigger
-from app.model.event import ChatEvent
 from app.model.agent import Agent
 
 @pytest.fixture(scope="function")
@@ -794,12 +794,12 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_date
     # Arrange
     mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
     def receive_chat_message_mock(receiver: str, message: str):
-        event1 = ChatEvent(
+        event1 = Event(
             id=1,
             content="A message has arrived: That's not it",
             dispatched=True
         )
-        event2 = ChatEvent(
+        event2 = Event(
             id=2,
             content="MSG: That's not it",
             dispatched=True
