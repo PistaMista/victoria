@@ -116,9 +116,11 @@ class ActionService:
             repo_id = repo.id
         
         try:
+            print(f"Importing actions from {url}...")
             actions = self.import_actions_from_git_url(url)
             self.set_action_repository_actions(repo_id, actions)
-        except:
+        except Exception as e:
+            print(e)
             # TODO: Store an error somewhere indicating that the last import action failed
             pass
 
