@@ -349,14 +349,14 @@ class TriggerService:
     def _execute_timer_trigger(self, trigger: TimerTrigger):
         self.generate_event(trigger.id, {})
     
-    def receive_chat_message(self, receiver: str, message: str) -> List[int]:
+    def receive_chat_message(self, receiver: str, message: str, chat_id: Optional[int] = None, exchange_id: Optional[int] = None) -> List[int]:
         with self._db.session() as db:
             matching = db.scalars(
                 select(ChatTrigger)
                 .where(ChatTrigger.receiver == receiver)
             )
 
-            return [self.generate_event(trigger.id, {"message": message}) for trigger in matching]
+            return [self.generate_event(trigger.id, {"message": message, "chatId": chat_id, "exchangeId": exchange_id}) for trigger in matching]
 
 
     def receive_webhook_payload(self, endpoint: str, content: str):

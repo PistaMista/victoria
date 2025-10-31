@@ -150,13 +150,18 @@ class ChatService:
                 markdown=markdown
             )
 
+            chat.exchanges.append(new_exchange)
+            db.flush()
+
             if from_agent_id is None:
                 new_exchange.user_message = msg
                 msg.sending_user = chat.owner
 
                 triggered_event_ids = self._trigger.receive_chat_message(
                     receiver=chat.receiver, 
-                    message=markdown
+                    message=markdown,
+                    chat_id=chat_id,
+                    exchange_id=new_exchange.id
                 )
                 for event_id in triggered_event_ids:
                     event = db.scalar(
@@ -178,7 +183,6 @@ class ChatService:
 
 
             chat.modified_at = datetime.now(tz=UTC)
-            chat.exchanges.append(new_exchange)
             db.commit()
 
             return new_exchange.id
