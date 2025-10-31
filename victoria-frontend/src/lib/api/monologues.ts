@@ -66,7 +66,7 @@ export async function getMonologueThoughts(monologueId: number): Promise<Thought
 	return z.array(ThoughtSchema).parse(json);
 }
 
-export async function abortMonologue(id: number): Promise<boolean> {
+export async function abortMonologue(id: number): Promise<void> {
 	const res = await fetch(`/api/monologues/${id}/abort`, {
 		method: 'POST'
 	});
@@ -75,6 +75,4 @@ export async function abortMonologue(id: number): Promise<boolean> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }

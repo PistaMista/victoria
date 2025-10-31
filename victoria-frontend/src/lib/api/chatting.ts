@@ -58,15 +58,13 @@ export async function createNewChat(): Promise<Chat> {
 	return ChatSchema.parse(json);
 }
 
-export async function deleteChat(id: number): Promise<boolean> {
+export async function deleteChat(id: number): Promise<void> {
 	const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' });
 	const json = await res.json();
 
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
 export async function getChatOptions(id: number): Promise<ChatOptions> {

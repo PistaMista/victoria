@@ -35,7 +35,7 @@ export async function getActionRepository(id: number): Promise<ActionRepository>
 	return ActionRepositorySchema.parse(json);
 }
 
-export async function updateActionRepository(id: number, changes: Diff<ActionRepository>): Promise<Boolean> {
+export async function updateActionRepository(id: number, changes: Diff<ActionRepository>): Promise<void> {
 	const res = await fetch(`/api/action-repos/${id}`, {
 		method: 'PUT',
 		headers: {
@@ -48,11 +48,9 @@ export async function updateActionRepository(id: number, changes: Diff<ActionRep
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
-export async function deleteActionRepository(id: number): Promise<Boolean> {
+export async function deleteActionRepository(id: number): Promise<void> {
 	const res = await fetch(`/api/action-repos/${id}`, {
 		method: 'DELETE'
 	});
@@ -61,8 +59,6 @@ export async function deleteActionRepository(id: number): Promise<Boolean> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
 export async function createActionRepository(newRepo: ActionRepository): Promise<ActionRepository> {

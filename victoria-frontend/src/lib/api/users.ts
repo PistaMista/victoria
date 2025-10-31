@@ -46,7 +46,7 @@ export async function createUser(user: User): Promise<UserListItem> {
 	return UserListItemSchema.parse(json);
 }
 
-export async function deleteUser(id: number): Promise<boolean> {
+export async function deleteUser(id: number): Promise<void> {
 	const res = await fetch(`/api/users/${id}`, {
 		method: 'DELETE'
 	});
@@ -55,11 +55,9 @@ export async function deleteUser(id: number): Promise<boolean> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
-export async function updateUser(id: number, changes: Diff<User>) {
+export async function updateUser(id: number, changes: Diff<User>): Promise<void> {
 	const res = await fetch(`/api/users/${id}`, {
 		method: 'PUT',
 		headers: {
@@ -72,6 +70,4 @@ export async function updateUser(id: number, changes: Diff<User>) {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }

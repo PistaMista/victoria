@@ -48,7 +48,7 @@ export async function getTrigger(id: number): Promise<Trigger> {
 	return TriggerSchema.parse(json);
 }
 
-export async function updateTrigger(id: number, changes: Diff<Trigger>): Promise<boolean> {
+export async function updateTrigger(id: number, changes: Diff<Trigger>): Promise<void> {
 	const res = await fetch(`/api/triggers/${id}`, {
 		method: 'PUT',
 		headers: {
@@ -61,11 +61,9 @@ export async function updateTrigger(id: number, changes: Diff<Trigger>): Promise
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
-export async function deleteTrigger(id: number): Promise<boolean> {
+export async function deleteTrigger(id: number): Promise<void> {
 	const res = await fetch(`/api/triggers/${id}`, {
 		method: 'DELETE'
 	});
@@ -74,8 +72,6 @@ export async function deleteTrigger(id: number): Promise<boolean> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
 export async function createTrigger(trigger: Trigger): Promise<TriggerListItem> {

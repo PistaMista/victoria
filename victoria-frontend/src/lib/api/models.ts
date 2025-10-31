@@ -28,7 +28,7 @@ export async function getAllModels(): Promise<Model[]> {
 	return z.array(ModelSchema).parse(json);
 }
 
-export async function setModelEnabled(id: number, enabled: boolean): Promise<Boolean> {
+export async function setModelEnabled(id: number, enabled: boolean): Promise<void> {
 	const res = await fetch(`/api/models/${id}/${enabled ? "enable" : "disable"}`, {
 		method: 'POST'
 	});
@@ -37,6 +37,4 @@ export async function setModelEnabled(id: number, enabled: boolean): Promise<Boo
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }

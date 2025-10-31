@@ -30,9 +30,7 @@ export async function getConnection(id: number): Promise<Connection> {
 	return ConnectionSchema.parse(json);
 }
 
-// TODO: Streamline PUT API endpoints returning either modified object or bool
-// (or make them return nothing)
-export async function updateConnection(id: number, changes: Diff<Connection>): Promise<boolean> {
+export async function updateConnection(id: number, changes: Diff<Connection>): Promise<void> {
 	const res = await fetch(`/api/connections/${id}`, {
 		method: 'PUT',
 		headers: {
@@ -45,11 +43,9 @@ export async function updateConnection(id: number, changes: Diff<Connection>): P
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
-export async function deleteConnection(id: number): Promise<boolean> {
+export async function deleteConnection(id: number): Promise<void> {
 	const res = await fetch(`/api/connections/${id}`, {
 		method: 'DELETE'
 	});
@@ -58,8 +54,6 @@ export async function deleteConnection(id: number): Promise<boolean> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
 export async function createConnection(newConnection: Connection): Promise<ConnectionListItem> {

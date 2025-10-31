@@ -67,7 +67,7 @@ export async function createAgent(agent: Agent): Promise<AgentListItem> {
 	return AgentListItemSchema.parse(json);
 }
 
-export async function updateAgent(id: number, changes: Diff<Agent>): Promise<boolean> {
+export async function updateAgent(id: number, changes: Diff<Agent>): Promise<void> {
 	const res = await fetch(`/api/agents/${id}`, {
 		method: 'PUT',
 		headers: {
@@ -80,11 +80,9 @@ export async function updateAgent(id: number, changes: Diff<Agent>): Promise<boo
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
 
-export async function deleteAgent(id: number): Promise<boolean> {
+export async function deleteAgent(id: number): Promise<void> {
 	const res = await fetch(`/api/agents/${id}`, {
 		method: 'DELETE'
 	});
@@ -93,6 +91,4 @@ export async function deleteAgent(id: number): Promise<boolean> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return z.boolean().parse(json);
 }
