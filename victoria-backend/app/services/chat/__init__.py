@@ -268,7 +268,7 @@ class ChatService:
         """Gets user chat exchanges created after the given point in time."""
         with self._db.session() as db:
             chat = self._load_user_chat(db, user_id, chat_id)
-            after_dt = datetime.fromtimestamp(after, tz=UTC)
+            after_dt = datetime.fromtimestamp(after + 1, tz=UTC)
             res = db.scalars(
                 select(ChatExchange)
                 .options(
@@ -280,7 +280,18 @@ class ChatService:
                     joinedload(ChatExchange.user_message.of_type(ChatMessageChoicePrompt))
                     .options(undefer(ChatMessageChoicePrompt.prompt))
                     .joinedload(ChatMessageChoicePrompt.choices)
-                    .options(undefer(ChoiceMessageOption.value))
+                    .options(undefer(ChoiceMessageOption.value)),
+
+                    # Eager load sending user and agent
+                    joinedload(ChatExchange.user_message)
+                    .options(
+                        joinedload(ChatMessage.sending_user),
+                        joinedload(ChatMessage.sending_agent)
+                    ),
+
+                    # Eager load triggered chat events and their monologues
+                    joinedload(ChatExchange.triggered_chat_events)
+                    .joinedload(Event.monologues),
                 )
                 .where(ChatExchange.chat_id == chat.id, ChatExchange.timestamp > after_dt)
                 .order_by(ChatExchange.timestamp.asc())
@@ -292,7 +303,7 @@ class ChatService:
         """Gets replies to an Exchange sent after the given point in time."""
         with self._db.session() as db:
             exchange = self._load_user_exchange(db, user_id, exchange_id)
-            after_dt = datetime.fromtimestamp(after, tz=UTC)
+            after_dt = datetime.fromtimestamp(after + 1, tz=UTC)
 
             ChatMessagePoly = with_polymorphic(
                 base=ChatMessage, 
@@ -308,7 +319,11 @@ class ChatService:
                     joinedload(ChatMessagePoly.ChatMessageChoicePrompt.choices)
                     .options(
                         undefer(ChoiceMessageOption.value)
-                    )
+                    ),
+
+                    # Eager load sending user and agent
+                    joinedload(ChatMessagePoly.sending_user),
+                    joinedload(ChatMessagePoly.sending_agent)
                 )
                 .where(
                     ChatMessage.reply_exchange_id == exchange.id, 
