@@ -395,7 +395,11 @@ class ChatService:
                     joinedload(ChatMessagePoly.ChatMessageChoicePrompt.choices)
                     .options(
                         undefer(ChoiceMessageOption.value)
-                    )
+                    ),
+
+                    # Eager load sending user and agent
+                    joinedload(ChatMessagePoly.sending_user),
+                    joinedload(ChatMessagePoly.sending_agent)
                 )
                 .where(Chat.id == chat_id)
                 .order_by(ChatMessage.timestamp.asc())
