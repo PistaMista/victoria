@@ -171,6 +171,7 @@ def test_dispatcher_sets_basic_monologue_context_when_dispatching_monologue(db_s
     
     # Assert
     assert event.monologues[0].context["FINISHED"] == False
+    assert event.monologues[0].context["AGENT_ID"] == 75
     assert event.monologues[0].context["MONOLOGUE_ID"] == event.monologues[0].id
     assert event.monologues[0].context["BASE_URL"] == "golem:11435"
 

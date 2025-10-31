@@ -121,6 +121,7 @@ class DispatcherService:
                     "FINISHED": False,
                     "BASE_URL": self._base_url,
                     "MONOLOGUE_ID": new_monologue.id,
+                    "AGENT_ID": agent.id,
                     "TOKEN": b64encode(new_monologue.agent_token).decode("utf-8")
                 }
 
