@@ -430,6 +430,7 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
     db_session.add(trigger_thought)
     db_session.add(monologue)
     db_session.commit()
+    dispatcher.stop()
     
     # Assert
     # ...a fresh thread is started for new monologues
@@ -511,6 +512,7 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
     
     # Act
     dispatcher.start()
+    dispatcher.stop()
         
     # Assert
     runner.start_monologue_process.assert_called_once_with(45)
@@ -625,6 +627,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
 
     # Act
     dispatcher.start()
+    dispatcher.stop()
     
     # Assert
     runner.start_monologue_process.assert_not_called()

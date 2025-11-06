@@ -31,6 +31,7 @@ class DispatcherService:
         self.restart_unfinished_monologues()
 
 
+    # TODO: Is this actually guaranteed to work? What about events and monologues which are added and then removed from the session?
     def before_flush(self, session: Session, context, instances):
         if not hasattr(session, "_new_events"):
             session._new_events = []
