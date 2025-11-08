@@ -24,8 +24,8 @@ class User(Base):
     agents: Mapped[List["Agent"]] = relationship("Agent", back_populates="owner", cascade='all,delete', order_by="Agent.name.desc()")
     chats: Mapped[List["Chat"]] = relationship("Chat", back_populates="owner", cascade='all,delete', order_by="Chat.modified_at.desc()")
 
-    allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_user_action_association, back_populates="allowed_on_users")
-    allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_user_trigger_association, back_populates="allowed_on_users")
+    allowed_actions: Mapped[List["Action"]] = relationship("Action", secondary=allowed_user_action_association, back_populates="allowed_on_users", order_by="Action.function_name.asc()")
+    allowed_triggers: Mapped[List["Trigger"]] = relationship("Trigger", secondary=allowed_user_trigger_association, back_populates="allowed_on_users", order_by="Trigger.name.asc()")
     
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, username={self.id!r})"

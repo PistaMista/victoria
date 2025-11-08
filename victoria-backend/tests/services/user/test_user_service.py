@@ -258,8 +258,8 @@ def test_user_service_can_update_user_simple(serv, db_session):
     assert len(user_john.allowed_triggers) == 1
     assert user_john.allowed_triggers[0].id == 5
     assert len(user_john.allowed_actions) == 2
-    assert user_john.allowed_actions[0].id == 391
-    assert user_john.allowed_actions[1].id == 390
+    assert user_john.allowed_actions[0].id == 390
+    assert user_john.allowed_actions[1].id == 391
 
 def test_user_service_can_update_user_complex(serv, db_session):
     # Arrange
