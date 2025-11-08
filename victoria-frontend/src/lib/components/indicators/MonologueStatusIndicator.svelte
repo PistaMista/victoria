@@ -11,7 +11,7 @@
 	export let horizontal: Boolean = false;
 
 	export let status: MonologueStatus;
-	export let startTimestamp: number = Date.now();
+	export let startTimestamp: number = 0;
 	export let endTimestamp: number | null = null;
 
 	export let displayRuntime: Boolean = false;
@@ -25,21 +25,25 @@
 		FAILURE: "red-500",
 	};
 
-	let currentTime: number = Date.now();
-	let runtime: number = 0;
+	let currentDate: DateTime = DateTime.now().toUTC();
+	let runtime: Duration = Duration.fromMillis(0);
 
-	$: duration = Duration.fromMillis(runtime).shiftTo("minutes", "seconds");
-	$: startDate = DateTime.fromSeconds(startTimestamp);
-	$: endDate = endTimestamp ? DateTime.fromSeconds(endTimestamp) : null;
+	$: duration = runtime.shiftTo("minutes", "seconds");
+	$: startDate = DateTime.fromSeconds(startTimestamp, {
+		zone: "utc",
+	}).toUTC();
+	$: endDate = endTimestamp
+		? DateTime.fromSeconds(endTimestamp, { zone: "utc" }).toUTC()
+		: null;
 
-	$: if (endTimestamp === null) {
-		runtime = currentTime - startTimestamp;
+	$: if (endDate === null) {
+		runtime = currentDate.diff(startDate);
 	} else {
-		runtime = endTimestamp - startTimestamp;
+		runtime = endDate.diff(startDate);
 	}
 
 	function tickTime() {
-		currentTime = Date.now();
+		currentDate = DateTime.now().toUTC();
 	}
 
 	onMount(() => {
@@ -79,4 +83,3 @@
 		</div>
 	{/if}
 </div>
-

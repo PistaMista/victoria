@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/svelte';
+import { DateTime } from "ts-luxon";
 import MonologueStatusIndicator from "./MonologueStatusIndicator.svelte";
 
 test('monologue status indicator displays given monologue status', async () => {
@@ -47,12 +48,12 @@ test('monologue status indicator displays given monologue status', async () => {
 
 test('monologue status indicator can optionally display monologue runtime', async () => {
 	// Mock the current date
-	vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2025, 1, 1, 14, 19, 11) / 1000);
+	vi.spyOn(DateTime, 'now').mockReturnValue(DateTime.utc(2025, 2, 1, 14, 19, 11)); // February
 
 	const hor_off = render(MonologueStatusIndicator, {
 		status: 'RUNNING',
 		horizontal: true,
-		startTimestamp: Date.UTC(2025, 1, 1, 10, 50) / 1000
+		startTimestamp: Date.UTC(2025, 1, 1, 10, 50) / 1000 // Also February (ts-luxon vs js Date .utc functions)
 	});
 	const ver_off = render(MonologueStatusIndicator, {
 		status: 'RUNNING',
@@ -122,7 +123,7 @@ test('monologue status indicator can optionally display monologue finish date', 
 		status: 'SUCCESS',
 		horizontal: true,
 		startTimestamp: Date.UTC(2025, 1, 1, 10, 50) / 1000,
-		endTimestamp: Date.UTC(2025, 1, 2, 11, 55)
+		endTimestamp: Date.UTC(2025, 1, 2, 11, 55) / 1000
 	});
 	const ver_off = render(MonologueStatusIndicator, {
 		status: 'SUCCESS',
