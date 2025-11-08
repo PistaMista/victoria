@@ -43,11 +43,13 @@ class DispatcherService:
         session._new_monologues.extend([ m for m in session.new if isinstance(m, Monologue) and m not in session._new_monologues])
     
     def after_commit(self, session: Session):
-        for event in session._new_events:
-            self.on_event_added(event)
+        if hasattr(session, "_new_events"):
+            for event in session._new_events:
+                self.on_event_added(event)
         
-        for monologue in session._new_monologues:
-            self.start_monologue_thread(monologue)
+        if hasattr(session, "_new_monologues"):
+            for monologue in session._new_monologues:
+                self.start_monologue_thread(monologue)
 
     def dispatch_undispatched_events(self):
         with self._db.session() as db:

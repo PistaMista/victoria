@@ -78,7 +78,7 @@ export async function getChatOptions(id: number): Promise<ChatOptions> {
 	return ChatOptionsSchema.parse(json);
 }
 
-export async function updateChatOptions(id: number, changes: Diff<ChatOptions>): Promise<ChatOptions> {
+export async function updateChatOptions(id: number, changes: Diff<ChatOptions>): Promise<void> {
 	const res = await fetch(`/api/chats/${id}/options`, {
 		method: 'PUT',
 		headers: {
@@ -91,8 +91,6 @@ export async function updateChatOptions(id: number, changes: Diff<ChatOptions>):
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return ChatOptionsSchema.parse(json);
 }
 
 export async function sendMessageToChat(chatId: number, msg: string): Promise<SentMessageInfo> {
