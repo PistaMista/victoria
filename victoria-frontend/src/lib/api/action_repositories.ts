@@ -61,7 +61,7 @@ export async function deleteActionRepository(id: number): Promise<void> {
 	}
 }
 
-export async function createActionRepository(newRepo: ActionRepository): Promise<ActionRepository> {
+export async function createActionRepository(newRepo: ActionRepository): Promise<void> {
 	const res = await fetch(`/api/action-repos`, {
 		method: 'POST',
 		headers: {
@@ -74,6 +74,4 @@ export async function createActionRepository(newRepo: ActionRepository): Promise
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return ActionRepositorySchema.parse(json);
 }
