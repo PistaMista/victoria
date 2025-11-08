@@ -42,11 +42,9 @@ class AgenticMonologueThread(MonologueThread):
             while not monologue.is_finished():
                 self.do_iteration()
                 monologue = self._monologue.get_monologue_by_id(self._id)
-        except:
-            try:
-                self._monologue.set_monologue_status(self._id, MonologueStatus.FAILURE)
-            finally:
-                pass
+        except Exception as e:
+            print(f"Monologue #{self._id} thread crashed: {e}")
+            self._monologue.set_monologue_status(self._id, MonologueStatus.FAILURE)
         finally:
             self._on_finish(self)
 

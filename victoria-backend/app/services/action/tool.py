@@ -30,14 +30,19 @@ def convert_to_action(func) -> Action:
     param_schema = {}
     
     for name, param in signature.parameters.items():
-        if not param.kind in [inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.VAR_KEYWORD]:
-            raise InvalidActionParamTypeError(name)
-        
-        if param.annotation == inspect._empty:
-            raise UnannotatedActionParamError(name)
-        
-        param_schema[name] = serialize_type(type_hints.get(name))
-    
+        match param.kind:
+            case inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                if param.annotation == inspect._empty:
+                    raise UnannotatedActionParamError(name)
+
+                param_schema[name] = serialize_type(type_hints.get(name))
+
+            case inspect.Parameter.VAR_KEYWORD:
+                pass # Ignore **kwargs
+
+            case _:
+                raise InvalidActionParamTypeError(name)
+
     action = Action(
         function_name=func_name,
         function_param_schema=param_schema,

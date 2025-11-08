@@ -178,3 +178,19 @@ def test_auth_service_rejects_agent_token_from_finished_monologue(auth_serv):
     # Act / Assert
     with pytest.raises(InvalidLoginError):
         auth_serv.get_as_non_admin_user(token)
+
+def test_auth_service_rejects_agent_token_with_invalid_b64_format(auth_serv):
+    # Arrange
+    token_invalid_char = "d29v!wo="
+    token_invalid_padding = "=abcd====="
+    token_invalid_length = "ad="
+
+    # Act / Assert
+    with pytest.raises(InvalidLoginError):
+        auth_serv.get_as_non_admin_user(token_invalid_char)
+
+    with pytest.raises(InvalidLoginError):
+        auth_serv.get_as_non_admin_user(token_invalid_padding)
+
+    with pytest.raises(InvalidLoginError):
+        auth_serv.get_as_non_admin_user(token_invalid_length)

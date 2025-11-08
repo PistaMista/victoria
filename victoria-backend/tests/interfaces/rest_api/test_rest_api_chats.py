@@ -7,7 +7,7 @@ from app.model.action import Action
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessageMarkdown
-from app.model.event import ChatEvent
+from app.model.event import Event 
 from fastapi import status
 import threading
 import time
@@ -510,7 +510,7 @@ def test_list_exchanges_returns_200_and_list_of_exchanges_when_new_exchanges_ava
                 markdown="Hello?"
             ),
             triggered_chat_events=[
-                ChatEvent(
+                Event(
                     monologues=[
                         Monologue(
                             id=1
@@ -520,7 +520,7 @@ def test_list_exchanges_returns_200_and_list_of_exchanges_when_new_exchanges_ava
                         )
                     ]
                 ),
-                ChatEvent(
+                Event(
                     monologues=[
                         Monologue(
                             id=3
@@ -535,7 +535,7 @@ def test_list_exchanges_returns_200_and_list_of_exchanges_when_new_exchanges_ava
             timestamp=datetime.fromtimestamp(1200),
             user_message=None,
             triggered_chat_events=[
-                ChatEvent(
+                Event(
                     monologues=[
                         Monologue(
                             id=3
@@ -599,7 +599,7 @@ def test_list_exchanges_waits_until_new_exchanges_are_available_before_returning
                 timestamp=datetime.fromtimestamp(1700),
                 user_message=None,
                 triggered_chat_events=[
-                    ChatEvent(
+                    Event(
                         monologues=[
                             Monologue(
                                 id=320

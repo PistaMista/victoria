@@ -171,6 +171,7 @@ def test_dispatcher_sets_basic_monologue_context_when_dispatching_monologue(db_s
     
     # Assert
     assert event.monologues[0].context["FINISHED"] == False
+    assert event.monologues[0].context["AGENT_ID"] == 75
     assert event.monologues[0].context["MONOLOGUE_ID"] == event.monologues[0].id
     assert event.monologues[0].context["BASE_URL"] == "golem:11435"
 
@@ -429,6 +430,7 @@ def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added
     db_session.add(trigger_thought)
     db_session.add(monologue)
     db_session.commit()
+    dispatcher.stop()
     
     # Assert
     # ...a fresh thread is started for new monologues
@@ -510,9 +512,47 @@ def test_dispatcher_instructs_runner_to_process_existing_unfinished_monologues(d
     
     # Act
     dispatcher.start()
+    dispatcher.stop()
         
     # Assert
     runner.start_monologue_process.assert_called_once_with(45)
+
+def test_dispatcher_instructs_runner_to_process_monologue_just_added_by_new_event(db_session, runner, dispatcher, owner):
+    # Arrange
+    trigger = PollTrigger(
+        name="Emails", 
+        url="http://mycooldomain.com",
+        template="An email has arrived: (content)",
+        interval=600
+    )
+    agent = Agent(
+        id=75,
+        name="Secretary",
+        prompt="Manage the user's calendar and tasks",
+        owner=owner,
+        allowed_triggers=[trigger]
+    )
+    db_session.add(trigger)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    dispatcher.start()
+    event = Event( 
+        id=42, 
+        content="An email has arrived: Hello, this is...", 
+        trigger=trigger, 
+        dispatched=False, 
+        monologues=[]
+    )
+    db_session.add(event)
+    db_session.commit()
+    dispatcher.stop()
+    
+    # Assert
+    assert event.dispatched
+    assert len(event.monologues) == 1
+    runner.start_monologue_process.assert_called_once_with(event.monologues[0].id)
         
 def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dispatcher, owner):
     # Arrange
@@ -587,6 +627,7 @@ def test_dispatcher_does_nothing_for_finished_monologues(db_session, runner, dis
 
     # Act
     dispatcher.start()
+    dispatcher.stop()
     
     # Assert
     runner.start_monologue_process.assert_not_called()

@@ -272,7 +272,7 @@ def tool(func):
 
 # The tool decorator is just used as a marker, it does nothing
 @tool
-def my_cool_tool(idx: int, name_list: List[str]):
+def my_cool_tool(idx: int, name_list: List[str], **kwargs):
     return name_list[idx]
 """
     )
@@ -314,15 +314,15 @@ def tool(func):
     return func
 
 @tool
-def add(a: int, b: int):
+def add(a: int, b: int, **kwargs):
     return a + b
 
 @tool
-def sub(a: int, b: int):
+def sub(a: int, b: int, **kwargs):
     return a - b
 
 @tool
-def mul(a: int, b: int):
+def mul(a: int, b: int, **kwargs):
     return a * b
 """
     )
@@ -336,14 +336,14 @@ def tool(func):
     return func
 
 @tool
-def factorial(x: int):
+def factorial(x: int, **kwargs):
     if x <= 0:
         return 1
     
     return x * factorial(x - 1)
 
 @tool
-def add_mod_3(a: int, b: int):
+def add_mod_3(a: int, b: int, **kwargs):
     return (a + b) % 3
 """
     )
@@ -353,11 +353,11 @@ def add_mod_3(a: int, b: int):
     
     misc.write_text(
 """
-def tool(func):
+def tool(func, **kwargs):
     return func
 
 @tool
-def quote(x: str):
+def quote(x: str, **kwargs):
     return '"' + x + '"'
 """
     )

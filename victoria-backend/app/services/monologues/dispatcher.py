@@ -22,25 +22,34 @@ class DispatcherService:
 
     def stop(self):
         event.remove(Session, 'after_commit', self.after_commit)
-        event.remove(Session, 'before_commit', self.before_commit)
+        event.remove(Session, 'before_flush', self.before_flush)
 
     def start(self):
-        event.listen(Session, 'before_commit', self.before_commit)
+        event.listen(Session, 'before_flush', self.before_flush)
         event.listen(Session, 'after_commit', self.after_commit)
         self.dispatch_undispatched_events()
         self.restart_unfinished_monologues()
 
 
-    def before_commit(self, session: Session):
-        session._new_events = [ e for e in session.new if isinstance(e, Event) ]
-        session._new_monologues = [ m for m in session.new if isinstance(m, Monologue) ]
+    # TODO: Is this actually guaranteed to work? What about events and monologues which are added and then removed from the session?
+    def before_flush(self, session: Session, context, instances):
+        if not hasattr(session, "_new_events"):
+            session._new_events = []
+
+        if not hasattr(session, "_new_monologues"):
+            session._new_monologues = []
+
+        session._new_events.extend([ e for e in session.new if isinstance(e, Event) and e not in session._new_events])
+        session._new_monologues.extend([ m for m in session.new if isinstance(m, Monologue) and m not in session._new_monologues])
     
     def after_commit(self, session: Session):
-        for event in session._new_events:
-            self.on_event_added(event)
+        if hasattr(session, "_new_events"):
+            for event in session._new_events:
+                self.on_event_added(event)
         
-        for monologue in session._new_monologues:
-            self.start_monologue_thread(monologue)
+        if hasattr(session, "_new_monologues"):
+            for monologue in session._new_monologues:
+                self.start_monologue_thread(monologue)
 
     def dispatch_undispatched_events(self):
         with self._db.session() as db:
@@ -115,6 +124,7 @@ class DispatcherService:
                     "FINISHED": False,
                     "BASE_URL": self._base_url,
                     "MONOLOGUE_ID": new_monologue.id,
+                    "AGENT_ID": agent.id,
                     "TOKEN": b64encode(new_monologue.agent_token).decode("utf-8")
                 }
 
@@ -123,13 +133,5 @@ class DispatcherService:
             db.commit()
     
     def start_monologue_thread(self, monologue: Monologue):
-        with self._db.session() as db:
-            monologue = db.scalar(
-                select(Monologue).where(Monologue.id == monologue.id)
-            )
-            
-            if monologue is None:
-                return
-            
-            self._runner.start_monologue_process(monologue.id)
-            db.commit()
+        print(f"Starting monologue #{monologue.id}")
+        self._runner.start_monologue_process(monologue.id)

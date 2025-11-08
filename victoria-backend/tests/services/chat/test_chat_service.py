@@ -8,10 +8,10 @@ from app.model.user import User, Role
 from app.model.chat import Chat
 from app.model.chat_exchange import ChatExchange
 from app.model.chat_message import ChatMessageMarkdown, ChatMessageChoicePrompt, ChatMessage, ChoiceMessageOption
+from app.model.event import Event
 from app.model.action import Action
 from app.model.action_repository import ActionRepository
 from app.model.trigger import ChatTrigger
-from app.model.event import ChatEvent
 from app.model.agent import Agent
 
 @pytest.fixture(scope="function")
@@ -793,13 +793,13 @@ def test_chat_service_throws_when_invalid_last_exchange_id_specified_during_dupl
 def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_datetime, db_serv, db_session, trigger_mock):
     # Arrange
     mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
-    def receive_chat_message_mock(receiver: str, message: str):
-        event1 = ChatEvent(
+    def receive_chat_message_mock(receiver: str, message: str, chat_id: int, exchange_id: int):
+        event1 = Event(
             id=1,
             content="A message has arrived: That's not it",
             dispatched=True
         )
-        event2 = ChatEvent(
+        event2 = Event(
             id=2,
             content="MSG: That's not it",
             dispatched=True
@@ -889,7 +889,9 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_user(mock_date
     # ...user messages sent to a chat can set off ChatTriggers
     trigger_mock.receive_chat_message.assert_called_with(
         receiver="general",
-        message="That's not it"
+        message="That's not it",
+        chat_id=1,
+        exchange_id=exchange_id
     )
 
     db_session.refresh(user_john)

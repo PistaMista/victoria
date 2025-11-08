@@ -258,8 +258,8 @@ def test_user_service_can_update_user_simple(serv, db_session):
     assert len(user_john.allowed_triggers) == 1
     assert user_john.allowed_triggers[0].id == 5
     assert len(user_john.allowed_actions) == 2
-    assert user_john.allowed_actions[0].id == 391
-    assert user_john.allowed_actions[1].id == 390
+    assert user_john.allowed_actions[0].id == 390
+    assert user_john.allowed_actions[1].id == 391
 
 def test_user_service_can_update_user_complex(serv, db_session):
     # Arrange
@@ -1004,14 +1004,52 @@ def test_user_service_reports_when_any_user_is_registered(serv, db_session):
     # Act / Assert
     assert serv.is_any_user_registered()
 
-def test_user_service_gets_user_by_id(serv, db_session, db_factory):
+def test_user_service_gets_user_by_id_including_allowed_actions_and_triggers(serv, db_session, db_factory):
     # Arrange
+    poll_trigger = PollTrigger(
+        id=5,
+        name="Simple poll",
+        url="seznam.cz",
+        template="Content of the website: $(content)",
+        interval=30
+    )
+    chat_trigger = ChatTrigger(
+        id=10,
+        name="Simple chat",
+        receiver="general",
+        template="Hello"
+    )
+    send_message_action = Action(
+        id=390,
+        function_name="send_message",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
+    )
+    think_action = Action(
+        id=391,
+        function_name="think",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring=""
+    )
+    gitea_repo = ActionRepository(
+        name="Gitea",
+        url="golem:8080",
+        actions=[send_message_action, think_action]
+    )
     existing_user = User(
         id=1,
         username="exists",
         password_hash="dasdasdasd",
-        role=Role.ADMIN
+        role=Role.ADMIN,
+        allowed_triggers=[chat_trigger],
+        allowed_actions=[send_message_action, think_action]
     )
+
+    db_session.add(chat_trigger)
+    db_session.add(poll_trigger)
+    db_session.add(gitea_repo)
     db_session.add(existing_user)
     db_session.commit()
     
@@ -1020,6 +1058,11 @@ def test_user_service_gets_user_by_id(serv, db_session, db_factory):
     assert user.username == "exists"
     assert user.password_hash == "dasdasdasd"
     assert user.role == Role.ADMIN
+    assert len(user.allowed_triggers) == 1
+    assert user.allowed_triggers[0].name == "Simple chat"
+    assert len(user.allowed_actions) == 2
+    assert user.allowed_actions[0].function_name == "send_message"
+    assert user.allowed_actions[1].function_name == "think"
 
 def test_user_service_gets_user_by_name(serv, db_session, db_factory):
     # Arrange

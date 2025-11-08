@@ -6,7 +6,7 @@ class LanguageModel(Base):
     __tablename__ = "language_model"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(String(400), nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean(), nullable=False)
     
     # The connection the model was imported from

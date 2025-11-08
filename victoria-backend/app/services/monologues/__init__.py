@@ -70,12 +70,7 @@ class MonologueService:
         with self._db.session() as db:
             monologue = self._load_user_monologue(db, user_id, monologue_id)
 
-            res = monologue.thoughts
-
-            for thought in res:
-                if thought.invocation is not None:
-                    db.refresh(thought.invocation)
-
+            res = self.get_monologue_thoughts(monologue.id)
             return list(res)
 
     def set_monologue_context(self, id: int, context: Dict[str, Any]):
@@ -138,8 +133,10 @@ class MonologueService:
                 select(Monologue)
                 .options(
                     joinedload(Monologue.thoughts)
-                    .joinedload(Thought.invocation)
-                    .joinedload(Invocation.action)
+                    .options(
+                        joinedload(Thought.invocation).joinedload(Invocation.action),
+                        joinedload(Thought.monologue)
+                    )
                 )
                 .where(Monologue.id == id)
             )
@@ -189,6 +186,9 @@ class MonologueService:
             monologue = db.scalar(
                 select(Monologue)
                 .where(Monologue.id == id)
+                .options(
+                    joinedload(Monologue.agent)
+                )
             )
             
             if monologue is None:

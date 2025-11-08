@@ -1490,18 +1490,28 @@ def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_e
         1: 30,
         2: 40
     }.get(id)
-    res_hello = serv.receive_chat_message("general", "Hello there")
+    res_hello = serv.receive_chat_message(
+        receiver="general", 
+        message="Hello there",
+        chat_id=40,
+        exchange_id=None
+    )
     mock_generate.side_effect = lambda id, _: {
         1: 99,
         2: 100
     }.get(id)
-    res_goodbye = serv.receive_chat_message("general", "Goodbye")
+    res_goodbye = serv.receive_chat_message(
+        receiver="general", 
+        message="Goodbye",
+        chat_id=50,
+        exchange_id=20
+    )
 
     # Assert
-    mock_generate.assert_any_call(1, {"message": "Hello there"})
-    mock_generate.assert_any_call(2, {"message": "Hello there"})
-    mock_generate.assert_any_call(1, {"message": "Goodbye"})
-    mock_generate.assert_any_call(2, {"message": "Goodbye"})
+    mock_generate.assert_any_call(1, {"message": "Hello there", "chatId": 40, "exchangeId": None})
+    mock_generate.assert_any_call(2, {"message": "Hello there", "chatId": 40, "exchangeId": None})
+    mock_generate.assert_any_call(1, {"message": "Goodbye", "chatId": 50, "exchangeId": 20})
+    mock_generate.assert_any_call(2, {"message": "Goodbye", "chatId": 50, "exchangeId": 20})
 
     assert res_hello == [30, 40]
     assert res_goodbye == [99, 100]
@@ -1542,8 +1552,8 @@ def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_ma
 
     # Assert
     assert mock_generate.call_count == 2
-    mock_generate.assert_any_call(1, {"message": "Hello there"})
-    mock_generate.assert_any_call(1, {"message": "Goodbye"})
+    mock_generate.assert_any_call(1, {"message": "Hello there", "chatId": None, "exchangeId": None})
+    mock_generate.assert_any_call(1, {"message": "Goodbye", "chatId": None, "exchangeId": None})
     assert res_hello == [99]
     assert res_goodbye == [99]
 

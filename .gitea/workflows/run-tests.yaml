@@ -27,8 +27,8 @@ jobs:
           nix develop --command bash -c '
             cd victoria-frontend
             npm install
-            npm run test
+            npm run test || exit 1
 
             cd ../victoria-backend
-            uv run pytest
+            uv run pytest || exit 1
           '

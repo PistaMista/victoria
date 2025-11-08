@@ -7,6 +7,7 @@ from app.model.monologue import Monologue, MonologueStatus
 from app.model.action import Action
 from app.model.trigger import Trigger
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from pydantic import BaseModel
 
 class UserService:
@@ -137,7 +138,12 @@ class UserService:
     def get_user_by_id(self, id: int) -> User:
         with self._db.session() as db:
             user = db.scalar(
-                select(User).where(User.id == id)
+                select(User)
+                .where(User.id == id)
+                .options(
+                    joinedload(User.allowed_actions),
+                    joinedload(User.allowed_triggers)
+                )
             )
 
             if user is None:

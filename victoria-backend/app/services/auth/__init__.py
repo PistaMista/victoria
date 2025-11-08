@@ -4,6 +4,7 @@ import jwt
 from base64 import b64decode
 from typing import Optional
 import time
+import binascii
 from bcrypt import checkpw
 
 class AuthService:
@@ -65,16 +66,15 @@ class AuthService:
             except NonexistentUserError:
                 raise ExpiredLoginError()
             
-        except jwt.DecodeError as e:
-            # If the given token is not a JWT token, it is a Monologue agent_token
-            agent_token = b64decode(token.encode("utf-8"))
-
+        except jwt.InvalidTokenError as e:
+            # If the given token is not a valid JWT token, it is a Monologue agent_token
             try:
+                agent_token = b64decode(token.encode("utf-8"))
                 user = self._user.get_user_by_running_monologue_agent_token(agent_token)
                 # Downgrade the returned user role to USER, agents never have admin privileges
                 user.role = Role.USER
                 return user
-            except NonexistentUserError:
+            except (NonexistentUserError, binascii.Error):
                 raise InvalidLoginError()
         except Exception as e:
             raise e

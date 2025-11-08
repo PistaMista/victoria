@@ -3,27 +3,27 @@ import { Action as ActionSchema } from "$lib/types/action";
 import { z } from "zod"
 
 export async function getPermittedActions(): Promise<Action[]> {
-    const res = await fetch('/api/actions', {
-        method: 'GET'
-    });
-    const json = await res.json();
+	const res = await fetch('/api/actions', {
+		method: 'GET'
+	});
+	const json = await res.json();
 
-    if (!res.ok) {
-        throw Error(json);
-    }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 
-    return z.array(ActionSchema).parse(json);
+	return z.array(ActionSchema).parse(json);
 }
 
 export async function getAllActions(): Promise<Action[]> {
-    const res = await fetch('/api/actions/all', {
-        method: 'GET'
-    });
-    const json = await res.json();
+	const res = await fetch('/api/actions/all', {
+		method: 'GET'
+	});
+	const json = await res.json();
 
-    if (!res.ok) {
-        throw Error(json);
-    }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 
-    return z.array(ActionSchema).parse(json);
+	return z.array(ActionSchema).parse(json);
 }
