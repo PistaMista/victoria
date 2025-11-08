@@ -98,6 +98,7 @@
 								horizontal
 								status={monologue.status}
 								startTimestamp={monologue.startTimestamp}
+								endTimestamp={monologue.endTimestamp}
 								displayRuntime
 							/>
 						</div>
@@ -129,4 +130,3 @@
 		rejectMessage="Failure while receiving messages"
 	/>
 {/await}
-
