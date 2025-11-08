@@ -50,7 +50,7 @@ export async function getAgentMonologues(agentId: number): Promise<MonologueList
 	return z.array(MonologueListItemSchema).parse(json);
 }
 
-export async function createAgent(agent: Agent): Promise<AgentListItem> {
+export async function createAgent(agent: Agent): Promise<void> {
 	const res = await fetch('/api/agents', {
 		method: 'POST',
 		headers: {
@@ -63,8 +63,6 @@ export async function createAgent(agent: Agent): Promise<AgentListItem> {
 	if (!res.ok) {
 		throw Error(json.detail);
 	}
-
-	return AgentListItemSchema.parse(json);
 }
 
 export async function updateAgent(id: number, changes: Diff<Agent>): Promise<void> {
