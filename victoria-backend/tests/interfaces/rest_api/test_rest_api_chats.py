@@ -640,6 +640,52 @@ def test_list_exchanges_waits_until_new_exchanges_are_available_before_returning
         }
     ]
 
+def test_list_exchanges_returns_200_and_empty_list_on_timeout(mock_client, auth_mock, chat_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    chat_mock.get_user_chat_exchanges_after.return_value = []
+    def data_source():
+        time.sleep(3) # After timeout
+        chat_mock.get_user_chat_exchanges_after.return_value = [
+            ChatExchange(
+                id=3,
+                chat_id=4,
+                timestamp=datetime.fromtimestamp(1700),
+                user_message=None,
+                triggered_chat_events=[
+                    Event(
+                        monologues=[
+                            Monologue(
+                                id=320
+                            )
+                        ]
+                    )
+                ]
+            )
+        ]
+
+    source_thread = threading.Thread(target=data_source)
+    source_thread.start()
+
+
+    # Act
+    res = mock_client.get(
+        '/api/chats/4/exchanges',
+        params={
+            "after": 1000
+        }
+    )
+    source_thread.join()
+
+    # Assert
+    chat_mock.get_user_chat_exchanges_after.assert_called_with(
+        user_id=1,
+        chat_id=4,
+        after=1000
+    )
+    assert res.status_code == status.HTTP_200_OK
+    assert res.json() == []
+
 def test_list_exchanges_returns_401_when_not_logged_in(mock_client, auth_mock, chat_mock):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()

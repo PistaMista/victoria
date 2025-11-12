@@ -23,7 +23,7 @@ async def get_messages_long_poll(
         running = 0.0
         timeout = 2.5
         interval = 0.5
-        while not await request.is_disconnected() and not running > timeout:
+        while not await request.is_disconnected() and running < timeout:
             new = chat_service.get_user_exchange_replies_after(
                 user_id=user.id,
                 exchange_id=id,
