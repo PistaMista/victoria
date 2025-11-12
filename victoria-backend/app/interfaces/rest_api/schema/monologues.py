@@ -120,8 +120,8 @@ def to_invocation_response(x: Optional[Invocation], event_id: int) -> Invocation
         )
     else:
         return ActionInvocationResponse(
-            name=x.function_name,
-            parameters=x.params
+            name=x.function_name or "INVALID",
+            parameters=x.params or {}
         )
 
 def to_thought_response(x: Thought) -> ThoughtResponse:

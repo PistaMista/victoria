@@ -166,7 +166,10 @@ async def get_exchanges_long_poll(
     chat_service: Annotated[ChatService, Depends(Provide[Container.chat])]
 ) -> List[ExchangeResponse]:
     try:
-        while not await request.is_disconnected():
+        running = 0.0
+        timeout = 2.5
+        interval = 0.5
+        while not await request.is_disconnected() and running < timeout:
             new = chat_service.get_user_chat_exchanges_after(
                 user_id=user.id,
                 chat_id=id,
@@ -176,7 +179,8 @@ async def get_exchanges_long_poll(
             if new:
                 return [to_exchange_response(x) for x in new]
 
-            time.sleep(1.0)
+            time.sleep(interval)
+            running += interval
 
         return []
     except NonexistentChatError as err:

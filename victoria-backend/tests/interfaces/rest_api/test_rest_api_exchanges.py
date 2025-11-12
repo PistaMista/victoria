@@ -132,6 +132,47 @@ def test_get_exchange_messages_waits_until_new_messages_available_before_returni
         }
     ]
 
+def test_get_exchange_messages_returns_200_and_empty_list_on_timeout(mock_client, auth_mock, chat_mock, user):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    chat_mock.get_user_exchange_replies_after.return_value = []
+
+    def data_source():
+        time.sleep(3) # After timeout
+        chat_mock.get_user_exchange_replies_after.return_value = [
+            ChatMessageMarkdown(
+                id=1,
+                timestamp=datetime.fromtimestamp(1000),
+                sending_user=User(
+                    username="John"
+                ),
+                sending_agent=None,
+                markdown="hello"
+            )
+        ]
+        
+    source_thread = threading.Thread(target=data_source)
+    source_thread.start()
+
+    # Act
+    res = mock_client.get(
+        "/api/exchanges/42/messages",
+        params={
+            "after": 200
+        }
+    )
+    source_thread.join()
+
+    # Assert
+    chat_mock.get_user_exchange_replies_after.assert_called_with(
+        user_id=1,
+        exchange_id=42,
+        after=200
+    )
+    assert res.status_code == status.HTTP_200_OK
+    assert res.json() == []
+
+
 def test_get_exchange_messages_returns_401_when_not_logged_in(mock_client, auth_mock, chat_mock):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()

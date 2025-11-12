@@ -153,7 +153,7 @@ class MonologueService:
         for t in thoughts:
             if t.invocation is not None:
                 msg_obj = {
-                    "action_name": t.invocation.action.function_name,
+                    "action_name": t.invocation.function_name,
                     "arguments": t.invocation.params
                 }
 
