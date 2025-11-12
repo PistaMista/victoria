@@ -17,6 +17,7 @@
 	import Loader from "../placeholders/Loader.svelte";
 
 	export let exchange: Exchange;
+	export let latest = false;
 
 	let agentMessages: Writable<Message[]> = writable([]);
 	let monologues: Monologue[] = [];
@@ -45,6 +46,7 @@
 		receivePromise = startReceivingMessages(
 			exchange.id,
 			agentMessages,
+			!latest,
 			abortController.signal,
 		);
 	});
