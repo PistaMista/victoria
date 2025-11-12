@@ -139,7 +139,7 @@ export async function startReceivingExchanges(chatId: number, out: Writable<Exch
 	return loop;
 }
 
-export async function startReceivingMessages(exchangeId: number, out: Writable<Message[]>, once: boolean, abortSig: AbortSignal): Promise<void> {
+export async function startReceivingMessages(exchangeId: number, out: Writable<Message[]>, fetchAbort: AbortSignal, loopAbort: AbortSignal): Promise<void> {
 	let fetcher = (async () => {
 		const maxTimestamp = get(out).map((val) => (val.timestamp)).reduce((a, b) => Math.max(a, b), 0);
 		const params = new URLSearchParams({
@@ -147,7 +147,7 @@ export async function startReceivingMessages(exchangeId: number, out: Writable<M
 		})
 		const res = await fetch(`/api/exchanges/${exchangeId}/messages?${params.toString()}`, {
 			method: 'GET',
-			signal: abortSig
+			signal: fetchAbort
 		});
 		const json = await res.json();
 
@@ -160,12 +160,10 @@ export async function startReceivingMessages(exchangeId: number, out: Writable<M
 	});
 
 	let loop: Promise<void> = (async () => {
-		while (!abortSig.aborted) {
-			await fetcher();
+		await fetcher();
 
-			if (once) {
-				break;
-			}
+		while (!loopAbort.aborted) {
+			await fetcher();
 		}
 	})();
 

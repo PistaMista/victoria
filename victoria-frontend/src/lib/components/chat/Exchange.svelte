@@ -22,7 +22,8 @@
 	let agentMessages: Writable<Message[]> = writable([]);
 	let monologues: Monologue[] = [];
 
-	let abortController: AbortController = new AbortController();
+	let fetchAbortController: AbortController = new AbortController();
+	let loopAbortController: AbortController = new AbortController();
 
 	let receivePromise: Promise<any> = Promise.resolve();
 	let getMonologuesPromise: Promise<any> = Promise.resolve();
@@ -46,14 +47,19 @@
 		receivePromise = startReceivingMessages(
 			exchange.id,
 			agentMessages,
-			!latest,
-			abortController.signal,
+			fetchAbortController.signal,
+			loopAbortController.signal,
 		);
 	});
 
 	onDestroy(() => {
-		abortController.abort("Exchange component destroyed");
+		fetchAbortController.abort("Exchange component destroyed");
+		loopAbortController.abort("Exchange component destroyed");
 	});
+
+	$: if (!latest) {
+		loopAbortController.abort("Exchange no longer latest");
+	}
 </script>
 
 <div class="w-full flex flex-col">
