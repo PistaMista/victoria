@@ -172,7 +172,7 @@
         }:
         import ./nixos.nix {
           inherit config lib;
-          victoria = (self.packages.${pkgs.system}.victoria-backend);
+          victoria = (self.packages.${pkgs.stdenv.hostPlatform.system}.victoria-backend);
         };
     };
 }
