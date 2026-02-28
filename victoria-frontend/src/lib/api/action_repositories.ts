@@ -4,83 +4,83 @@ import type { ActionRepository } from "$lib/types/action_repo";
 import { z } from "zod";
 
 export async function getActionRepositories(
-  searchQuery: string | null = null,
+	searchQuery: string | null = null,
 ): Promise<ActionRepository[]> {
-  const params = new URLSearchParams();
+	const params = new URLSearchParams();
 
-  if (searchQuery) {
-    params.append("searchQuery", searchQuery);
-  }
+	if (searchQuery) {
+		params.append("searchQuery", searchQuery);
+	}
 
-  const res = await fetch(`/api/action-repos?${params.toString()}`, {
-    method: "GET",
-  });
-  const json = await res.json();
+	const res = await fetch(`/api/action-repos?${params.toString()}`, {
+		method: "GET",
+	});
+	const json = await res.json();
 
-  if (!res.ok) {
-    throw Error(json.detail);
-  }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 
-  return z.array(ActionRepositorySchema).parse(json);
+	return z.array(ActionRepositorySchema).parse(json);
 }
 
 export async function getActionRepository(
-  id: number,
+	id: number,
 ): Promise<ActionRepository> {
-  const res = await fetch(`/api/action-repos/${id}`, {
-    method: "GET",
-  });
-  const json = await res.json();
+	const res = await fetch(`/api/action-repos/${id}`, {
+		method: "GET",
+	});
+	const json = await res.json();
 
-  if (!res.ok) {
-    throw Error(json.detail);
-  }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 
-  return ActionRepositorySchema.parse(json);
+	return ActionRepositorySchema.parse(json);
 }
 
 export async function updateActionRepository(
-  id: number,
-  changes: Diff<ActionRepository>,
+	id: number,
+	changes: Diff<ActionRepository>,
 ): Promise<void> {
-  const res = await fetch(`/api/action-repos/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(changes),
-  });
-  const json = await res.json();
+	const res = await fetch(`/api/action-repos/${id}`, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(changes),
+	});
+	const json = await res.json();
 
-  if (!res.ok) {
-    throw Error(json.detail);
-  }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 }
 
 export async function deleteActionRepository(id: number): Promise<void> {
-  const res = await fetch(`/api/action-repos/${id}`, {
-    method: "DELETE",
-  });
-  const json = await res.json();
+	const res = await fetch(`/api/action-repos/${id}`, {
+		method: "DELETE",
+	});
+	const json = await res.json();
 
-  if (!res.ok) {
-    throw Error(json.detail);
-  }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 }
 
 export async function createActionRepository(
-  newRepo: ActionRepository,
+	newRepo: ActionRepository,
 ): Promise<void> {
-  const res = await fetch(`/api/action-repos`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(newRepo),
-  });
-  const json = await res.json();
+	const res = await fetch(`/api/action-repos`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(newRepo),
+	});
+	const json = await res.json();
 
-  if (!res.ok) {
-    throw Error(json.detail);
-  }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 }

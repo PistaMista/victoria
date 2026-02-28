@@ -1,7 +1,6 @@
 <script lang="ts">
-    import ActionRepositoryDetailView from "$lib/views/details/ActionRepositoryDetailView.svelte";
+	import ActionRepositoryDetailView from "$lib/views/details/ActionRepositoryDetailView.svelte";
 </script>
 
-<ActionRepositoryDetailView
-    id={null}
-/>
+<ActionRepositoryDetailView id={null} />
+

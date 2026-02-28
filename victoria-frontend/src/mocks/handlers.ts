@@ -13,33 +13,33 @@ import { handlers as triggers } from "./handlers/triggers";
 import { handlers as models } from "./handlers/models";
 
 export const handlers = [
-  /* AUTHENTICATION */
-  ...auth,
-  /// THESE ENDPOINTS ALWAYS WORK ON OBJECTS OWNED
-  /// BY THE CURRENTLY SIGNED IN USER
-  /* CHATS */
-  ...chats,
-  /* EXCHANGES */
-  ...exchanges,
-  /* QUERIES */
-  ...queries,
-  /* AGENTS */
-  ...agents,
-  /* MONOLOGUES */
-  ...monologues,
-  /* EVENTS */
-  ...events,
-  /// POST, PUT AND DELETE ENDPOINTS BELOW REQUIRE ADMIN ROLE
-  /* USERS */
-  ...users,
-  /* ACTION REPOSITORIES */
-  ...action_repos,
-  /* ACTIONS */
-  ...actions,
-  /* CONNECTIONS */
-  ...connections,
-  /* TRIGGERS */
-  ...triggers,
-  /* MODELS */
-  ...models,
+	/* AUTHENTICATION */
+	...auth,
+	/// THESE ENDPOINTS ALWAYS WORK ON OBJECTS OWNED
+	/// BY THE CURRENTLY SIGNED IN USER
+	/* CHATS */
+	...chats,
+	/* EXCHANGES */
+	...exchanges,
+	/* QUERIES */
+	...queries,
+	/* AGENTS */
+	...agents,
+	/* MONOLOGUES */
+	...monologues,
+	/* EVENTS */
+	...events,
+	/// POST, PUT AND DELETE ENDPOINTS BELOW REQUIRE ADMIN ROLE
+	/* USERS */
+	...users,
+	/* ACTION REPOSITORIES */
+	...action_repos,
+	/* ACTIONS */
+	...actions,
+	/* CONNECTIONS */
+	...connections,
+	/* TRIGGERS */
+	...triggers,
+	/* MODELS */
+	...models,
 ];

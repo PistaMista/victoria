@@ -4,9 +4,9 @@ import { render, screen } from "@testing-library/svelte";
 import AgentStatusIndicator from "./AgentStatusIndicator.svelte";
 
 test("agent status indicator displays given agent status", async () => {
-  const { container } = render(AgentStatusIndicator, {
-    status: "BUSY",
-  });
+	const { container } = render(AgentStatusIndicator, {
+		status: "BUSY",
+	});
 
-  expect(container).toHaveTextContent("BUSY");
+	expect(container).toHaveTextContent("BUSY");
 });

@@ -1,11 +1,14 @@
 <script lang="ts">
-    import Loader from "./Loader.svelte";
+	import Loader from "./Loader.svelte";
 </script>
 
 <Loader
-    pendingMessage= "Loading items..."
-    rejectMessage= "Failed to load items"
-    promise={new Promise((resolve, reject) => { resolve(null) })} 
+	pendingMessage="Loading items..."
+	rejectMessage="Failed to load items"
+	promise={new Promise((resolve, reject) => {
+		resolve(null);
+	})}
 >
-    CHILD
+	CHILD
 </Loader>
+

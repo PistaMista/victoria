@@ -9,47 +9,47 @@ import { listChatReceiversHandler } from "../../../mocks/handlers/chats";
 // property of chat triggers
 
 test("chat receiver dropdown starts with first option selected", async () => {
-  const { container } = render(ChatReceiverDropdown);
+	const { container } = render(ChatReceiverDropdown);
 
-  await waitFor(() => {
-    expect(listChatReceiversHandler).toBeCalled();
-  });
+	await waitFor(() => {
+		expect(listChatReceiversHandler).toBeCalled();
+	});
 
-  expect(container).toHaveTextContent("general");
-  expect(container).not.toHaveTextContent("research");
+	expect(container).toHaveTextContent("general");
+	expect(container).not.toHaveTextContent("research");
 });
 
 test("chat receiver dropdown shows all chat receivers when clicked", async () => {
-  const user = userEvent.setup();
-  const { getByRole, container } = render(ChatReceiverDropdown);
+	const user = userEvent.setup();
+	const { getByRole, container } = render(ChatReceiverDropdown);
 
-  await waitFor(() => {
-    expect(listChatReceiversHandler).toBeCalled();
-  });
+	await waitFor(() => {
+		expect(listChatReceiversHandler).toBeCalled();
+	});
 
-  const button = getByRole("button");
-  await user.click(button);
+	const button = getByRole("button");
+	await user.click(button);
 
-  expect(container).toHaveTextContent("general");
-  expect(container).toHaveTextContent("research");
+	expect(container).toHaveTextContent("general");
+	expect(container).toHaveTextContent("research");
 });
 
 test("chat receiver dropdown closes and shows option when it is selected", async () => {
-  const user = userEvent.setup();
-  const { getByRole, container, findByLabelText } =
-    render(ChatReceiverDropdown);
+	const user = userEvent.setup();
+	const { getByRole, container, findByLabelText } =
+		render(ChatReceiverDropdown);
 
-  await waitFor(() => {
-    expect(listChatReceiversHandler).toBeCalled();
-  });
+	await waitFor(() => {
+		expect(listChatReceiversHandler).toBeCalled();
+	});
 
-  const button = getByRole("button");
-  await user.click(button);
+	const button = getByRole("button");
+	await user.click(button);
 
-  const option = await findByLabelText("research");
-  await user.click(option);
+	const option = await findByLabelText("research");
+	await user.click(option);
 
-  expect(option).not.toBeInTheDocument();
-  expect(container).toHaveTextContent("research");
-  expect(container).not.toHaveTextContent("general");
+	expect(option).not.toBeInTheDocument();
+	expect(container).toHaveTextContent("research");
+	expect(container).not.toHaveTextContent("general");
 });

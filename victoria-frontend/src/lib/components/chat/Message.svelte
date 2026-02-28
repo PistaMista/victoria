@@ -29,4 +29,3 @@
 		<MarkdownContent content={message.content} />
 	{/if}
 </div>
-

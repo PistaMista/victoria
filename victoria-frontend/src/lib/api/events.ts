@@ -2,14 +2,14 @@ import type { Event } from "$lib/types/event";
 import { Event as EventSchema } from "$lib/types/event";
 
 export async function getEvent(id: number): Promise<Event> {
-  const res = await fetch(`/api/events/${id}`, {
-    method: "GET",
-  });
-  const json = await res.json();
+	const res = await fetch(`/api/events/${id}`, {
+		method: "GET",
+	});
+	const json = await res.json();
 
-  if (!res.ok) {
-    throw Error(json.detail);
-  }
+	if (!res.ok) {
+		throw Error(json.detail);
+	}
 
-  return EventSchema.parse(json);
+	return EventSchema.parse(json);
 }
