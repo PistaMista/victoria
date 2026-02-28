@@ -14,6 +14,7 @@ class ChatResponse(BaseModel):
         validate_by_name=True,
     )
 
+
 class ChatOptionsResponse(BaseModel):
     receiver: str
     enabledActionIds: List[int]
@@ -25,20 +26,25 @@ class ChatOptionsUpdate(BaseModel):
 
     def to_diff(self) -> ChatOptionsDiff:
         return ChatOptionsDiff(
-            receiver=self.receiver,
-            enabled_action_ids=self.enabledActionIds
+            receiver=self.receiver, enabled_action_ids=self.enabledActionIds
         )
+
 
 class ChatDuplicate(BaseModel):
     toExchange: Optional[int] = None
 
+
 class LLMUserMessage(BaseModel):
     role: Literal["user"] = "user"
     message: str
+
 
 class LLMAssistantMessage(BaseModel):
     role: Literal["assistant"] = "assistant"
     agentName: str
     message: str
 
-LLMMessage = Annotated[Union[LLMUserMessage, LLMAssistantMessage], Field(discriminator="role")]
+
+LLMMessage = Annotated[
+    Union[LLMUserMessage, LLMAssistantMessage], Field(discriminator="role")
+]

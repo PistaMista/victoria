@@ -2,10 +2,12 @@ from pydantic import BaseModel
 from app.services.agent import AgentDiff
 from typing import Literal, Optional, Dict, Any, List
 
+
 class AgentListItemResponse(BaseModel):
     id: int
     name: str
     status: Literal["BUSY"] | Literal["IDLE"]
+
 
 class AgentResponse(BaseModel):
     id: int
@@ -18,6 +20,7 @@ class AgentResponse(BaseModel):
     enabledTriggers: List[int]
     enabledActions: List[int]
 
+
 class AgentCreate(BaseModel):
     id: Optional[int] = None
     name: str
@@ -26,6 +29,7 @@ class AgentCreate(BaseModel):
     modelParameters: Dict[str, Any]
     enabledTriggers: List[int]
     enabledActions: List[int]
+
 
 class AgentUpdate(BaseModel):
     name: Optional[str] = None
@@ -42,6 +46,5 @@ class AgentUpdate(BaseModel):
             prompt=self.systemPrompt,
             model_params=self.modelParameters,
             enabled_trigger_ids=self.enabledTriggers,
-            enabled_action_ids=self.enabledActions
+            enabled_action_ids=self.enabledActions,
         )
-

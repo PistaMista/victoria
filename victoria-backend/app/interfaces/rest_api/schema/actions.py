@@ -16,4 +16,3 @@ class ActionResponse(BaseModel):
     @property
     def displayName(self) -> str:
         return self.function_name.replace("_", " ").capitalize()
-

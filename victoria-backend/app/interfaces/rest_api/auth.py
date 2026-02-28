@@ -11,66 +11,50 @@ from .dependencies.auth import get_non_admin_user, get_admin_user
 
 router = APIRouter()
 
+
 @router.post("/login")
 @inject
 async def login(
-    input: UserLogin, 
-    auth_service: Annotated[AuthService, Depends(Provide[Container.auth])]
+    input: UserLogin,
+    auth_service: Annotated[AuthService, Depends(Provide[Container.auth])],
 ):
     try:
         token = auth_service.get_login_token(input.username, input.password)
-        res = JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={}
-        )
-        res.set_cookie(
-            key="token", 
-            value=token,
-            samesite="strict",
-            httponly=True
-        )
+        res = JSONResponse(status_code=status.HTTP_200_OK, content={})
+        res.set_cookie(key="token", value=token, samesite="strict", httponly=True)
         return res
     except InvalidLoginError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
+
 
 @router.post("/register")
 @inject
 async def register(
     input: UserRegister,
-    user_service: Annotated[UserService, Depends(Provide[Container.user])]
+    user_service: Annotated[UserService, Depends(Provide[Container.user])],
 ):
     try:
         is_first_user = not user_service.is_any_user_registered()
         user_service.create_user(
-            username=input.username, 
+            username=input.username,
             password=input.password,
-            role=Role.ADMIN if is_first_user else Role.USER
+            role=Role.ADMIN if is_first_user else Role.USER,
         )
-        
+
         return JSONResponse(content={})
     except UserExistsError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already taken"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
         )
 
+
 @router.get("/me")
-async def me(
-    user: Annotated[User, Depends(get_non_admin_user)]
-):
-    return JSONResponse(content={
-        "username": user.username,
-        "role": str(user.role)
-    })
+async def me(user: Annotated[User, Depends(get_non_admin_user)]):
+    return JSONResponse(content={"username": user.username, "role": str(user.role)})
+
 
 @router.get("/me/admin")
-async def me_admin(
-    user: Annotated[User, Depends(get_admin_user)]
-):
-    return JSONResponse(content={
-        "username": user.username,
-        "role": str(user.role)
-    })
+async def me_admin(user: Annotated[User, Depends(get_admin_user)]):
+    return JSONResponse(content={"username": user.username, "role": str(user.role)})

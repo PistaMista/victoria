@@ -7,45 +7,35 @@ from sqlalchemy.orm import Session
 import time
 
 
-def get_current_user(token: str = Cookie(None), session: Session = Depends(get_db_session)):
+def get_current_user(
+    token: str = Cookie(None), session: Session = Depends(get_db_session)
+):
     now = time.time()
     if token is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Not logged in"
-        )
-    
+        raise HTTPException(status_code=401, detail="Not logged in")
+
     decoded = decode_token(token)
 
     if decoded is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid authentication token"
-        )
-    
+        raise HTTPException(status_code=400, detail="Invalid authentication token")
+
     if now > decoded["expires"]:
         raise HTTPException(
-            status_code=401,
-            detail="Login expired, please log in again"
+            status_code=401, detail="Login expired, please log in again"
         )
-    
-    user = session.scalars(
-        select(User).where(User.id == decoded["user_id"])        
-    ).first()
-    
+
+    user = session.scalars(select(User).where(User.id == decoded["user_id"])).first()
+
     if user is None:
-        raise HTTPException(
-            status_code=400,
-            detail="User no longer exists"
-        )
-    
+        raise HTTPException(status_code=400, detail="User no longer exists")
+
     return user
+
 
 def get_current_user_as_admin(user: User = Depends(get_current_user)):
     if user.role == Role.ADMIN:
         return user
     else:
         raise HTTPException(
-            status_code=403,
-            detail="You need to be an administrator to access this"
+            status_code=403, detail="You need to be an administrator to access this"
         )

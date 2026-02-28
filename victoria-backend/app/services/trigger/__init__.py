@@ -5,18 +5,22 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload, with_polymorphic, undefer, make_transient
 from sqlalchemy.inspection import inspect
 from app.model.user import User
-from app.model.trigger import Trigger, TimerTrigger, PollTrigger, ChatTrigger, WebhookTrigger
+from app.model.trigger import (
+    Trigger,
+    TimerTrigger,
+    PollTrigger,
+    ChatTrigger,
+    WebhookTrigger,
+)
 from app.model.event import Event
 from pydantic import BaseModel
 import requests
 import re
 from threading import Timer
 
+
 class TriggerService:
-    def __init__(
-            self,
-            database_service: DatabaseService
-        ):
+    def __init__(self, database_service: DatabaseService):
         self._db: DatabaseService = database_service
         self._trigger_timers: Dict[int, Timer] = {}
         self.start_stopped_trigger_timers()
@@ -28,13 +32,8 @@ class TriggerService:
                 select(Event)
                 .join(Event.trigger)
                 .join(Trigger.allowed_on_users)
-                .where(
-                    Event.id == event_id,
-                    User.id == user_id
-                )
-                .options(
-                    joinedload(Event.trigger)
-                )
+                .where(Event.id == event_id, User.id == user_id)
+                .options(joinedload(Event.trigger))
             )
 
             if res is None:
@@ -46,9 +45,7 @@ class TriggerService:
         """Gets all the Triggers allowed for the User's Agents."""
         with self._db.session() as db:
             res = db.scalars(
-                select(Trigger)
-                .join(Trigger.allowed_on_users)
-                .where(User.id == user_id)
+                select(Trigger).join(Trigger.allowed_on_users).where(User.id == user_id)
             ).all()
 
             return res
@@ -56,21 +53,14 @@ class TriggerService:
     def get_all_triggers(self) -> List[Trigger]:
         """Gets all available Triggers."""
         with self._db.session() as db:
-            res = db.scalars(
-                select(Trigger)
-                .order_by(Trigger.id.asc())
-            ).all()
+            res = db.scalars(select(Trigger).order_by(Trigger.id.asc())).all()
 
             return res
 
     def add_timer_trigger(self, name: str, template: str, interval: int) -> int:
         """Creates a new timer trigger and returns its id."""
         with self._db.session() as db:
-            new = TimerTrigger(
-                name=name,
-                template=template,
-                interval=interval
-            )
+            new = TimerTrigger(name=name, template=template, interval=interval)
 
             db.add(new)
             db.commit()
@@ -78,15 +68,12 @@ class TriggerService:
             self.restart_trigger_timer(trigger_id=new.id)
             return new.id
 
-    def add_poll_trigger(self, name: str, template: str, interval: int, url: str) -> int:
+    def add_poll_trigger(
+        self, name: str, template: str, interval: int, url: str
+    ) -> int:
         """Creates a new poll trigger and returns its id."""
         with self._db.session() as db:
-            new = PollTrigger(
-                name=name,
-                template=template,
-                interval=interval,
-                url=url
-            )
+            new = PollTrigger(name=name, template=template, interval=interval, url=url)
 
             db.add(new)
             db.commit()
@@ -97,11 +84,7 @@ class TriggerService:
     def add_chat_trigger(self, name: str, template: str, receiver: str) -> int:
         """Creates a new chat trigger and returns its id."""
         with self._db.session() as db:
-            new = ChatTrigger(
-                name=name,
-                template=template,
-                receiver=receiver
-            )
+            new = ChatTrigger(name=name, template=template, receiver=receiver)
 
             db.add(new)
             db.commit()
@@ -111,12 +94,8 @@ class TriggerService:
     def add_webhook_trigger(self, name: str, template: str, endpoint: str) -> int:
         """Creates a new webhook trigger and returns its id."""
         with self._db.session() as db:
-            new = WebhookTrigger(
-                name=name,
-                template=template,
-                endpoint=endpoint
-            )
-            
+            new = WebhookTrigger(name=name, template=template, endpoint=endpoint)
+
             db.add(new)
             db.commit()
 
@@ -127,7 +106,7 @@ class TriggerService:
         with self._db.session() as db:
             TriggerPoly = with_polymorphic(
                 base=Trigger,
-                classes=[ChatTrigger, PollTrigger, TimerTrigger, WebhookTrigger]
+                classes=[ChatTrigger, PollTrigger, TimerTrigger, WebhookTrigger],
             )
             res = db.scalar(
                 select(TriggerPoly)
@@ -150,11 +129,9 @@ class TriggerService:
 
         with self._db.session() as db:
             with db.no_autoflush:
-                old = db.scalar(
-                    select(Trigger).where(Trigger.id == trigger_id)
-                )
+                old = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
                 new = old
-                
+
                 if old is None:
                     raise NonexistentTriggerError(trigger_id)
 
@@ -170,14 +147,14 @@ class TriggerService:
                             id=old.id,
                             name=old.name,
                             template=old.template,
-                            interval=changes.interval or old.interval
+                            interval=changes.interval or old.interval,
                         )
                     case (Trigger(), TimerTriggerDiff()):
                         new = TimerTrigger(
                             id=old.id,
                             name=old.name,
                             template=old.template,
-                            interval=changes.interval or 3600
+                            interval=changes.interval or 3600,
                         )
                     case (PollTrigger(), PollTriggerDiff()):
                         new = PollTrigger(
@@ -185,7 +162,7 @@ class TriggerService:
                             name=old.name,
                             template=old.template,
                             interval=changes.interval or old.interval,
-                            url=changes.url or old.url
+                            url=changes.url or old.url,
                         )
                     case (Trigger(), PollTriggerDiff()):
                         new = PollTrigger(
@@ -193,35 +170,35 @@ class TriggerService:
                             name=old.name,
                             template=old.template,
                             interval=changes.interval or 3600,
-                            url=changes.url or ""
+                            url=changes.url or "",
                         )
                     case (ChatTrigger(), ChatTriggerDiff()):
                         new = ChatTrigger(
                             id=old.id,
                             name=old.name,
                             template=old.template,
-                            receiver=changes.receiver or old.receiver
+                            receiver=changes.receiver or old.receiver,
                         )
                     case (Trigger(), ChatTriggerDiff()):
                         new = ChatTrigger(
                             id=old.id,
                             name=old.name,
                             template=old.template,
-                            receiver=changes.receiver or ""
+                            receiver=changes.receiver or "",
                         )
                     case (WebhookTrigger(), WebhookTriggerDiff()):
                         new = WebhookTrigger(
                             id=old.id,
                             name=old.name,
                             template=old.template,
-                            endpoint=changes.endpoint or old.endpoint
+                            endpoint=changes.endpoint or old.endpoint,
                         )
                     case (Trigger(), WebhookTriggerDiff()):
                         new = WebhookTrigger(
                             id=old.id,
                             name=old.name,
                             template=old.template,
-                            endpoint=changes.endpoint or ""
+                            endpoint=changes.endpoint or "",
                         )
 
                 # Apply base changes
@@ -246,13 +223,10 @@ class TriggerService:
                 if isinstance(new, TimerTrigger) or isinstance(new, PollTrigger):
                     self.restart_trigger_timer(trigger_id=new.id)
 
-
     def remove_trigger(self, id: int):
         """Deletes the given Trigger."""
         with self._db.session() as db:
-            trigger = db.scalar(
-                select(Trigger).where(Trigger.id == id)
-            )
+            trigger = db.scalar(select(Trigger).where(Trigger.id == id))
 
             if trigger is None:
                 raise NonexistentTriggerError(id)
@@ -283,11 +257,11 @@ class TriggerService:
     def restart_trigger_timer(self, trigger_id: int):
         """Restarts the specified trigger's timer if running or starts it if stopped."""
         with self._db.session() as db:
-            trigger = db.scalar(
-                select(Trigger).where(Trigger.id == trigger_id)
-            )
+            trigger = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
 
-            if not isinstance(trigger, TimerTrigger) and not isinstance(trigger, PollTrigger):
+            if not isinstance(trigger, TimerTrigger) and not isinstance(
+                trigger, PollTrigger
+            ):
                 raise NonexistentTriggerError(trigger_id)
 
             if trigger.id in self._trigger_timers:
@@ -295,22 +269,20 @@ class TriggerService:
                 timer.cancel()
                 timer.join()
 
-            timer = Timer(trigger.interval, self._run_trigger_timer, kwargs={
-                "trigger": trigger
-            })
+            timer = Timer(
+                trigger.interval, self._run_trigger_timer, kwargs={"trigger": trigger}
+            )
             self._trigger_timers[trigger.id] = timer
             timer.start()
-
-
 
     def stop_trigger_timer(self, trigger_id: int):
         """Stops the specified trigger's timer if running."""
         with self._db.session() as db:
-            trigger = db.scalar(
-                select(Trigger).where(Trigger.id == trigger_id)
-            )
+            trigger = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
 
-            if not isinstance(trigger, TimerTrigger) and not isinstance(trigger, PollTrigger):
+            if not isinstance(trigger, TimerTrigger) and not isinstance(
+                trigger, PollTrigger
+            ):
                 raise NonexistentTriggerError(trigger_id)
 
             if trigger.id in self._trigger_timers:
@@ -329,9 +301,9 @@ class TriggerService:
         else:
             raise NotTimedTriggerError(trigger.id)
 
-        new_timer = Timer(interval, self._run_trigger_timer, kwargs={
-            "trigger": trigger
-        })
+        new_timer = Timer(
+            interval, self._run_trigger_timer, kwargs={"trigger": trigger}
+        )
         self._trigger_timers[trigger.id] = new_timer
         new_timer.start()
 
@@ -345,42 +317,47 @@ class TriggerService:
             website_content = str(e)
 
         self.generate_event(trigger.id, {"content": website_content})
-    
+
     def _execute_timer_trigger(self, trigger: TimerTrigger):
         self.generate_event(trigger.id, {})
-    
-    def receive_chat_message(self, receiver: str, message: str, chat_id: Optional[int] = None, exchange_id: Optional[int] = None) -> List[int]:
+
+    def receive_chat_message(
+        self,
+        receiver: str,
+        message: str,
+        chat_id: Optional[int] = None,
+        exchange_id: Optional[int] = None,
+    ) -> List[int]:
         with self._db.session() as db:
             matching = db.scalars(
-                select(ChatTrigger)
-                .where(ChatTrigger.receiver == receiver)
+                select(ChatTrigger).where(ChatTrigger.receiver == receiver)
             )
 
-            return [self.generate_event(trigger.id, {"message": message, "chatId": chat_id, "exchangeId": exchange_id}) for trigger in matching]
-
+            return [
+                self.generate_event(
+                    trigger.id,
+                    {"message": message, "chatId": chat_id, "exchangeId": exchange_id},
+                )
+                for trigger in matching
+            ]
 
     def receive_webhook_payload(self, endpoint: str, content: str):
         # TODO: Make this method raise InvalidWebhookEndpointError when no matching endpoint is found
         with self._db.session() as db:
             matching = db.scalars(
-                select(WebhookTrigger)
-                .where(WebhookTrigger.endpoint == endpoint)
+                select(WebhookTrigger).where(WebhookTrigger.endpoint == endpoint)
             )
 
             for trigger in matching:
                 self.generate_event(trigger.id, {"payload": content})
 
-
     def generate_event(self, trigger_id: int, variables: Dict[str, Any]) -> int:
         trigger = None
         with self._db.session() as db:
-            trigger = db.scalar(
-                select(Trigger).where(Trigger.id == trigger_id)
-            )
+            trigger = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
 
         if trigger is None:
             raise NonexistentTriggerError(trigger_id)
-
 
         used_variables = re.findall(r"\$\(([^)]+)\)", trigger.template)
 
@@ -390,45 +367,50 @@ class TriggerService:
             res = res.replace(f"$({var})", value)
 
         with self._db.session() as db:
-            event = Event(
-                trigger_id=trigger.id,
-                content=res,
-                dispatched=False
-            )
+            event = Event(trigger_id=trigger.id, content=res, dispatched=False)
             db.add(event)
             db.commit()
 
             return event.id
+
 
 class TriggerDiff(BaseModel):
     name: Optional[str] = None
     parser: Optional[Literal["identity"]] = None
     template: Optional[str] = None
 
+
 class TimerTriggerDiff(TriggerDiff):
     interval: Optional[int] = None
+
 
 class PollTriggerDiff(TriggerDiff):
     interval: Optional[int] = None
     url: Optional[str] = None
 
+
 class ChatTriggerDiff(TriggerDiff):
     receiver: Optional[str] = None
 
+
 class WebhookTriggerDiff(TriggerDiff):
     endpoint: Optional[str] = None
+
 
 class InvalidWebhookEndpointError(Exception):
     def __init__(self, endpoint: str):
         super().__init__(f"invalid webhook endpoint: {endpoint}")
 
+
 class NonexistentTriggerError(Exception):
     def __init__(self, id: int):
         super().__init__(f"nonexistent trigger with id: {id}")
 
+
 class NonexistentEventError(Exception):
     def __init__(self, id: int):
         super().__init__(f"nonexistent event with id: {id}")
+
 
 class NotTimedTriggerError(Exception):
     def __init__(self, id: int):

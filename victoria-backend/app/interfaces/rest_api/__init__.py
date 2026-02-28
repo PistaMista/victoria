@@ -17,11 +17,15 @@ from .webhooks import router as webhooks_router
 api_router = APIRouter()
 
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
-api_router.include_router(action_repos_router, prefix="/action-repos", tags=["action-repos"])
+api_router.include_router(
+    action_repos_router, prefix="/action-repos", tags=["action-repos"]
+)
 api_router.include_router(actions_router, prefix="/actions", tags=["actions"])
 api_router.include_router(agents_router, prefix="/agents", tags=["agents"])
 api_router.include_router(chats_router, prefix="/chats", tags=["chats"])
-api_router.include_router(connections_router, prefix="/connections", tags=["connections"])
+api_router.include_router(
+    connections_router, prefix="/connections", tags=["connections"]
+)
 api_router.include_router(events_router, prefix="/events", tags=["events"])
 api_router.include_router(exchanges_router, prefix="/exchanges", tags=["exchanges"])
 api_router.include_router(models_router, prefix="/models", tags=["models"])

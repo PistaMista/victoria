@@ -8,7 +8,10 @@ from app.model.invocation import Invocation
 from datetime import datetime, UTC
 from fastapi import status
 
-def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_client, auth_mock, monologue_mock, user):
+
+def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     monologue_mock.get_user_monologues.return_value = [
@@ -18,9 +21,7 @@ def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_
             summary="Searching the web for sources",
             status=MonologueStatus.RUNNING,
             agent_id=20,
-            agent=Agent(
-                id=20
-            )
+            agent=Agent(id=20),
         ),
         Monologue(
             id=172,
@@ -28,21 +29,15 @@ def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_
             summary="Checking available ingredients",
             status=MonologueStatus.PENDING,
             agent_id=8,
-            agent=Agent(
-                id=8
-            )
-        )
+            agent=Agent(id=8),
+        ),
     ]
 
     # Act
-    res = mock_client.get(
-        "/api/monologues"
-    )
+    res = mock_client.get("/api/monologues")
 
     # Assert
-    monologue_mock.get_user_monologues.assert_called_with(
-        user_id=1
-    )
+    monologue_mock.get_user_monologues.assert_called_with(user_id=1)
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == [
         {
@@ -52,7 +47,7 @@ def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_
             # TODO: Implement start timestamps for Monologues
             "startTimestamp": 0,
             "title": "Research thesis ideas",
-            "summary": "Searching the web for sources"
+            "summary": "Searching the web for sources",
         },
         {
             "id": 172,
@@ -60,24 +55,28 @@ def test_list_monologues_returns_200_and_lists_monologues_on_valid_request(mock_
             "status": "PENDING",
             "startTimestamp": 0,
             "title": "Generate recipes for the week",
-            "summary": "Checking available ingredients"
-        }
+            "summary": "Checking available ingredients",
+        },
     ]
 
-def test_list_monologues_returns_401_when_not_signed_in(mock_client, auth_mock, monologue_mock):
+
+def test_list_monologues_returns_401_when_not_signed_in(
+    mock_client, auth_mock, monologue_mock
+):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
 
     # Act
-    res = mock_client.get(
-        "/api/monologues"
-    )
+    res = mock_client.get("/api/monologues")
 
     # Assert
     monologue_mock.get_user_monologues.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
-def test_get_monologue_returns_200_and_monologue_on_valid_request(mock_client, auth_mock, monologue_mock, user):
+
+def test_get_monologue_returns_200_and_monologue_on_valid_request(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     monologue_mock.get_user_monologue.return_value = Monologue(
@@ -88,21 +87,14 @@ def test_get_monologue_returns_200_and_monologue_on_valid_request(mock_client, a
         dispatched_at=datetime.fromtimestamp(2000, tz=UTC),
         modified_at=datetime.fromtimestamp(3000, tz=UTC),
         agent_id=600,
-        agent=Agent(
-            id=600
-        )
+        agent=Agent(id=600),
     )
 
     # Act
-    res = mock_client.get(
-        "/api/monologues/1337"
-    )
+    res = mock_client.get("/api/monologues/1337")
 
     # Assert
-    monologue_mock.get_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=1337
-    )
+    monologue_mock.get_user_monologue.assert_called_with(user_id=1, monologue_id=1337)
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == {
         "id": 1337,
@@ -112,178 +104,163 @@ def test_get_monologue_returns_200_and_monologue_on_valid_request(mock_client, a
         "endTimestamp": 3000,
         "status": "FAILURE",
         "title": "Yo dawg",
-        "summary": "Summery"
+        "summary": "Summery",
     }
 
-def test_get_monologue_returns_401_when_not_signed_in(mock_client, auth_mock, monologue_mock):
+
+def test_get_monologue_returns_401_when_not_signed_in(
+    mock_client, auth_mock, monologue_mock
+):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
 
     # Act
-    res = mock_client.get(
-        "/api/monologues/1337"
-    )
+    res = mock_client.get("/api/monologues/1337")
 
     # Assert
     monologue_mock.get_user_monologue.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
-def test_get_monologue_returns_404_for_nonexistent_monologue(mock_client, auth_mock, monologue_mock, user):
+
+def test_get_monologue_returns_404_for_nonexistent_monologue(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     monologue_mock.get_user_monologue.side_effect = NonexistentMonologueError(6000)
 
     # Act
-    res = mock_client.get(
-        "/api/monologues/6000"
-    )
+    res = mock_client.get("/api/monologues/6000")
 
     # Assert
-    monologue_mock.get_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=6000
-    )
+    monologue_mock.get_user_monologue.assert_called_with(user_id=1, monologue_id=6000)
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
-def test_abort_monologue_returns_200_and_aborts_monologue_on_user_request(mock_client, auth_mock, monologue_mock, user):
+
+def test_abort_monologue_returns_200_and_aborts_monologue_on_user_request(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
 
     # Act
-    res = mock_client.post(
-        "/api/monologues/75/abort"
-    )
+    res = mock_client.post("/api/monologues/75/abort")
 
     # Assert
     monologue_mock.end_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=75,
-        successful=False
+        user_id=1, monologue_id=75, successful=False
     )
     assert res.status_code == status.HTTP_200_OK
 
-def test_abort_monologue_returns_401_when_not_logged_in(mock_client, auth_mock, monologue_mock):
+
+def test_abort_monologue_returns_401_when_not_logged_in(
+    mock_client, auth_mock, monologue_mock
+):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
 
     # Act
-    res = mock_client.post(
-        "/api/monologues/75/abort"
-    )
+    res = mock_client.post("/api/monologues/75/abort")
 
     # Assert
     monologue_mock.end_user_monologue.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
-def test_abort_monologue_returns_404_for_nonexistent_monologue(mock_client, auth_mock, monologue_mock, user):
+
+def test_abort_monologue_returns_404_for_nonexistent_monologue(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     monologue_mock.end_user_monologue.side_effect = NonexistentMonologueError(75)
 
     # Act
-    res = mock_client.post(
-        "/api/monologues/75/abort"
-    )
+    res = mock_client.post("/api/monologues/75/abort")
 
     # Assert
     monologue_mock.end_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=75,
-        successful=False
+        user_id=1, monologue_id=75, successful=False
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_end_monologue_returns_200_and_ends_monologue_on_agent_request(mock_client, auth_mock, monologue_mock, user):
+def test_end_monologue_returns_200_and_ends_monologue_on_agent_request(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
 
     # Act
     res_success = mock_client.post(
         "/api/monologues/1/end",
-        json={
-            "successful": True,
-            "reason": "I have my reasons..."
-        }
+        json={"successful": True, "reason": "I have my reasons..."},
     )
 
     # Assert
     monologue_mock.end_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=1,
-        successful=True
+        user_id=1, monologue_id=1, successful=True
     )
     assert res_success.status_code == status.HTTP_200_OK
 
     # Act
     res_failure = mock_client.post(
         "/api/monologues/2/end",
-        json={
-            "successful": False,
-            "reason": "I have my reasons..."
-        }
+        json={"successful": False, "reason": "I have my reasons..."},
     )
 
     # Assert
     monologue_mock.end_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=2,
-        successful=False
+        user_id=1, monologue_id=2, successful=False
     )
     assert res_failure.status_code == status.HTTP_200_OK
 
-def test_end_monologue_returns_401_when_not_logged_in(mock_client, auth_mock, monologue_mock):
+
+def test_end_monologue_returns_401_when_not_logged_in(
+    mock_client, auth_mock, monologue_mock
+):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
 
     # Act
     res = mock_client.post(
-        "/api/monologues/200/end",
-        json={
-            "successful": True,
-            "reason": "Reason!"
-        }
+        "/api/monologues/200/end", json={"successful": True, "reason": "Reason!"}
     )
 
     # Assert
     monologue_mock.end_user_monologue.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
-def test_end_monologue_returns_404_for_nonexistent_monologue(mock_client, auth_mock, monologue_mock, user):
+
+def test_end_monologue_returns_404_for_nonexistent_monologue(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     monologue_mock.end_user_monologue.side_effect = NonexistentMonologueError(200)
 
     # Act
     res = mock_client.post(
-        "/api/monologues/200/end",
-        json={
-            "successful": True,
-            "reason": "Reason!"
-        }
+        "/api/monologues/200/end", json={"successful": True, "reason": "Reason!"}
     )
 
     # Assert
     monologue_mock.end_user_monologue.assert_called_with(
-        user_id=1,
-        monologue_id=200,
-        successful=True
+        user_id=1, monologue_id=200, successful=True
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND
 
-def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocations_on_user_request(mock_client, auth_mock, monologue_mock, user):
+
+def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocations_on_user_request(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
     monologue = Monologue(
         id=1337,
         status=MonologueStatus.PENDING,
-        agent=Agent(
-            id=600
-        ),
+        agent=Agent(id=600),
         event_id=33,
-        event=Event(
-            id=33
-        )
+        event=Event(id=33),
     )
     monologue_mock.get_user_monologue_thoughts.return_value = [
         Thought(
@@ -291,7 +268,7 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
             timestamp=datetime.fromtimestamp(1),
             monologue=monologue,
             invocation=None,
-            result="An email has arrived..."
+            result="An email has arrived...",
         ),
         Thought(
             id=2,
@@ -299,24 +276,19 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
             monologue=monologue,
             invocation=Invocation(
                 function_name="think",
-                params={
-                    "content": "I should add it to the calendar"
-                }
+                params={"content": "I should add it to the calendar"},
             ),
-            result="I should add it to the calendar"
+            result="I should add it to the calendar",
         ),
         Thought(
-            id=3, 
+            id=3,
             timestamp=datetime.fromtimestamp(3),
             monologue=monologue,
             invocation=Invocation(
                 function_name="add_to_calendar",
-                params={
-                    "event_name": "Conference",
-                    "event_timestamp": 20000
-                }
+                params={"event_name": "Conference", "event_timestamp": 20000},
             ),
-            result="Event successfully added to calendar"
+            result="Event successfully added to calendar",
         ),
         Thought(
             id=4,
@@ -324,11 +296,8 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
             monologue=monologue,
             invocation=Invocation(
                 function_name="end_monologue",
-                params={
-                    "successful": True,
-                    "reason": "Email processed"
-                }
-            )
+                params={"successful": True, "reason": "Email processed"},
+            ),
         ),
         Thought(
             id=5,
@@ -336,23 +305,17 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
             monologue=monologue,
             invocation=Invocation(
                 function_name="end_monologue",
-                params={
-                    "successful": False,
-                    "reason": "Email processing failed"
-                }
-            )
-        )
+                params={"successful": False, "reason": "Email processing failed"},
+            ),
+        ),
     ]
 
     # Act
-    res = mock_client.get(
-        "/api/monologues/42/thoughts"
-    )
+    res = mock_client.get("/api/monologues/42/thoughts")
 
     # Assert
     monologue_mock.get_user_monologue_thoughts.assert_called_with(
-        user_id=1,
-        monologue_id=42
+        user_id=1, monologue_id=42
     )
     assert res.status_code == status.HTTP_200_OK
     assert res.json() == [
@@ -362,11 +325,9 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
             "invocation": {
                 "type": "TriggerInvocation",
                 "name": None,
-                "parameters": {
-                    "eventId": 33
-                }
+                "parameters": {"eventId": 33},
             },
-            "result": "An email has arrived..."
+            "result": "An email has arrived...",
         },
         {
             "id": 2,
@@ -375,11 +336,9 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
                 "type": "ThoughtInvocation",
                 "name": None,
                 # FIXME: The information in the response is redundant
-                "parameters": {
-                    "thought": "I should add it to the calendar"
-                }
+                "parameters": {"thought": "I should add it to the calendar"},
             },
-            "result": "I should add it to the calendar"
+            "result": "I should add it to the calendar",
         },
         {
             "id": 3,
@@ -387,61 +346,53 @@ def test_get_monologue_thoughts_returns_200_and_thoughts_with_formatted_invocati
             "invocation": {
                 "type": "ActionInvocation",
                 "name": "add_to_calendar",
-                "parameters": {
-                    "event_name": "Conference",
-                    "event_timestamp": 20000
-                }
+                "parameters": {"event_name": "Conference", "event_timestamp": 20000},
             },
-            "result": "Event successfully added to calendar"
+            "result": "Event successfully added to calendar",
         },
         {
             "id": 4,
             "startTimestamp": 4,
-            "invocation": {
-                "type": "SuccessInvocation",
-                "name": None,
-                "parameters": { }
-            },
-            "result": ""
+            "invocation": {"type": "SuccessInvocation", "name": None, "parameters": {}},
+            "result": "",
         },
         {
             "id": 5,
             "startTimestamp": 5,
-            "invocation": {
-                "type": "FailureInvocation",
-                "name": None,
-                "parameters": { }
-            },
-            "result": ""
-        }
+            "invocation": {"type": "FailureInvocation", "name": None, "parameters": {}},
+            "result": "",
+        },
     ]
 
-def test_get_monologue_thoughts_returns_401_when_not_logged_in(mock_client, auth_mock, monologue_mock):
+
+def test_get_monologue_thoughts_returns_401_when_not_logged_in(
+    mock_client, auth_mock, monologue_mock
+):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
 
     # Act
-    res = mock_client.get(
-        "/api/monologues/13/thoughts"
-    )
+    res = mock_client.get("/api/monologues/13/thoughts")
 
     # Assert
     monologue_mock.get_user_monologue_thoughts.assert_not_called()
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
-def test_get_monologue_thoughts_returns_404_for_nonexistent_monologue(mock_client, auth_mock, monologue_mock, user):
+
+def test_get_monologue_thoughts_returns_404_for_nonexistent_monologue(
+    mock_client, auth_mock, monologue_mock, user
+):
     # Arrange
     auth_mock.get_as_non_admin_user.return_value = user
-    monologue_mock.get_user_monologue_thoughts.side_effect = NonexistentMonologueError(18)
+    monologue_mock.get_user_monologue_thoughts.side_effect = NonexistentMonologueError(
+        18
+    )
 
     # Act
-    res = mock_client.get(
-        "/api/monologues/18/thoughts"
-    )
+    res = mock_client.get("/api/monologues/18/thoughts")
 
     # Assert
     monologue_mock.get_user_monologue_thoughts.assert_called_with(
-        user_id=1,
-        monologue_id=18
+        user_id=1, monologue_id=18
     )
     assert res.status_code == status.HTTP_404_NOT_FOUND

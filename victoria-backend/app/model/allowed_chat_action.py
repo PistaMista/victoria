@@ -4,6 +4,16 @@ from app.model import Base
 allowed_chat_action_association = Table(
     "allowed_chat_action",
     Base.metadata,
-    Column("chat_id", ForeignKey("chat.id", ondelete='CASCADE'), nullable=False, primary_key=True),
-    Column("action_id", ForeignKey("action.id", ondelete='CASCADE'), nullable=False, primary_key=True)
+    Column(
+        "chat_id",
+        ForeignKey("chat.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    ),
+    Column(
+        "action_id",
+        ForeignKey("action.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    ),
 )
