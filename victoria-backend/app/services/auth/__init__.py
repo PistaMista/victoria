@@ -7,38 +7,34 @@ import time
 import binascii
 from bcrypt import checkpw
 
+
 class AuthService:
-    def __init__(
-            self, 
-            user_service: UserService, 
-            jwt_secret: str, 
-            login_lifetime: int
-    ):
+    def __init__(self, user_service: UserService, jwt_secret: str, login_lifetime: int):
         self._user: UserService = user_service
         self._jwt_secret: str = jwt_secret
         self._login_lifetime: int = login_lifetime
-    
+
     def get_login_token(self, username: str, password: str) -> str:
         try:
             user = self._user.get_user_by_name(username)
 
-            actual_pw = password.encode('utf-8')
-            expected_hash = user.password_hash.encode('utf-8')
-            
+            actual_pw = password.encode("utf-8")
+            expected_hash = user.password_hash.encode("utf-8")
+
             if checkpw(actual_pw, expected_hash):
                 now = int(time.time())
                 payload = {
                     "user_id": user.id,
                     "issued": now,
-                    "expires": now + self._login_lifetime
+                    "expires": now + self._login_lifetime,
                 }
-                
+
                 return jwt.encode(payload, self._jwt_secret, algorithm="HS256")
         except:
             pass
 
         raise InvalidLoginError()
-    
+
     def _get_as_any_user(self, token: Optional[str]) -> User:
         if token is None:
             raise NotLoggedInError()
@@ -65,7 +61,7 @@ class AuthService:
                 return user
             except NonexistentUserError:
                 raise ExpiredLoginError()
-            
+
         except jwt.InvalidTokenError as e:
             # If the given token is not a valid JWT token, it is a Monologue agent_token
             try:
@@ -78,30 +74,33 @@ class AuthService:
                 raise InvalidLoginError()
         except Exception as e:
             raise e
-    
+
     def get_as_non_admin_user(self, token: str) -> User:
         return self._get_as_any_user(token)
-    
+
     def get_as_admin_user(self, token: str) -> User:
         user = self._get_as_any_user(token)
 
         if user.role != Role.ADMIN:
             raise AdminRequiredError()
-        
+
         return user
-            
+
 
 class InvalidLoginError(Exception):
     def __init__(self):
         super().__init__("invalid login credentials")
 
+
 class ExpiredLoginError(Exception):
     def __init__(self):
         super().__init__("expired login")
 
+
 class NotLoggedInError(Exception):
     def __init__(self):
         super().__init__("not logged in")
+
 
 class AdminRequiredError(Exception):
     def __init__(self):

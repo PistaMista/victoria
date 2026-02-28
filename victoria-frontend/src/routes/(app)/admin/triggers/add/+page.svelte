@@ -1,7 +1,6 @@
 <script lang="ts">
-    import TriggerDetailView from "$lib/views/details/TriggerDetailView.svelte";
+	import TriggerDetailView from "$lib/views/details/TriggerDetailView.svelte";
 </script>
 
-<TriggerDetailView
-    id={null}
-/>
+<TriggerDetailView id={null} />
+

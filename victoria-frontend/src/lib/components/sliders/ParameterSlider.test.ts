@@ -1,139 +1,138 @@
 import { expect, test } from "vitest";
-import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '@testing-library/svelte';
+import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/svelte";
 import ParameterSlider from "./ParameterSlider.svelte";
 
-test('parameter slider textbox shows current value', async () => {
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 20.0,
-        value: 15.5,
-        max: 30.0,
-        min: 0.0
-    });
+test("parameter slider textbox shows current value", async () => {
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 20.0,
+		value: 15.5,
+		max: 30.0,
+		min: 0.0,
+	});
 
-    const box: HTMLInputElement = getByRole('textbox') as HTMLInputElement;
-    expect(box.value).toBe("15.5");
-})
+	const box: HTMLInputElement = getByRole("textbox") as HTMLInputElement;
+	expect(box.value).toBe("15.5");
+});
 
-test('parameter slider resets to previous value when empty textbox is defocused', async () => {
-    const user = userEvent.setup();
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 20.0,
-        value: 15.5,
-        max: 30.0,
-        min: 0.0
-    });
+test("parameter slider resets to previous value when empty textbox is defocused", async () => {
+	const user = userEvent.setup();
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 20.0,
+		value: 15.5,
+		max: 30.0,
+		min: 0.0,
+	});
 
-    const box: HTMLInputElement = getByRole('textbox') as HTMLInputElement;
+	const box: HTMLInputElement = getByRole("textbox") as HTMLInputElement;
 
-    await user.click(box);
-    await user.keyboard("{Backspace}{Backspace}03");
+	await user.click(box);
+	await user.keyboard("{Backspace}{Backspace}03");
 
-    expect(box.value).toBe("1503");
-    box.blur();
-    
-    await waitFor(() => {
-        expect(box.value).toBe("15.5")
-    })
-})
+	expect(box.value).toBe("1503");
+	box.blur();
 
-test('parameter slider textbox value stays on submit', async () => {
-    const user = userEvent.setup();
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 20.0,
-        value: 15.5,
-        max: 3000.0,
-        min: 0.0
-    });
+	await waitFor(() => {
+		expect(box.value).toBe("15.5");
+	});
+});
 
-    const box: HTMLInputElement = getByRole('textbox') as HTMLInputElement;
+test("parameter slider textbox value stays on submit", async () => {
+	const user = userEvent.setup();
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 20.0,
+		value: 15.5,
+		max: 3000.0,
+		min: 0.0,
+	});
 
-    await user.click(box);
-    await user.keyboard("{Backspace}{Backspace}03{Enter}");
+	const box: HTMLInputElement = getByRole("textbox") as HTMLInputElement;
 
-    box.blur();
-    expect(box.value).toBe("1503");
-})
+	await user.click(box);
+	await user.keyboard("{Backspace}{Backspace}03{Enter}");
 
-test('parameter slider textbox limits value to max', async () => {
-    const user = userEvent.setup();
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 20.0,
-        value: 15.5,
-        max: 30.0,
-        min: 0.0
-    });
+	box.blur();
+	expect(box.value).toBe("1503");
+});
 
-    const box: HTMLInputElement = getByRole('textbox') as HTMLInputElement;
+test("parameter slider textbox limits value to max", async () => {
+	const user = userEvent.setup();
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 20.0,
+		value: 15.5,
+		max: 30.0,
+		min: 0.0,
+	});
 
-    await user.clear(box);
+	const box: HTMLInputElement = getByRole("textbox") as HTMLInputElement;
 
-    await user.click(box);
-    await user.keyboard("9999{Enter}");
+	await user.clear(box);
 
-    box.blur();
-    expect(box.value).toBe("30");
-})
+	await user.click(box);
+	await user.keyboard("9999{Enter}");
 
-test('parameter slider resets to default value when reset button is clicked', async () => {
-    const user = userEvent.setup();
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 19.0,
-        value: 15.5,
-        max: 30.0,
-        min: 0.0
-    });
+	box.blur();
+	expect(box.value).toBe("30");
+});
 
-    const box = getByRole('textbox') as HTMLInputElement;
+test("parameter slider resets to default value when reset button is clicked", async () => {
+	const user = userEvent.setup();
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 19.0,
+		value: 15.5,
+		max: 30.0,
+		min: 0.0,
+	});
 
-    const resetButton = getByRole('button');
-    await user.click(resetButton);
+	const box = getByRole("textbox") as HTMLInputElement;
 
-    expect(box.value).toBe("19");
-})
+	const resetButton = getByRole("button");
+	await user.click(resetButton);
 
-test('dragging parameter slider all the way left sets minimum value', async () => {
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 19.0,
-        value: 15.5,
-        max: 30.0,
-        min: 1.0
-    });
-    
-    const box = getByRole('textbox') as HTMLInputElement;
-    const slider = getByRole('slider') as HTMLInputElement;
+	expect(box.value).toBe("19");
+});
 
-    slider.value = "-10.0";
-    slider.dispatchEvent(new Event('input', { bubbles: true}));
+test("dragging parameter slider all the way left sets minimum value", async () => {
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 19.0,
+		value: 15.5,
+		max: 30.0,
+		min: 1.0,
+	});
 
-    await waitFor(() => {
-        expect(box.value).toBe("1");
-    })
-})
+	const box = getByRole("textbox") as HTMLInputElement;
+	const slider = getByRole("slider") as HTMLInputElement;
 
-test('dragging parameter slider all the way right sets maximum value', async () => {
-    const { getByRole } = render(ParameterSlider, {
-        label: "My parameter",
-        fallback: 19.0,
-        value: 15.5,
-        max: 30.0,
-        min: 0.0
-    });
-    
-    const box = getByRole('textbox') as HTMLInputElement;
-    const slider = getByRole('slider') as HTMLInputElement;
+	slider.value = "-10.0";
+	slider.dispatchEvent(new Event("input", { bubbles: true }));
 
-    slider.value = "9999.0";
-    slider.dispatchEvent(new Event('input', { bubbles: true}));
+	await waitFor(() => {
+		expect(box.value).toBe("1");
+	});
+});
 
-    await waitFor(() => {
-        expect(box.value).toBe("30");
+test("dragging parameter slider all the way right sets maximum value", async () => {
+	const { getByRole } = render(ParameterSlider, {
+		label: "My parameter",
+		fallback: 19.0,
+		value: 15.5,
+		max: 30.0,
+		min: 0.0,
+	});
 
-    })
-})
+	const box = getByRole("textbox") as HTMLInputElement;
+	const slider = getByRole("slider") as HTMLInputElement;
+
+	slider.value = "9999.0";
+	slider.dispatchEvent(new Event("input", { bubbles: true }));
+
+	await waitFor(() => {
+		expect(box.value).toBe("30");
+	});
+});

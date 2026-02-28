@@ -1,6 +1,6 @@
 export async function getQueryAnswer(id: number): Promise<any> {
 	const res = await fetch(`/api/queries/${id}/answer`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -13,11 +13,11 @@ export async function getQueryAnswer(id: number): Promise<any> {
 
 export async function sendQueryAnswer(id: number, answer: any): Promise<any> {
 	const res = await fetch(`/api/queries/${id}/answer`, {
-		method: 'POST',
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(answer)
+		body: JSON.stringify(answer),
 	});
 	const json = await res.json();
 

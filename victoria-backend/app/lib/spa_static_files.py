@@ -2,6 +2,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+
 class SPAStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope):
         try:

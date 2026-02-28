@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.containers import Container
 import uvicorn
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start the monologue dispatcher when the app starts
@@ -16,6 +17,7 @@ async def lifespan(app: FastAPI):
     # Stop the monologue dispatcher when the app stops
     dispatcher.stop()
 
+
 def create_app() -> FastAPI:
     container = Container()
     app = FastAPI(lifespan=lifespan)
@@ -24,8 +26,9 @@ def create_app() -> FastAPI:
 
     if settings.FRONTEND_PATH:
         app.mount("/", SPAStaticFiles(directory=settings.FRONTEND_PATH))
-    
+
     return app
+
 
 def main():
     app = create_app()

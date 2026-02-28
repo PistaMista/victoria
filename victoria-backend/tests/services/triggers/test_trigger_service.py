@@ -2,56 +2,61 @@ import pytest
 import time
 from unittest import mock
 from sqlalchemy import select, func
-from app.services.trigger import TriggerService, TriggerDiff, WebhookTriggerDiff, ChatTriggerDiff, PollTriggerDiff, TimerTriggerDiff, NonexistentTriggerError, NonexistentEventError
+from app.services.trigger import (
+    TriggerService,
+    TriggerDiff,
+    WebhookTriggerDiff,
+    ChatTriggerDiff,
+    PollTriggerDiff,
+    TimerTriggerDiff,
+    NonexistentTriggerError,
+    NonexistentEventError,
+)
 from app.services.db import DatabaseService
 from app.model.event import Event
 from app.model.user import User, Role
-from app.model.trigger import Trigger, TimerTrigger, PollTrigger, WebhookTrigger, ChatTrigger
+from app.model.trigger import (
+    Trigger,
+    TimerTrigger,
+    PollTrigger,
+    WebhookTrigger,
+    ChatTrigger,
+)
+
 
 @pytest.fixture(scope="function")
 def db_serv(db_factory, db_container):
     db = DatabaseService(db_url=db_container)
-    
-    with mock.patch.object(db, 'get_session_factory', return_value=db_factory):
-        yield db
 
+    with mock.patch.object(db, "get_session_factory", return_value=db_factory):
+        yield db
 
 
 def test_trigger_service_can_get_user_event(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     user = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger]
+        allowed_triggers=[poll_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(poll_trigger)
     db_session.add(user)
     db_session.add(event)
     db_session.commit()
 
     # Act
-    res = serv.get_user_event(
-        user_id=10,
-        event_id=3
-    )
+    res = serv.get_user_event(user_id=10, event_id=3)
 
     # Assert
     assert res.content == "Wooo"
@@ -61,50 +66,38 @@ def test_trigger_service_can_get_user_event(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_get_all_registered_triggers(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
     webhook_trigger = WebhookTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        endpoint="wooo",
-        template="Lol"
+        id=15, name="WEBHOOKAH", endpoint="wooo", template="Lol"
     )
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, webhook_trigger]
+        allowed_triggers=[poll_trigger, webhook_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
@@ -128,57 +121,42 @@ def test_trigger_service_can_get_all_registered_triggers(db_serv, db_session):
 
 def test_trigger_service_can_get_user_allowed_triggers(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
     webhook_trigger = WebhookTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        endpoint="wooo",
-        template="Lol"
+        id=15, name="WEBHOOKAH", endpoint="wooo", template="Lol"
     )
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, webhook_trigger]
+        allowed_triggers=[poll_trigger, webhook_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
     db_session.commit()
 
     # Act
-    res = serv.get_user_allowed_triggers(
-        user_id=10
-    )
+    res = serv.get_user_allowed_triggers(user_id=10)
 
     # Assert
     assert len(res) == 2
@@ -190,59 +168,47 @@ def test_trigger_service_can_get_user_allowed_triggers(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_returns_empty_list_for_allowed_triggers_of_nonexistent_user(db_serv, db_session):
+
+def test_trigger_service_returns_empty_list_for_allowed_triggers_of_nonexistent_user(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
     webhook_trigger = WebhookTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        endpoint="wooo",
-        template="Lol"
+        id=15, name="WEBHOOKAH", endpoint="wooo", template="Lol"
     )
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, webhook_trigger]
+        allowed_triggers=[poll_trigger, webhook_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
     db_session.commit()
 
     # Act
-    res = serv.get_user_allowed_triggers(
-        user_id=99
-    )
+    res = serv.get_user_allowed_triggers(user_id=99)
 
     # Assert
     assert res == []
@@ -250,50 +216,38 @@ def test_trigger_service_returns_empty_list_for_allowed_triggers_of_nonexistent_
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_get_trigger_by_id(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
     webhook_trigger = WebhookTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        endpoint="wooo",
-        template="Lol"
+        id=15, name="WEBHOOKAH", endpoint="wooo", template="Lol"
     )
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, webhook_trigger]
+        allowed_triggers=[poll_trigger, webhook_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
@@ -312,24 +266,18 @@ def test_trigger_service_can_get_trigger_by_id(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_add_webhook_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(poll_trigger)
     db_session.add(event)
     db_session.commit()
@@ -338,16 +286,12 @@ def test_trigger_service_can_add_webhook_trigger(db_serv, db_session):
     new_id = serv.add_webhook_trigger(
         name="Sha'ggoth the Devourer of Celestial Planes",
         template="TEMPLATE",
-        endpoint="/woo"
+        endpoint="/woo",
     )
 
     # Assert
-    new_trigger = db_session.scalar(
-        select(Trigger).where(Trigger.id == new_id)
-    )
-    trigger_count = db_session.scalar(
-        select(func.count()).select_from(Trigger)
-    )
+    new_trigger = db_session.scalar(select(Trigger).where(Trigger.id == new_id))
+    trigger_count = db_session.scalar(select(func.count()).select_from(Trigger))
 
     assert trigger_count == 2
     assert isinstance(new_trigger, WebhookTrigger)
@@ -361,40 +305,25 @@ def test_trigger_service_can_add_webhook_trigger(db_serv, db_session):
 
 def test_trigger_service_can_add_chat_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(poll_trigger)
     db_session.add(event)
     db_session.commit()
 
     # Act
-    new_id = serv.add_chat_trigger(
-        name="CHAT",
-        template="Temp",
-        receiver="iseeyou"
-    )
+    new_id = serv.add_chat_trigger(name="CHAT", template="Temp", receiver="iseeyou")
 
     # Assert
-    new_trigger = db_session.scalar(
-        select(Trigger).where(Trigger.id == new_id)
-    )
-    trigger_count = db_session.scalar(
-        select(func.count()).select_from(Trigger)
-    )
+    new_trigger = db_session.scalar(select(Trigger).where(Trigger.id == new_id))
+    trigger_count = db_session.scalar(select(func.count()).select_from(Trigger))
 
     assert trigger_count == 2
     assert isinstance(new_trigger, ChatTrigger)
@@ -405,42 +334,30 @@ def test_trigger_service_can_add_chat_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_add_timer_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(poll_trigger)
     db_session.add(event)
     db_session.commit()
 
     # Act
     new_id = serv.add_timer_trigger(
-        name="tajmr",
-        template="Tajmr templejt",
-        interval=2000
+        name="tajmr", template="Tajmr templejt", interval=2000
     )
 
     # Assert
-    new_trigger = db_session.scalar(
-        select(Trigger).where(Trigger.id == new_id)
-    )
-    trigger_count = db_session.scalar(
-        select(func.count()).select_from(Trigger)
-    )
+    new_trigger = db_session.scalar(select(Trigger).where(Trigger.id == new_id))
+    trigger_count = db_session.scalar(select(func.count()).select_from(Trigger))
 
     assert trigger_count == 2
     assert isinstance(new_trigger, TimerTrigger)
@@ -451,43 +368,30 @@ def test_trigger_service_can_add_timer_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_add_poll_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(poll_trigger)
     db_session.add(event)
     db_session.commit()
 
     # Act
     new_id = serv.add_poll_trigger(
-        name="tajmr",
-        template="Tajmr templejt",
-        interval=2000,
-        url="seznam.cz"
+        name="tajmr", template="Tajmr templejt", interval=2000, url="seznam.cz"
     )
 
     # Assert
-    new_trigger = db_session.scalar(
-        select(Trigger).where(Trigger.id == new_id)
-    )
-    trigger_count = db_session.scalar(
-        select(func.count()).select_from(Trigger)
-    )
+    new_trigger = db_session.scalar(select(Trigger).where(Trigger.id == new_id))
+    trigger_count = db_session.scalar(select(func.count()).select_from(Trigger))
 
     assert trigger_count == 2
     assert isinstance(new_trigger, PollTrigger)
@@ -499,19 +403,20 @@ def test_trigger_service_can_add_poll_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_start_trigger_timer_when_timer_trigger_added(mock_restart, db_serv):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_start_trigger_timer_when_timer_trigger_added(
+    mock_restart, db_serv
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act
     mock_restart.reset_mock()
     new_id = serv.add_timer_trigger(
-        name="tajmr",
-        template="Tajmr templejt",
-        interval=2000
+        name="tajmr", template="Tajmr templejt", interval=2000
     )
 
     # Assert
@@ -520,20 +425,20 @@ def test_trigger_service_tries_to_start_trigger_timer_when_timer_trigger_added(m
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_start_trigger_timer_when_poll_trigger_added(mock_restart, db_serv):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_start_trigger_timer_when_poll_trigger_added(
+    mock_restart, db_serv
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act
     mock_restart.reset_mock()
     new_id = serv.add_poll_trigger(
-        name="tajmr",
-        template="Tajmr templejt",
-        interval=2000,
-        url="google.com"
+        name="tajmr", template="Tajmr templejt", interval=2000, url="google.com"
     )
 
     # Assert
@@ -542,27 +447,16 @@ def test_trigger_service_tries_to_start_trigger_timer_when_poll_trigger_added(mo
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_update_base_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
-    trigger = ChatTrigger(
-        id=5,
-        name="Linux Talk",
-        receiver="technical",
-        template="Old"
-    )
+    serv = TriggerService(database_service=db_serv)
+    trigger = ChatTrigger(id=5, name="Linux Talk", receiver="technical", template="Old")
     db_session.add(trigger)
     db_session.commit()
 
     # Act
-    serv.update_trigger(
-        trigger_id=5,
-        changes=TriggerDiff(
-            name="Windows Talk"
-        )
-    )
+    serv.update_trigger(trigger_id=5, changes=TriggerDiff(name="Windows Talk"))
 
     # Assert
     db_session.refresh(trigger)
@@ -573,16 +467,12 @@ def test_trigger_service_can_update_base_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_update_webhook_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = WebhookTrigger(
-        id=5,
-        name="Original",
-        endpoint="/pringles",
-        template="SALTIER THAN SALT"
+        id=5, name="Original", endpoint="/pringles", template="SALTIER THAN SALT"
     )
     db_session.add(trigger)
     db_session.commit()
@@ -590,10 +480,7 @@ def test_trigger_service_can_update_webhook_trigger(db_serv, db_session):
     # Act
     serv.update_trigger(
         trigger_id=5,
-        changes=WebhookTriggerDiff(
-            template="Not salty anymore",
-            endpoint="/woo?"
-        )
+        changes=WebhookTriggerDiff(template="Not salty anymore", endpoint="/woo?"),
     )
 
     # Assert
@@ -608,25 +495,13 @@ def test_trigger_service_can_update_webhook_trigger(db_serv, db_session):
 
 def test_trigger_service_can_update_chat_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
-    trigger = ChatTrigger(
-        id=5,
-        name="Advice",
-        receiver="advisory",
-        template="Woo"
-    )
+    serv = TriggerService(database_service=db_serv)
+    trigger = ChatTrigger(id=5, name="Advice", receiver="advisory", template="Woo")
     db_session.add(trigger)
     db_session.commit()
 
     # Act
-    serv.update_trigger(
-        trigger_id=5,
-        changes=ChatTriggerDiff(
-            receiver="lol"
-        )
-    )
+    serv.update_trigger(trigger_id=5, changes=ChatTriggerDiff(receiver="lol"))
 
     # Assert
     db_session.refresh(trigger)
@@ -637,27 +512,19 @@ def test_trigger_service_can_update_chat_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_update_timer_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = TimerTrigger(
-        id=5,
-        name="Check logs",
-        interval=120,
-        template="Check the logs"
+        id=5, name="Check logs", interval=120, template="Check the logs"
     )
     db_session.add(trigger)
     db_session.commit()
 
     # Act
     serv.update_trigger(
-        trigger_id=5,
-        changes=TimerTriggerDiff(
-            name="Czech",
-            interval=20
-        )
+        trigger_id=5, changes=TimerTriggerDiff(name="Czech", interval=20)
     )
 
     # Assert
@@ -669,28 +536,23 @@ def test_trigger_service_can_update_timer_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
+
 def test_trigger_service_can_update_poll_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = PollTrigger(
         id=5,
         name="Check news",
         template="Download news articles",
         interval=120,
-        url="novinky.cz"
+        url="novinky.cz",
     )
     db_session.add(trigger)
     db_session.commit()
 
     # Act
     serv.update_trigger(
-        trigger_id=5,
-        changes=PollTriggerDiff(
-            template="mm",
-            url="woo.com"
-        )
+        trigger_id=5, changes=PollTriggerDiff(template="mm", url="woo.com")
     )
 
     # Assert
@@ -703,21 +565,17 @@ def test_trigger_service_can_update_poll_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_poll_trigger(db_serv, db_session):
+
+def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_poll_trigger(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
-    trigger = ChatTrigger(
-        id=5,
-        name="Advice",
-        receiver="advisory",
-        template="Woo"
-    )
+    serv = TriggerService(database_service=db_serv)
+    trigger = ChatTrigger(id=5, name="Advice", receiver="advisory", template="Woo")
     event = Event(
-        trigger=trigger, # Foreign key constraint must not break during trigger type change
+        trigger=trigger,  # Foreign key constraint must not break during trigger type change
         dispatched=False,
-        content=""
+        content="",
     )
     db_session.add(event)
     db_session.add(trigger)
@@ -725,18 +583,12 @@ def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_pol
 
     # Act
     serv.update_trigger(
-        trigger_id=5,
-        changes=PollTriggerDiff(
-            name="Download advice",
-            url="seznam.cz"
-        )
+        trigger_id=5, changes=PollTriggerDiff(name="Download advice", url="seznam.cz")
     )
 
     # Assert
     db_session.expunge(trigger)
-    trigger = db_session.scalar(
-        select(Trigger).where(Trigger.id == 5)
-    )
+    trigger = db_session.scalar(select(Trigger).where(Trigger.id == 5))
 
     assert isinstance(trigger, PollTrigger)
     assert trigger.name == "Download advice"
@@ -752,28 +604,24 @@ def test_trigger_service_can_update_trigger_type_and_convert_chat_trigger_to_pol
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(mock_restart, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(
+    mock_restart, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = TimerTrigger(
-        id=5,
-        name="Check logs",
-        interval=120,
-        template="Check the logs"
+        id=5, name="Check logs", interval=120, template="Check the logs"
     )
     db_session.add(trigger)
     db_session.commit()
 
     # Act
     serv.update_trigger(
-        trigger_id=5,
-        changes=TimerTriggerDiff(
-            name="Czech",
-            interval=20
-        )
+        trigger_id=5, changes=TimerTriggerDiff(name="Czech", interval=20)
     )
 
     # Assert
@@ -783,29 +631,27 @@ def test_trigger_service_tries_to_restart_timer_when_updating_timer_trigger(mock
     serv.stop_trigger_timers()
 
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_restart_timer_when_updating_poll_trigger(mock_restart, db_serv, db_session):
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_restart_timer_when_updating_poll_trigger(
+    mock_restart, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = PollTrigger(
         id=5,
         name="Check logs",
         interval=120,
         template="Check the logs",
-        url="novinky.cz"
+        url="novinky.cz",
     )
     db_session.add(trigger)
     db_session.commit()
 
     # Act
     serv.update_trigger(
-        trigger_id=5,
-        changes=PollTriggerDiff(
-            name="Czech",
-            interval=20
-        )
+        trigger_id=5, changes=PollTriggerDiff(name="Czech", interval=20)
     )
 
     # Assert
@@ -814,29 +660,23 @@ def test_trigger_service_tries_to_restart_timer_when_updating_poll_trigger(mock_
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_restart_timer_when_changing_chat_trigger_to_timer_trigger(mock_restart, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_restart_timer_when_changing_chat_trigger_to_timer_trigger(
+    mock_restart, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
-    trigger = ChatTrigger(
-        id=5,
-        name="Advice",
-        receiver="advisory",
-        template="Woo"
-    )
+    serv = TriggerService(database_service=db_serv)
+    trigger = ChatTrigger(id=5, name="Advice", receiver="advisory", template="Woo")
     db_session.add(trigger)
     db_session.commit()
 
     # Act
     serv.update_trigger(
         trigger_id=5,
-        changes=PollTriggerDiff(
-            name="Czech",
-            interval=20,
-            url="novinky.cz"
-        )
+        changes=PollTriggerDiff(name="Czech", interval=20, url="novinky.cz"),
     )
 
     # Assert
@@ -845,17 +685,17 @@ def test_trigger_service_tries_to_restart_timer_when_changing_chat_trigger_to_ti
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to_poll_trigger(mock_restart, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to_poll_trigger(
+    mock_restart, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = WebhookTrigger(
-        id=5,
-        name="Original",
-        endpoint="/pringles",
-        template="SALTIER THAN SALT"
+        id=5, name="Original", endpoint="/pringles", template="SALTIER THAN SALT"
     )
     db_session.add(trigger)
     db_session.commit()
@@ -863,11 +703,7 @@ def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to
     # Act
     serv.update_trigger(
         trigger_id=5,
-        changes=PollTriggerDiff(
-            name="Czech",
-            interval=20,
-            url="novinky.cz"
-        )
+        changes=PollTriggerDiff(name="Czech", interval=20, url="novinky.cz"),
     )
 
     # Assert
@@ -876,17 +712,17 @@ def test_trigger_service_tries_to_restart_timer_when_changing_webhook_trigger_to
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer")
-def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_poll_trigger(mock_restart, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.restart_trigger_timer"
+)
+def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_poll_trigger(
+    mock_restart, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     trigger = TimerTrigger(
-        id=5,
-        name="Check logs",
-        interval=120,
-        template="Check the logs"
+        id=5, name="Check logs", interval=120, template="Check the logs"
     )
     db_session.add(trigger)
     db_session.commit()
@@ -894,11 +730,7 @@ def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_p
     # Act
     serv.update_trigger(
         trigger_id=5,
-        changes=PollTriggerDiff(
-            name="Czech",
-            interval=20,
-            url="novinky.cz"
-        )
+        changes=PollTriggerDiff(name="Czech", interval=20, url="novinky.cz"),
     )
 
     # Assert
@@ -906,51 +738,37 @@ def test_trigger_service_tries_to_restart_timer_when_changing_timer_trigger_to_p
 
     # Teardown
     serv.stop_trigger_timers()
+
 
 def test_trigger_service_can_remove_trigger(db_serv, db_session):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
-    timer_trigger = TimerTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        interval=40,
-        template="Lol"
-    )
+    timer_trigger = TimerTrigger(id=15, name="WEBHOOKAH", interval=40, template="Lol")
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, timer_trigger]
+        allowed_triggers=[poll_trigger, timer_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
@@ -960,9 +778,7 @@ def test_trigger_service_can_remove_trigger(db_serv, db_session):
     serv.remove_trigger(id=10)
 
     # Assert
-    triggers = db_session.scalars(
-        select(Trigger)
-    ).all()
+    triggers = db_session.scalars(select(Trigger)).all()
 
     assert len(triggers) == 2
     assert triggers[0].id == 5
@@ -971,51 +787,41 @@ def test_trigger_service_can_remove_trigger(db_serv, db_session):
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer")
-def test_trigger_service_removing_timer_trigger_tries_to_stop_trigger_timer(mock_stop, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer"
+)
+def test_trigger_service_removing_timer_trigger_tries_to_stop_trigger_timer(
+    mock_stop, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
-    timer_trigger = TimerTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        interval=40,
-        template="Lol"
-    )
+    timer_trigger = TimerTrigger(id=15, name="WEBHOOKAH", interval=40, template="Lol")
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, timer_trigger]
+        allowed_triggers=[poll_trigger, timer_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
@@ -1030,51 +836,41 @@ def test_trigger_service_removing_timer_trigger_tries_to_stop_trigger_timer(mock
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer")
-def test_trigger_service_removing_poll_trigger_tries_to_stop_trigger_timer(mock_stop, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.stop_trigger_timer"
+)
+def test_trigger_service_removing_poll_trigger_tries_to_stop_trigger_timer(
+    mock_stop, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
-    timer_trigger = TimerTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        interval=40,
-        template="Lol"
-    )
+    timer_trigger = TimerTrigger(id=15, name="WEBHOOKAH", interval=40, template="Lol")
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, timer_trigger]
+        allowed_triggers=[poll_trigger, timer_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
@@ -1089,14 +885,17 @@ def test_trigger_service_removing_poll_trigger_tries_to_stop_trigger_timer(mock_
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers")
-def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(mock_start_timers, db_serv):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.start_stopped_trigger_timers"
+)
+def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(
+    mock_start_timers, db_serv
+):
     # Arrange
 
-    # Act 
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    # Act
+    serv = TriggerService(database_service=db_serv)
 
     # Assert
     mock_start_timers.assert_called_once()
@@ -1105,31 +904,26 @@ def test_trigger_service_tries_to_start_stopped_trigger_timers_on_startup(mock_s
     serv.stop_trigger_timers()
 
 
-
-def test_trigger_service_can_generate_simple_event_from_given_trigger_id_and_variables(db_serv, db_session):
+def test_trigger_service_can_generate_simple_event_from_given_trigger_id_and_variables(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     db_session.add(poll_trigger)
     db_session.commit()
 
     # Act
-    event_id = serv.generate_event(5, {
-        "content": "Hello!"
-    })
+    event_id = serv.generate_event(5, {"content": "Hello!"})
 
     # Assert
-    events = db_session.scalars(
-        select(Event)
-    ).all()
+    events = db_session.scalars(select(Event)).all()
 
     assert len(events) == 1
     assert events[0].id == event_id
@@ -1140,148 +934,148 @@ def test_trigger_service_can_generate_simple_event_from_given_trigger_id_and_var
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_can_generate_complex_event_from_given_trigger_id_and_variables(db_serv, db_session):
+
+def test_trigger_service_can_generate_complex_event_from_given_trigger_id_and_variables(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = ChatTrigger(
         id=5,
         name="General chat",
         template="New event - new user chat message in chat ID $(chat_id). The message is: $(msg_content).",
-        receiver="general"
+        receiver="general",
     )
     db_session.add(poll_trigger)
     db_session.commit()
 
     # Act
-    event_id = serv.generate_event(5, {
-        "chat_id": "92530",
-        "msg_content": "MORE CHEESE!"
-    })
+    event_id = serv.generate_event(
+        5, {"chat_id": "92530", "msg_content": "MORE CHEESE!"}
+    )
 
     # Assert
-    events = db_session.scalars(
-        select(Event)
-    ).all()
+    events = db_session.scalars(select(Event)).all()
 
     assert len(events) == 1
     assert events[0].id == event_id
     assert events[0].trigger_id == 5
-    assert events[0].content == "New event - new user chat message in chat ID 92530. The message is: MORE CHEESE!."
+    assert (
+        events[0].content
+        == "New event - new user chat message in chat ID 92530. The message is: MORE CHEESE!."
+    )
     assert not events[0].dispatched
 
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_when_variable_in_template_undefined(db_serv, db_session):
+
+def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_when_variable_in_template_undefined(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = ChatTrigger(
         id=5,
         name="General chat",
         template="New event - new user chat message in chat ID $(chat_id). The message is: $(msg_content).",
-        receiver="general"
+        receiver="general",
     )
     db_session.add(poll_trigger)
     db_session.commit()
 
     # Act
-    event_id = serv.generate_event(5, {
-        # chat_id is not defined
-        "msg_content": "MORE CHEESE!"
-    })
+    event_id = serv.generate_event(
+        5,
+        {
+            # chat_id is not defined
+            "msg_content": "MORE CHEESE!"
+        },
+    )
 
     # Assert
-    events = db_session.scalars(
-        select(Event)
-    ).all()
+    events = db_session.scalars(select(Event)).all()
 
     assert len(events) == 1
     assert events[0].id == event_id
     assert events[0].trigger_id == 5
-    assert events[0].content == "New event - new user chat message in chat ID . The message is: MORE CHEESE!."
+    assert (
+        events[0].content
+        == "New event - new user chat message in chat ID . The message is: MORE CHEESE!."
+    )
     assert not events[0].dispatched
 
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_when_variable_in_template_not_string(db_serv, db_session):
+
+def test_trigger_service_can_generate_event_from_given_trigger_id_and_variables_when_variable_in_template_not_string(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = ChatTrigger(
         id=5,
         name="General chat",
         template="New event - new user chat message in chat ID $(chat_id). The message is: $(msg_content).",
-        receiver="general"
+        receiver="general",
     )
     db_session.add(poll_trigger)
     db_session.commit()
 
     # Act
-    event_id = serv.generate_event(5, {
-        "chat_id": 404,
-        "msg_content": "MORE CHEESE!"
-    })
+    event_id = serv.generate_event(5, {"chat_id": 404, "msg_content": "MORE CHEESE!"})
 
     # Assert
-    events = db_session.scalars(
-        select(Event)
-    ).all()
+    events = db_session.scalars(select(Event)).all()
 
     assert len(events) == 1
     assert events[0].id == event_id
     assert events[0].trigger_id == 5
-    assert events[0].content == "New event - new user chat message in chat ID 404. The message is: MORE CHEESE!."
+    assert (
+        events[0].content
+        == "New event - new user chat message in chat ID 404. The message is: MORE CHEESE!."
+    )
     assert not events[0].dispatched
 
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_throws_when_trying_to_generate_event_with_invalid_trigger_id(db_serv, db_session):
+
+def test_trigger_service_throws_when_trying_to_generate_event_with_invalid_trigger_id(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = ChatTrigger(
-        id=5,
-        name="General chat",
-        template="",
-        receiver="general"
+        id=5, name="General chat", template="", receiver="general"
     )
     db_session.add(poll_trigger)
     db_session.commit()
 
     # Act / Assert
     with pytest.raises(NonexistentTriggerError):
-        serv.generate_event(999999999999, {
-            "chat_id": 404,
-            "msg_content": "MORE CHEESE!"
-        })
+        serv.generate_event(
+            999999999999, {"chat_id": 404, "msg_content": "MORE CHEESE!"}
+        )
 
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_timer_trigger_generates_events_periodically(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_timer_trigger_generates_events_periodically(
+    mock_generate, db_serv, db_session
+):
     # Arrange
-    timer_trigger = TimerTrigger(
-        id=42,
-        name="Timer",
-        template="Event!",
-        interval=1
-    )
+    timer_trigger = TimerTrigger(id=42, name="Timer", template="Event!", interval=1)
     db_session.add(timer_trigger)
     db_session.commit()
 
     # Act
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Assert
     time.sleep(1.5)
@@ -1295,22 +1089,20 @@ def test_trigger_service_timer_trigger_generates_events_periodically(mock_genera
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_timer_trigger_does_not_start_multiple_times(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_timer_trigger_does_not_start_multiple_times(
+    mock_generate, db_serv, db_session
+):
     # Arrange
-    timer_trigger = TimerTrigger(
-        id=42,
-        name="Timer",
-        template="Event!",
-        interval=1
-    )
+    timer_trigger = TimerTrigger(id=42, name="Timer", template="Event!", interval=1)
     db_session.add(timer_trigger)
     db_session.commit()
 
     # Act
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     serv.start_stopped_trigger_timers()
     serv.start_stopped_trigger_timers()
@@ -1324,20 +1116,18 @@ def test_trigger_service_timer_trigger_does_not_start_multiple_times(mock_genera
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_timer_trigger_can_be_started_after_being_added(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_timer_trigger_can_be_started_after_being_added(
+    mock_generate, db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act
-    timer_trigger = TimerTrigger(
-        id=42,
-        name="Timer",
-        template="Event!",
-        interval=1
-    )
+    timer_trigger = TimerTrigger(id=42, name="Timer", template="Event!", interval=1)
     db_session.add(timer_trigger)
     db_session.commit()
 
@@ -1353,15 +1143,19 @@ def test_trigger_service_timer_trigger_can_be_started_after_being_added(mock_gen
 
 
 @mock.patch("app.services.trigger.requests.get")
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, mock_get, db_serv, db_session):
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_poll_trigger_polls_website_periodically(
+    mock_generate, mock_get, db_serv, db_session
+):
     # Arrange
     poll_trigger = PollTrigger(
         id=42,
         name="Poll",
         template="Website: $(content) $(lol)",
         url="http://seznam.cz",
-        interval=1
+        interval=1,
     )
     db_session.add(poll_trigger)
     db_session.commit()
@@ -1371,9 +1165,7 @@ def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, 
     mock_res.text = "Content!"
 
     # Act
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Assert
     time.sleep(1.5)
@@ -1388,21 +1180,19 @@ def test_trigger_service_poll_trigger_polls_website_periodically(mock_generate, 
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_can_restart_specific_trigger_timer(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_can_restart_specific_trigger_timer(
+    mock_generate, db_serv, db_session
+):
     # Arrange
-    timer_trigger = TimerTrigger(
-        id=42,
-        name="Timer",
-        template="Event!",
-        interval=1
-    )
+    timer_trigger = TimerTrigger(id=42, name="Timer", template="Event!", interval=1)
     db_session.add(timer_trigger)
     db_session.commit()
 
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act / Assert
     time.sleep(1.5)
@@ -1428,21 +1218,19 @@ def test_trigger_service_can_restart_specific_trigger_timer(mock_generate, db_se
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_can_stop_specific_trigger_timer(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_can_stop_specific_trigger_timer(
+    mock_generate, db_serv, db_session
+):
     # Arrange
-    timer_trigger = TimerTrigger(
-        id=42,
-        name="Timer",
-        template="Event!",
-        interval=1
-    )
+    timer_trigger = TimerTrigger(id=42, name="Timer", template="Event!", interval=1)
     db_session.add(timer_trigger)
     db_session.commit()
 
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act / Assert
     time.sleep(1.5)
@@ -1462,56 +1250,52 @@ def test_trigger_service_can_stop_specific_trigger_timer(mock_generate, db_serv,
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_events(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_events(
+    mock_generate, db_serv, db_session
+):
     # Arrange
     chat_trigger_1 = ChatTrigger(
         id=1,
         name="Chat 1",
         template="New message from user: $(message)",
-        receiver="general"
+        receiver="general",
     )
     chat_trigger_2 = ChatTrigger(
-        id=2,
-        name="Chat 2",
-        template="NEW TASK GIVEN: $(message)",
-        receiver="general"
+        id=2, name="Chat 2", template="NEW TASK GIVEN: $(message)", receiver="general"
     )
     db_session.add(chat_trigger_1)
     db_session.add(chat_trigger_2)
     db_session.commit()
-    
-    serv = TriggerService(
-        database_service=db_serv
-    )
+
+    serv = TriggerService(database_service=db_serv)
 
     # Act
-    mock_generate.side_effect = lambda id, _: {
-        1: 30,
-        2: 40
-    }.get(id)
+    mock_generate.side_effect = lambda id, _: {1: 30, 2: 40}.get(id)
     res_hello = serv.receive_chat_message(
-        receiver="general", 
-        message="Hello there",
-        chat_id=40,
-        exchange_id=None
+        receiver="general", message="Hello there", chat_id=40, exchange_id=None
     )
-    mock_generate.side_effect = lambda id, _: {
-        1: 99,
-        2: 100
-    }.get(id)
+    mock_generate.side_effect = lambda id, _: {1: 99, 2: 100}.get(id)
     res_goodbye = serv.receive_chat_message(
-        receiver="general", 
-        message="Goodbye",
-        chat_id=50,
-        exchange_id=20
+        receiver="general", message="Goodbye", chat_id=50, exchange_id=20
     )
 
     # Assert
-    mock_generate.assert_any_call(1, {"message": "Hello there", "chatId": 40, "exchangeId": None})
-    mock_generate.assert_any_call(2, {"message": "Hello there", "chatId": 40, "exchangeId": None})
-    mock_generate.assert_any_call(1, {"message": "Goodbye", "chatId": 50, "exchangeId": 20})
-    mock_generate.assert_any_call(2, {"message": "Goodbye", "chatId": 50, "exchangeId": 20})
+    mock_generate.assert_any_call(
+        1, {"message": "Hello there", "chatId": 40, "exchangeId": None}
+    )
+    mock_generate.assert_any_call(
+        2, {"message": "Hello there", "chatId": 40, "exchangeId": None}
+    )
+    mock_generate.assert_any_call(
+        1, {"message": "Goodbye", "chatId": 50, "exchangeId": 20}
+    )
+    mock_generate.assert_any_call(
+        2, {"message": "Goodbye", "chatId": 50, "exchangeId": 20}
+    )
 
     assert res_hello == [30, 40]
     assert res_goodbye == [99, 100]
@@ -1519,32 +1303,29 @@ def test_trigger_service_chat_trigger_receives_chat_message_and_generates_chat_e
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_matching_chat_receiver(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_matching_chat_receiver(
+    mock_generate, db_serv, db_session
+):
     # Arrange
     chat_trigger_1 = ChatTrigger(
         id=1,
         name="Chat 1",
         template="New message from user: $(message)",
-        receiver="general"
+        receiver="general",
     )
     chat_trigger_2 = ChatTrigger(
-        id=2,
-        name="Chat 2",
-        template="NEW TASK GIVEN: $(message)",
-        receiver="technical"
+        id=2, name="Chat 2", template="NEW TASK GIVEN: $(message)", receiver="technical"
     )
     db_session.add(chat_trigger_1)
     db_session.add(chat_trigger_2)
     db_session.commit()
-    
-    serv = TriggerService(
-        database_service=db_serv
-    )
-    mock_generate.side_effect = lambda id, _: {
-        1: 99,
-        2: 100
-    }.get(id)
+
+    serv = TriggerService(database_service=db_serv)
+    mock_generate.side_effect = lambda id, _: {1: 99, 2: 100}.get(id)
 
     # Act
     res_hello = serv.receive_chat_message("general", "Hello there")
@@ -1552,36 +1333,40 @@ def test_trigger_service_chat_trigger_generates_chat_events_only_for_messages_ma
 
     # Assert
     assert mock_generate.call_count == 2
-    mock_generate.assert_any_call(1, {"message": "Hello there", "chatId": None, "exchangeId": None})
-    mock_generate.assert_any_call(1, {"message": "Goodbye", "chatId": None, "exchangeId": None})
+    mock_generate.assert_any_call(
+        1, {"message": "Hello there", "chatId": None, "exchangeId": None}
+    )
+    mock_generate.assert_any_call(
+        1, {"message": "Goodbye", "chatId": None, "exchangeId": None}
+    )
     assert res_hello == [99]
     assert res_goodbye == [99]
 
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_webhook_trigger_receives_webhook_payload_and_generates_events(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_webhook_trigger_receives_webhook_payload_and_generates_events(
+    mock_generate, db_serv, db_session
+):
     # Arrange
     webhook_trigger_1 = WebhookTrigger(
         id=1,
         name="Webhook",
         template="Incoming HTTP request: $(payload)",
-        endpoint="/test/modify"
+        endpoint="/test/modify",
     )
     webhook_trigger_2 = WebhookTrigger(
-        id=2,
-        name="Webhook",
-        template="REQUEST: $(payload)",
-        endpoint="/test/modify"
+        id=2, name="Webhook", template="REQUEST: $(payload)", endpoint="/test/modify"
     )
     db_session.add(webhook_trigger_1)
     db_session.add(webhook_trigger_2)
     db_session.commit()
 
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act
     serv.receive_webhook_payload("/test/modify", "load")
@@ -1596,28 +1381,28 @@ def test_trigger_service_webhook_trigger_receives_webhook_payload_and_generates_
     # Teardown
     serv.stop_trigger_timers()
 
-@mock.patch("tests.services.triggers.test_trigger_service.TriggerService.generate_event")
-def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matching_endpoint(mock_generate, db_serv, db_session):
+
+@mock.patch(
+    "tests.services.triggers.test_trigger_service.TriggerService.generate_event"
+)
+def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matching_endpoint(
+    mock_generate, db_serv, db_session
+):
     # Arrange
     webhook_trigger_1 = WebhookTrigger(
         id=1,
         name="Webhook",
         template="Incoming HTTP request: $(payload)",
-        endpoint="/test/modify"
+        endpoint="/test/modify",
     )
     webhook_trigger_2 = WebhookTrigger(
-        id=2,
-        name="Webhook",
-        template="REQUEST: $(payload)",
-        endpoint="/test/create"
+        id=2, name="Webhook", template="REQUEST: $(payload)", endpoint="/test/create"
     )
     db_session.add(webhook_trigger_1)
     db_session.add(webhook_trigger_2)
     db_session.commit()
 
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
 
     # Act
     serv.receive_webhook_payload("/test/modify", "load")
@@ -1631,50 +1416,40 @@ def test_trigger_service_webhook_trigger_generates_events_only_for_payloads_matc
     # Teardown
     serv.stop_trigger_timers()
 
-def test_trigger_service_throws_when_manipulating_nonexistent_trigger(db_serv, db_session):
+
+def test_trigger_service_throws_when_manipulating_nonexistent_trigger(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        receiver="general",
-        template="Hello"
+        id=10, name="Simple chat", receiver="general", template="Hello"
     )
     webhook_trigger = WebhookTrigger(
-        id=15,
-        name="WEBHOOKAH",
-        endpoint="wooo",
-        template="Lol"
+        id=15, name="WEBHOOKAH", endpoint="wooo", template="Lol"
     )
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger, webhook_trigger]
+        allowed_triggers=[poll_trigger, webhook_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
     db_session.add(event)
@@ -1700,44 +1475,36 @@ def test_trigger_service_throws_when_manipulating_nonexistent_trigger(db_serv, d
     serv.stop_trigger_timers()
 
 
-def test_trigger_service_throws_when_manipulating_nonexistent_event(db_serv, db_session):
+def test_trigger_service_throws_when_manipulating_nonexistent_event(
+    db_serv, db_session
+):
     # Arrange
-    serv = TriggerService(
-        database_service=db_serv
-    )
+    serv = TriggerService(database_service=db_serv)
     poll_trigger = PollTrigger(
         id=5,
         name="Simple poll",
         url="seznam.cz",
         template="Content of the website: $(content)",
-        interval=30
+        interval=30,
     )
     chat_trigger = ChatTrigger(
-        id=10,
-        name="Simple chat",
-        template="wooo",
-        receiver="general"
+        id=10, name="Simple chat", template="wooo", receiver="general"
     )
     user_allowed = User(
         id=10,
         username="John",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[poll_trigger]
+        allowed_triggers=[poll_trigger],
     )
     user_not_allowed = User(
         id=20,
         username="Mark",
         password_hash="",
         role=Role.USER,
-        allowed_triggers=[chat_trigger]
+        allowed_triggers=[chat_trigger],
     )
-    event = Event(
-        id=3,
-        trigger=poll_trigger,
-        content="Wooo",
-        dispatched=False
-    )
+    event = Event(id=3, trigger=poll_trigger, content="Wooo", dispatched=False)
     db_session.add(poll_trigger)
     db_session.add(user_allowed)
     db_session.add(user_not_allowed)
@@ -1747,20 +1514,20 @@ def test_trigger_service_throws_when_manipulating_nonexistent_event(db_serv, db_
     # Act / Assert
     with pytest.raises(NonexistentEventError):
         serv.get_user_event(
-            user_id=99, # Nonexistent
-            event_id=3
+            user_id=99,  # Nonexistent
+            event_id=3,
         )
 
     with pytest.raises(NonexistentEventError):
         serv.get_user_event(
             user_id=10,
-            event_id=4 # Nonexistent
+            event_id=4,  # Nonexistent
         )
 
     with pytest.raises(NonexistentEventError):
         serv.get_user_event(
-            user_id=20, # Does not allow poll_trigger
-            event_id=3
+            user_id=20,  # Does not allow poll_trigger
+            event_id=3,
         )
 
     # Teardown

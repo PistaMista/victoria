@@ -1,5 +1,6 @@
 <script lang="ts">
-    import ActionListView from "$lib/views/lists/ActionListView.svelte";
+	import ActionListView from "$lib/views/lists/ActionListView.svelte";
 </script>
 
-<ActionListView/>
+<ActionListView />
+

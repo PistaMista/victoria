@@ -1,5 +1,6 @@
 <script>
-    import LoginView from "$lib/views/auth/LoginView.svelte";
+	import LoginView from "$lib/views/auth/LoginView.svelte";
 </script>
 
-<LoginView/>
+<LoginView />
+

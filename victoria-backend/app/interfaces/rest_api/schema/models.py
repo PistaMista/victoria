@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class ModelResponse(BaseModel):
     id: int = Field(..., alias="id")
     name: str = Field(..., alias="name")
@@ -11,4 +12,3 @@ class ModelResponse(BaseModel):
         validate_by_alias=False,
         validate_by_name=True,
     )
-

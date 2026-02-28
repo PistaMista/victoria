@@ -1,11 +1,14 @@
 import type { Diff } from "$lib/types/diff";
 import type { Trigger, TriggerListItem } from "$lib/types/trigger";
-import { TriggerListItem as TriggerListItemSchema, Trigger as TriggerSchema } from "$lib/types/trigger";
-import { z } from "zod"
+import {
+	TriggerListItem as TriggerListItemSchema,
+	Trigger as TriggerSchema,
+} from "$lib/types/trigger";
+import { z } from "zod";
 
 export async function getPermittedTriggers(): Promise<TriggerListItem[]> {
-	const res = await fetch('/api/triggers', {
-		method: 'GET'
+	const res = await fetch("/api/triggers", {
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -16,15 +19,17 @@ export async function getPermittedTriggers(): Promise<TriggerListItem[]> {
 	return z.array(TriggerListItemSchema).parse(json);
 }
 
-export async function getAllTriggers(searchQuery: string | null = null): Promise<TriggerListItem[]> {
+export async function getAllTriggers(
+	searchQuery: string | null = null,
+): Promise<TriggerListItem[]> {
 	let params = new URLSearchParams();
 
 	if (searchQuery !== null) {
-		params.append('searchQuery', searchQuery);
+		params.append("searchQuery", searchQuery);
 	}
 
 	const res = await fetch(`/api/triggers/all?${params.toString()}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -37,7 +42,7 @@ export async function getAllTriggers(searchQuery: string | null = null): Promise
 
 export async function getTrigger(id: number): Promise<Trigger> {
 	const res = await fetch(`/api/triggers/${id}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -48,13 +53,16 @@ export async function getTrigger(id: number): Promise<Trigger> {
 	return TriggerSchema.parse(json);
 }
 
-export async function updateTrigger(id: number, changes: Diff<Trigger>): Promise<void> {
+export async function updateTrigger(
+	id: number,
+	changes: Diff<Trigger>,
+): Promise<void> {
 	const res = await fetch(`/api/triggers/${id}`, {
-		method: 'PUT',
+		method: "PUT",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(changes)
+		body: JSON.stringify(changes),
 	});
 	const json = await res.json();
 
@@ -65,7 +73,7 @@ export async function updateTrigger(id: number, changes: Diff<Trigger>): Promise
 
 export async function deleteTrigger(id: number): Promise<void> {
 	const res = await fetch(`/api/triggers/${id}`, {
-		method: 'DELETE'
+		method: "DELETE",
 	});
 	const json = await res.json();
 
@@ -74,13 +82,15 @@ export async function deleteTrigger(id: number): Promise<void> {
 	}
 }
 
-export async function createTrigger(trigger: Trigger): Promise<TriggerListItem> {
-	const res = await fetch('/api/triggers', {
-		method: 'POST',
+export async function createTrigger(
+	trigger: Trigger,
+): Promise<TriggerListItem> {
+	const res = await fetch("/api/triggers", {
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(trigger)
+		body: JSON.stringify(trigger),
 	});
 	const json = await res.json();
 

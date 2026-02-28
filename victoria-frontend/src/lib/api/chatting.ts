@@ -1,5 +1,9 @@
 import type { ChatOptions, Chat, SentMessageInfo } from "$lib/types/chat";
-import { Chat as ChatSchema, ChatOptions as ChatOptionsSchema, SentMessageInfo as SentMessageInfoSchema } from "$lib/types/chat";
+import {
+	Chat as ChatSchema,
+	ChatOptions as ChatOptionsSchema,
+	SentMessageInfo as SentMessageInfoSchema,
+} from "$lib/types/chat";
 import type { Diff } from "$lib/types/diff";
 import type { Exchange } from "$lib/types/exchange";
 import { Exchange as ExchangeSchema } from "$lib/types/exchange";
@@ -7,11 +11,15 @@ import { z } from "zod";
 import { get, type Writable } from "svelte/store";
 import { type Message, Message as MessageSchema } from "$lib/types/message";
 
-export type SortMode = 'recent' | 'length' | 'importance';
+export type SortMode = "recent" | "length" | "importance";
 
-export async function getCurrentUserChats(sortBy: SortMode = 'recent', receiver: string | null = null, searchQuery: string | null = null): Promise<Chat[]> {
+export async function getCurrentUserChats(
+	sortBy: SortMode = "recent",
+	receiver: string | null = null,
+	searchQuery: string | null = null,
+): Promise<Chat[]> {
 	const params = new URLSearchParams({
-		sortBy: sortBy
+		sortBy: sortBy,
 	});
 
 	if (receiver) {
@@ -23,7 +31,7 @@ export async function getCurrentUserChats(sortBy: SortMode = 'recent', receiver:
 	}
 
 	const res = await fetch(`/api/chats?${params.toString()}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -35,8 +43,8 @@ export async function getCurrentUserChats(sortBy: SortMode = 'recent', receiver:
 }
 
 export async function getChatReceivers(): Promise<string[]> {
-	const res = await fetch('/api/chats/receivers', {
-		method: 'GET'
+	const res = await fetch("/api/chats/receivers", {
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -48,7 +56,7 @@ export async function getChatReceivers(): Promise<string[]> {
 }
 
 export async function createNewChat(): Promise<Chat> {
-	const res = await fetch('/api/chats', { method: 'POST' });
+	const res = await fetch("/api/chats", { method: "POST" });
 	const json = await res.json();
 
 	if (!res.ok) {
@@ -59,7 +67,7 @@ export async function createNewChat(): Promise<Chat> {
 }
 
 export async function deleteChat(id: number): Promise<void> {
-	const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' });
+	const res = await fetch(`/api/chats/${id}`, { method: "DELETE" });
 	const json = await res.json();
 
 	if (!res.ok) {
@@ -68,7 +76,7 @@ export async function deleteChat(id: number): Promise<void> {
 }
 
 export async function getChatOptions(id: number): Promise<ChatOptions> {
-	const res = await fetch(`/api/chats/${id}/options`, { method: 'GET' });
+	const res = await fetch(`/api/chats/${id}/options`, { method: "GET" });
 	const json = await res.json();
 
 	if (!res.ok) {
@@ -78,13 +86,16 @@ export async function getChatOptions(id: number): Promise<ChatOptions> {
 	return ChatOptionsSchema.parse(json);
 }
 
-export async function updateChatOptions(id: number, changes: Diff<ChatOptions>): Promise<void> {
+export async function updateChatOptions(
+	id: number,
+	changes: Diff<ChatOptions>,
+): Promise<void> {
 	const res = await fetch(`/api/chats/${id}/options`, {
-		method: 'PUT',
+		method: "PUT",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(changes)
+		body: JSON.stringify(changes),
 	});
 	const json = await res.json();
 
@@ -93,13 +104,16 @@ export async function updateChatOptions(id: number, changes: Diff<ChatOptions>):
 	}
 }
 
-export async function sendMessageToChat(chatId: number, msg: string): Promise<SentMessageInfo> {
+export async function sendMessageToChat(
+	chatId: number,
+	msg: string,
+): Promise<SentMessageInfo> {
 	const res = await fetch(`/api/chats/${chatId}/send-message`, {
-		method: 'POST',
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ type: "markdown", message: msg })
+		body: JSON.stringify({ type: "markdown", message: msg }),
 	});
 	const json = await res.json();
 
@@ -110,16 +124,25 @@ export async function sendMessageToChat(chatId: number, msg: string): Promise<Se
 	return SentMessageInfoSchema.parse(json);
 }
 
-export async function startReceivingExchanges(chatId: number, out: Writable<Exchange[]>, abortSig: AbortSignal): Promise<void> {
-	let fetcher = (async () => {
-		const maxTimestamp = get(out).map((val) => (val.timestamp)).reduce((a, b) => Math.max(a, b), 0);
+export async function startReceivingExchanges(
+	chatId: number,
+	out: Writable<Exchange[]>,
+	abortSig: AbortSignal,
+): Promise<void> {
+	let fetcher = async () => {
+		const maxTimestamp = get(out)
+			.map((val) => val.timestamp)
+			.reduce((a, b) => Math.max(a, b), 0);
 		const params = new URLSearchParams({
-			after: maxTimestamp.toString()
-		})
-		const res = await fetch(`/api/chats/${chatId}/exchanges?${params.toString()}`, {
-			method: 'GET',
-			signal: abortSig
+			after: maxTimestamp.toString(),
 		});
+		const res = await fetch(
+			`/api/chats/${chatId}/exchanges?${params.toString()}`,
+			{
+				method: "GET",
+				signal: abortSig,
+			},
+		);
 		const json = await res.json();
 
 		if (!res.ok) {
@@ -127,8 +150,8 @@ export async function startReceivingExchanges(chatId: number, out: Writable<Exch
 		}
 
 		const exchanges = z.array(ExchangeSchema).parse(json);
-		out.update(prev => [...prev, ...exchanges]);
-	});
+		out.update((prev) => [...prev, ...exchanges]);
+	};
 
 	let loop: Promise<void> = (async () => {
 		while (!abortSig.aborted) {
@@ -139,16 +162,26 @@ export async function startReceivingExchanges(chatId: number, out: Writable<Exch
 	return loop;
 }
 
-export async function startReceivingMessages(exchangeId: number, out: Writable<Message[]>, fetchAbort: AbortSignal, loopAbort: AbortSignal): Promise<void> {
-	let fetcher = (async () => {
-		const maxTimestamp = get(out).map((val) => (val.timestamp)).reduce((a, b) => Math.max(a, b), 0);
+export async function startReceivingMessages(
+	exchangeId: number,
+	out: Writable<Message[]>,
+	fetchAbort: AbortSignal,
+	loopAbort: AbortSignal,
+): Promise<void> {
+	let fetcher = async () => {
+		const maxTimestamp = get(out)
+			.map((val) => val.timestamp)
+			.reduce((a, b) => Math.max(a, b), 0);
 		const params = new URLSearchParams({
-			after: maxTimestamp.toString()
-		})
-		const res = await fetch(`/api/exchanges/${exchangeId}/messages?${params.toString()}`, {
-			method: 'GET',
-			signal: fetchAbort
+			after: maxTimestamp.toString(),
 		});
+		const res = await fetch(
+			`/api/exchanges/${exchangeId}/messages?${params.toString()}`,
+			{
+				method: "GET",
+				signal: fetchAbort,
+			},
+		);
 		const json = await res.json();
 
 		if (!res.ok) {
@@ -156,8 +189,8 @@ export async function startReceivingMessages(exchangeId: number, out: Writable<M
 		}
 
 		const messages = z.array(MessageSchema).parse(json);
-		out.update(prev => [...prev, ...messages]);
-	});
+		out.update((prev) => [...prev, ...messages]);
+	};
 
 	let loop: Promise<void> = (async () => {
 		await fetcher();
@@ -170,15 +203,18 @@ export async function startReceivingMessages(exchangeId: number, out: Writable<M
 	return loop;
 }
 
-export async function duplicateChatToExchange(chatId: number, exchangeId: number): Promise<number> {
+export async function duplicateChatToExchange(
+	chatId: number,
+	exchangeId: number,
+): Promise<number> {
 	const res = await fetch(`/api/chats/${chatId}/duplicate`, {
-		method: 'POST',
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({
-			toExchange: exchangeId
-		})
+			toExchange: exchangeId,
+		}),
 	});
 	const json = await res.json();
 

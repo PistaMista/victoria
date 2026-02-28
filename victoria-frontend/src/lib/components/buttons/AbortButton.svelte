@@ -1,8 +1,10 @@
 <script lang="ts">
-    import { Button } from "flowbite-svelte";
-    import { CloseOutline } from "flowbite-svelte-icons";
+	import { Button } from "flowbite-svelte";
+	import { CloseOutline } from "flowbite-svelte-icons";
 
-    export let onclick: () => void;
+	export let onclick: () => void;
 </script>
 
-<Button on:click={onclick} class="w-full font-bold bg-red-600" {...$$restProps}><CloseOutline/>ABORT</Button>
+<Button on:click={onclick} class="w-full font-bold bg-red-600" {...$$restProps}
+	><CloseOutline />ABORT</Button
+>

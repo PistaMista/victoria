@@ -1,117 +1,142 @@
 import { expect, test, type Mock } from "vitest";
-import userEvent from '@testing-library/user-event';
-import { render, within, waitFor } from '@testing-library/svelte';
+import userEvent from "@testing-library/user-event";
+import { render, within, waitFor } from "@testing-library/svelte";
 import ActionRepositoryDetailView from "./ActionRepositoryDetailView.svelte";
-import { createActionRepoHandler, deleteActionRepoHandler, getActionRepoHandler, setActionRepoHandler } from "../../../mocks/handlers/action_repos";
+import {
+	createActionRepoHandler,
+	deleteActionRepoHandler,
+	getActionRepoHandler,
+	setActionRepoHandler,
+} from "../../../mocks/handlers/action_repos";
 
-test('action repository detail shows info about given repository', async () => {
-    const { findByLabelText } = render(ActionRepositoryDetailView, {
-        id: 1
-    });
-    
-    const nameField: HTMLInputElement = within(await findByLabelText('Name')).getByRole('textbox');
-    const urlField: HTMLInputElement = within(await findByLabelText('URL')).getByRole('textbox');
+test("action repository detail shows info about given repository", async () => {
+	const { findByLabelText } = render(ActionRepositoryDetailView, {
+		id: 1,
+	});
 
-    await waitFor(() => {
-        // Name
-        expect(nameField.value).toBe("Home assistant tools");
-        // URL
-        expect(urlField.value).toBe("http://golem/PistaMista/HA-tools.git");
-    })
-})
+	const nameField: HTMLInputElement = within(
+		await findByLabelText("Name"),
+	).getByRole("textbox");
+	const urlField: HTMLInputElement = within(
+		await findByLabelText("URL"),
+	).getByRole("textbox");
 
-test('action repository detail can edit URL of given repository', async () => {
-    const user = userEvent.setup();
-    const { findByLabelText } = render(ActionRepositoryDetailView, {
-        id: 1
-    });
+	await waitFor(() => {
+		// Name
+		expect(nameField.value).toBe("Home assistant tools");
+		// URL
+		expect(urlField.value).toBe("http://golem/PistaMista/HA-tools.git");
+	});
+});
 
-    const urlField: HTMLInputElement = within(await findByLabelText('URL')).getByRole('textbox') as HTMLInputElement;
-    const saveButton = await findByLabelText('Save action repository');
-    
-    // TODO: This is just a temporary fix - the fields SHOULD NOT be visible when the data is being loaded!!!
-    // FIXME: We need to prevent the user from editing the fields and pressing the delete/save buttons unless the data is loaded
-    await waitFor(async () => {
-        // Wait for the data to be loaded
-        expect(getActionRepoHandler).toBeCalled();
-    });
+test("action repository detail can edit URL of given repository", async () => {
+	const user = userEvent.setup();
+	const { findByLabelText } = render(ActionRepositoryDetailView, {
+		id: 1,
+	});
 
-    await user.clear(urlField);
-    await user.type(urlField, "mycoolurl");
+	const urlField: HTMLInputElement = within(
+		await findByLabelText("URL"),
+	).getByRole("textbox") as HTMLInputElement;
+	const saveButton = await findByLabelText("Save action repository");
 
-    await user.click(saveButton);
+	// TODO: This is just a temporary fix - the fields SHOULD NOT be visible when the data is being loaded!!!
+	// FIXME: We need to prevent the user from editing the fields and pressing the delete/save buttons unless the data is loaded
+	await waitFor(async () => {
+		// Wait for the data to be loaded
+		expect(getActionRepoHandler).toBeCalled();
+	});
 
-    await waitFor(async () => {
-        expect(setActionRepoHandler).toBeCalled();
-    });
+	await user.clear(urlField);
+	await user.type(urlField, "mycoolurl");
 
-    let body = await (setActionRepoHandler as Mock).mock.calls[0][0].request.json();
-    
-    expect(body).toHaveProperty('url', 'mycoolurl')
-    expect(body).not.toHaveProperty('name');
-})
+	await user.click(saveButton);
 
-test('action repository detail can edit name of given repository', async () => {
-    const user = userEvent.setup();
-    const { findByLabelText } = render(ActionRepositoryDetailView, {
-        id: 1
-    });
+	await waitFor(async () => {
+		expect(setActionRepoHandler).toBeCalled();
+	});
 
-    const nameField: HTMLInputElement = within(await findByLabelText('Name')).getByRole('textbox');
-    const saveButton = await findByLabelText('Save action repository');
+	let body = await (
+		setActionRepoHandler as Mock
+	).mock.calls[0][0].request.json();
 
-    // TODO: This is just a temporary fix - the fields SHOULD NOT be visible when the data is being loaded!!!
-    // FIXME: We need to prevent the user from editing the fields and pressing the delete/save buttons unless the data is loaded
-    await waitFor(async () => {
-        // Wait for the data to be loaded
-        expect(getActionRepoHandler).toBeCalled();        
-    });
+	expect(body).toHaveProperty("url", "mycoolurl");
+	expect(body).not.toHaveProperty("name");
+});
 
-    await user.clear(nameField);
-    await user.type(nameField, "myName");
+test("action repository detail can edit name of given repository", async () => {
+	const user = userEvent.setup();
+	const { findByLabelText } = render(ActionRepositoryDetailView, {
+		id: 1,
+	});
 
-    await user.click(saveButton);
+	const nameField: HTMLInputElement = within(
+		await findByLabelText("Name"),
+	).getByRole("textbox");
+	const saveButton = await findByLabelText("Save action repository");
 
-    expect(setActionRepoHandler).toBeCalled();
-    let body = await (setActionRepoHandler as Mock).mock.calls[0][0].request.json();
-    
-    expect(body).toHaveProperty('name', 'myName')
-    expect(body).not.toHaveProperty('url');
-})
+	// TODO: This is just a temporary fix - the fields SHOULD NOT be visible when the data is being loaded!!!
+	// FIXME: We need to prevent the user from editing the fields and pressing the delete/save buttons unless the data is loaded
+	await waitFor(async () => {
+		// Wait for the data to be loaded
+		expect(getActionRepoHandler).toBeCalled();
+	});
 
-test('action repository detail can delete a given repository', async () => {
-    const user = userEvent.setup();
-    const { findByLabelText } = render(ActionRepositoryDetailView, {
-        id: 1
-    });
+	await user.clear(nameField);
+	await user.type(nameField, "myName");
 
-    const deleteButton = await findByLabelText("Delete action repository");
+	await user.click(saveButton);
 
-    await user.click(deleteButton);
-    
-    expect(deleteActionRepoHandler).toBeCalled();
-    expect((deleteActionRepoHandler as Mock).mock.calls[0][0].request.url).toContain('/api/action-repos/1');
-})
+	expect(setActionRepoHandler).toBeCalled();
+	let body = await (
+		setActionRepoHandler as Mock
+	).mock.calls[0][0].request.json();
 
-test('action repository detail can create a new action repository (with no id given)', async () => {
-    const user = userEvent.setup();
-    const { findByLabelText } = render(ActionRepositoryDetailView, {
-        id: null
-    });
+	expect(body).toHaveProperty("name", "myName");
+	expect(body).not.toHaveProperty("url");
+});
 
-    const nameField: HTMLInputElement = within(await findByLabelText("Name")).getByRole('textbox');
-    const urlField: HTMLInputElement = within(await findByLabelText("URL")).getByRole('textbox');
-    const createButton = await findByLabelText("Create action repository");
-    
-    await user.type(nameField, "Mega repository 5000");
-    await user.type(urlField, "https://www.megaurl.com");
+test("action repository detail can delete a given repository", async () => {
+	const user = userEvent.setup();
+	const { findByLabelText } = render(ActionRepositoryDetailView, {
+		id: 1,
+	});
 
-    await user.click(createButton);
+	const deleteButton = await findByLabelText("Delete action repository");
 
-    expect(createActionRepoHandler).toBeCalled();
-    let body = await (createActionRepoHandler as Mock).mock.calls[0][0].request.json();
-    expect(body).toMatchObject({
-        name: "Mega repository 5000",
-        url: "https://www.megaurl.com"
-    })
-})
+	await user.click(deleteButton);
+
+	expect(deleteActionRepoHandler).toBeCalled();
+	expect(
+		(deleteActionRepoHandler as Mock).mock.calls[0][0].request.url,
+	).toContain("/api/action-repos/1");
+});
+
+test("action repository detail can create a new action repository (with no id given)", async () => {
+	const user = userEvent.setup();
+	const { findByLabelText } = render(ActionRepositoryDetailView, {
+		id: null,
+	});
+
+	const nameField: HTMLInputElement = within(
+		await findByLabelText("Name"),
+	).getByRole("textbox");
+	const urlField: HTMLInputElement = within(
+		await findByLabelText("URL"),
+	).getByRole("textbox");
+	const createButton = await findByLabelText("Create action repository");
+
+	await user.type(nameField, "Mega repository 5000");
+	await user.type(urlField, "https://www.megaurl.com");
+
+	await user.click(createButton);
+
+	expect(createActionRepoHandler).toBeCalled();
+	let body = await (
+		createActionRepoHandler as Mock
+	).mock.calls[0][0].request.json();
+	expect(body).toMatchObject({
+		name: "Mega repository 5000",
+		url: "https://www.megaurl.com",
+	});
+});

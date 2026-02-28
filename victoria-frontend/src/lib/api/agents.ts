@@ -1,11 +1,16 @@
-import { Agent as AgentSchema, AgentListItem as AgentListItemSchema } from "$lib/types/agent";
+import {
+	Agent as AgentSchema,
+	AgentListItem as AgentListItemSchema,
+} from "$lib/types/agent";
 import type { AgentListItem, Agent } from "$lib/types/agent";
 import type { Diff } from "$lib/types/diff";
 import type { MonologueListItem } from "$lib/types/monologue";
 import { MonologueListItem as MonologueListItemSchema } from "$lib/types/monologue";
 import { z } from "zod";
 
-export async function getCurrentUserAgents(searchQuery: string | null = null): Promise<AgentListItem[]> {
+export async function getCurrentUserAgents(
+	searchQuery: string | null = null,
+): Promise<AgentListItem[]> {
 	const params = new URLSearchParams();
 
 	if (searchQuery) {
@@ -13,7 +18,7 @@ export async function getCurrentUserAgents(searchQuery: string | null = null): P
 	}
 
 	const res = await fetch(`/api/agents?${params.toString()}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -26,7 +31,7 @@ export async function getCurrentUserAgents(searchQuery: string | null = null): P
 
 export async function getAgent(agentId: number): Promise<Agent> {
 	const res = await fetch(`/api/agents/${agentId}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -37,9 +42,11 @@ export async function getAgent(agentId: number): Promise<Agent> {
 	return AgentSchema.parse(json);
 }
 
-export async function getAgentMonologues(agentId: number): Promise<MonologueListItem[]> {
+export async function getAgentMonologues(
+	agentId: number,
+): Promise<MonologueListItem[]> {
 	const res = await fetch(`/api/agents/${agentId}/monologues`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -51,12 +58,12 @@ export async function getAgentMonologues(agentId: number): Promise<MonologueList
 }
 
 export async function createAgent(agent: Agent): Promise<void> {
-	const res = await fetch('/api/agents', {
-		method: 'POST',
+	const res = await fetch("/api/agents", {
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(agent)
+		body: JSON.stringify(agent),
 	});
 	const json = await res.json();
 
@@ -65,13 +72,16 @@ export async function createAgent(agent: Agent): Promise<void> {
 	}
 }
 
-export async function updateAgent(id: number, changes: Diff<Agent>): Promise<void> {
+export async function updateAgent(
+	id: number,
+	changes: Diff<Agent>,
+): Promise<void> {
 	const res = await fetch(`/api/agents/${id}`, {
-		method: 'PUT',
+		method: "PUT",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(changes)
+		body: JSON.stringify(changes),
 	});
 	const json = await res.json();
 
@@ -82,7 +92,7 @@ export async function updateAgent(id: number, changes: Diff<Agent>): Promise<voi
 
 export async function deleteAgent(id: number): Promise<void> {
 	const res = await fetch(`/api/agents/${id}`, {
-		method: 'DELETE'
+		method: "DELETE",
 	});
 	const json = await res.json();
 

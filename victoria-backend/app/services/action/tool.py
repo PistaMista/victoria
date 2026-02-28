@@ -11,12 +11,14 @@ from app.model.llm_connection import LLMConnection
 
 TOOL_REGISTRY = []
 
+
 def serialize_type(t):
     if t in vars(builtins).values():
         # For a builtin type x, eval(repr(x)) != x
         return t.__name__
     else:
         return repr(t)
+
 
 def convert_to_action(func) -> Action:
     func_name = func.__name__
@@ -26,9 +28,9 @@ def convert_to_action(func) -> Action:
 
     signature = inspect.signature(func)
     type_hints = get_type_hints(func)
-    
+
     param_schema = {}
-    
+
     for name, param in signature.parameters.items():
         match param.kind:
             case inspect.Parameter.POSITIONAL_OR_KEYWORD:
@@ -38,7 +40,7 @@ def convert_to_action(func) -> Action:
                 param_schema[name] = serialize_type(type_hints.get(name))
 
             case inspect.Parameter.VAR_KEYWORD:
-                pass # Ignore **kwargs
+                pass  # Ignore **kwargs
 
             case _:
                 raise InvalidActionParamTypeError(name)
@@ -47,21 +49,25 @@ def convert_to_action(func) -> Action:
         function_name=func_name,
         function_param_schema=param_schema,
         function_source_code=cleaned_source,
-        function_docstring=doc
+        function_docstring=doc,
     )
 
     return action
-    
+
 
 def tool(func):
     action = convert_to_action(func)
     TOOL_REGISTRY.append(action)
     return func
 
+
 class UnannotatedActionParamError(Exception):
     def __init__(self, param_name: str):
         super().__init__(f"parameter '{param_name}' is missing a type annotation")
 
+
 class InvalidActionParamTypeError(Exception):
     def __init__(self, param_name: str):
-        super().__init__(f"invalid parameter in function signature: {param_name} - only POSITIONAL_OR_KEYWORD and VAR_KEYWORD are allowed")
+        super().__init__(
+            f"invalid parameter in function signature: {param_name} - only POSITIONAL_OR_KEYWORD and VAR_KEYWORD are allowed"
+        )

@@ -1,81 +1,95 @@
 import { expect, test, type Mock } from "vitest";
-import userEvent from '@testing-library/user-event';
-import { render, waitFor, within } from '@testing-library/svelte';
+import userEvent from "@testing-library/user-event";
+import { render, waitFor, within } from "@testing-library/svelte";
 import ChatOptionsView from "./ChatOptionsView.svelte";
-import { chatDeleteHandler, getChatOptionsHandler, setChatOptionsHandler } from "../../../mocks/handlers/chats";
+import {
+	chatDeleteHandler,
+	getChatOptionsHandler,
+	setChatOptionsHandler,
+} from "../../../mocks/handlers/chats";
 
-test('chat options view allows setting chat receiver of given chat', async () => {
-    const user = userEvent.setup();
-    const { getByLabelText, findByLabelText } = render(ChatOptionsView, {
-        id: 1
-    });
-    
-    await waitFor(() => {
-        expect(getChatOptionsHandler).toBeCalled();
-    })
+test("chat options view allows setting chat receiver of given chat", async () => {
+	const user = userEvent.setup();
+	const { getByLabelText, findByLabelText } = render(ChatOptionsView, {
+		id: 1,
+	});
 
-    { // Select chat receiver
-        const dropdown = getByLabelText("Select chat receiver");
-        const button = within(dropdown).getByRole('button');
-        await user.click(button);
+	await waitFor(() => {
+		expect(getChatOptionsHandler).toBeCalled();
+	});
 
-        const option = await findByLabelText('research');
-        await user.click(option);
-    }
-    
-    { // Save
-        const button = getByLabelText("Save chat options");
-        await user.click(button);
-    }
-    
-    expect(setChatOptionsHandler).toBeCalled();
-    let body = await (setChatOptionsHandler as Mock).mock.calls[0][0].request.json();
-    expect(body).toHaveProperty('receiver', 'research')
-    expect(body).not.toHaveProperty('enabledActionIds');
-})
+	{
+		// Select chat receiver
+		const dropdown = getByLabelText("Select chat receiver");
+		const button = within(dropdown).getByRole("button");
+		await user.click(button);
 
-test('chat options view allows editing allowed actions taken by agents receiving user messages', async () => {
-    const user = userEvent.setup();
-    const { getByLabelText } = render(ChatOptionsView, {
-        id: 1
-    });
+		const option = await findByLabelText("research");
+		await user.click(option);
+	}
 
-    await waitFor(() => {
-        expect(getChatOptionsHandler).toBeCalled();
-    })
-    
-    { // Edit actions
-        const calendar = getByLabelText("Add to calendar");
-        const think = getByLabelText("Think");
+	{
+		// Save
+		const button = getByLabelText("Save chat options");
+		await user.click(button);
+	}
 
-        await user.click(calendar);
-        await user.click(think);
-    }
+	expect(setChatOptionsHandler).toBeCalled();
+	let body = await (
+		setChatOptionsHandler as Mock
+	).mock.calls[0][0].request.json();
+	expect(body).toHaveProperty("receiver", "research");
+	expect(body).not.toHaveProperty("enabledActionIds");
+});
 
-    { // Save
-        const button = getByLabelText("Save chat options");
-        await user.click(button);        
-    }
+test("chat options view allows editing allowed actions taken by agents receiving user messages", async () => {
+	const user = userEvent.setup();
+	const { getByLabelText } = render(ChatOptionsView, {
+		id: 1,
+	});
 
-    expect(setChatOptionsHandler).toBeCalled();
-    let body = await (setChatOptionsHandler as Mock).mock.calls[0][0].request.json();
-    expect(body).not.toHaveProperty('receiver')
-    expect(body).toHaveProperty('enabledActionIds', [2, 3]);
-})
+	await waitFor(() => {
+		expect(getChatOptionsHandler).toBeCalled();
+	});
 
-test('chat options view allows deleting given chat', async () => {
-    const user = userEvent.setup();
-    const { getByLabelText } = render(ChatOptionsView, {
-        id: 1
-    });
+	{
+		// Edit actions
+		const calendar = getByLabelText("Add to calendar");
+		const think = getByLabelText("Think");
 
-    await waitFor(() => {
-        expect(getChatOptionsHandler).toBeCalled();
-    })
-    
-    const button = getByLabelText("Delete chat");
-    await user.click(button);
+		await user.click(calendar);
+		await user.click(think);
+	}
 
-    expect(chatDeleteHandler).toBeCalled();
-    expect((chatDeleteHandler as Mock).mock.calls[0][0].request.url).toContain('/api/chats/1');
-})
+	{
+		// Save
+		const button = getByLabelText("Save chat options");
+		await user.click(button);
+	}
+
+	expect(setChatOptionsHandler).toBeCalled();
+	let body = await (
+		setChatOptionsHandler as Mock
+	).mock.calls[0][0].request.json();
+	expect(body).not.toHaveProperty("receiver");
+	expect(body).toHaveProperty("enabledActionIds", [2, 3]);
+});
+
+test("chat options view allows deleting given chat", async () => {
+	const user = userEvent.setup();
+	const { getByLabelText } = render(ChatOptionsView, {
+		id: 1,
+	});
+
+	await waitFor(() => {
+		expect(getChatOptionsHandler).toBeCalled();
+	});
+
+	const button = getByLabelText("Delete chat");
+	await user.click(button);
+
+	expect(chatDeleteHandler).toBeCalled();
+	expect((chatDeleteHandler as Mock).mock.calls[0][0].request.url).toContain(
+		"/api/chats/1",
+	);
+});

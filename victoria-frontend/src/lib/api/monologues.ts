@@ -1,5 +1,12 @@
-import type { Monologue, MonologueListItem, MonologueStatus } from "$lib/types/monologue";
-import { MonologueListItem as MonologueListItemSchema, Monologue as MonologueSchema } from "$lib/types/monologue";
+import type {
+	Monologue,
+	MonologueListItem,
+	MonologueStatus,
+} from "$lib/types/monologue";
+import {
+	MonologueListItem as MonologueListItemSchema,
+	Monologue as MonologueSchema,
+} from "$lib/types/monologue";
 import { Thought as ThoughtSchema } from "$lib/types/thought";
 import type { Thought } from "$lib/types/thought";
 import { z } from "zod";
@@ -8,28 +15,28 @@ export async function getCurrentUserMonologues(
 	triggerId: number | null = null,
 	status: MonologueStatus | null = null,
 	agentId: number | null = null,
-	searchQuery: string | null = null
+	searchQuery: string | null = null,
 ): Promise<MonologueListItem[]> {
 	const params = new URLSearchParams();
 
 	if (triggerId !== null) {
-		params.append('trigger', triggerId.toString());
+		params.append("trigger", triggerId.toString());
 	}
 
 	if (status !== null) {
-		params.append('monologueStatus', status);
+		params.append("monologueStatus", status);
 	}
 
 	if (agentId !== null) {
-		params.append('assignedAgent', agentId.toString());
+		params.append("assignedAgent", agentId.toString());
 	}
 
 	if (searchQuery !== null) {
-		params.append('searchQuery', searchQuery);
+		params.append("searchQuery", searchQuery);
 	}
 
 	const res = await fetch(`/api/monologues?${params.toString()}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -42,7 +49,7 @@ export async function getCurrentUserMonologues(
 
 export async function getMonologue(id: number): Promise<Monologue> {
 	const res = await fetch(`/api/monologues/${id}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -53,9 +60,11 @@ export async function getMonologue(id: number): Promise<Monologue> {
 	return MonologueSchema.parse(json);
 }
 
-export async function getMonologueThoughts(monologueId: number): Promise<Thought[]> {
+export async function getMonologueThoughts(
+	monologueId: number,
+): Promise<Thought[]> {
 	const res = await fetch(`/api/monologues/${monologueId}/thoughts`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -68,7 +77,7 @@ export async function getMonologueThoughts(monologueId: number): Promise<Thought
 
 export async function abortMonologue(id: number): Promise<void> {
 	const res = await fetch(`/api/monologues/${id}/abort`, {
-		method: 'POST'
+		method: "POST",
 	});
 	const json = await res.json();
 

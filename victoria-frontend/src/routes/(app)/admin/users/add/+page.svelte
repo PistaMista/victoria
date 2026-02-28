@@ -1,7 +1,6 @@
 <script lang="ts">
-    import UserDetailView from "$lib/views/details/UserDetailView.svelte";
+	import UserDetailView from "$lib/views/details/UserDetailView.svelte";
 </script>
 
-<UserDetailView
-    id={null}
-/>
+<UserDetailView id={null} />
+

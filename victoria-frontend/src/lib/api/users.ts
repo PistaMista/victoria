@@ -1,11 +1,14 @@
 import { z } from "zod";
 import type { User, UserListItem } from "$lib/types/user";
-import { User as UserSchema, UserListItem as UserListItemSchema } from "$lib/types/user";
+import {
+	User as UserSchema,
+	UserListItem as UserListItemSchema,
+} from "$lib/types/user";
 import type { Diff } from "$lib/types/diff";
 
 export async function listUsers(): Promise<UserListItem[]> {
 	const res = await fetch(`/api/users`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -18,7 +21,7 @@ export async function listUsers(): Promise<UserListItem[]> {
 
 export async function getUser(id: number): Promise<User> {
 	const res = await fetch(`/api/users/${id}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -30,13 +33,13 @@ export async function getUser(id: number): Promise<User> {
 }
 
 export async function createUser(user: User): Promise<UserListItem> {
-	const res = await fetch('/api/users', {
-		method: 'POST',
+	const res = await fetch("/api/users", {
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(user)
-	})
+		body: JSON.stringify(user),
+	});
 	const json = await res.json();
 
 	if (!res.ok) {
@@ -48,7 +51,7 @@ export async function createUser(user: User): Promise<UserListItem> {
 
 export async function deleteUser(id: number): Promise<void> {
 	const res = await fetch(`/api/users/${id}`, {
-		method: 'DELETE'
+		method: "DELETE",
 	});
 	const json = await res.json();
 
@@ -57,13 +60,16 @@ export async function deleteUser(id: number): Promise<void> {
 	}
 }
 
-export async function updateUser(id: number, changes: Diff<User>): Promise<void> {
+export async function updateUser(
+	id: number,
+	changes: Diff<User>,
+): Promise<void> {
 	const res = await fetch(`/api/users/${id}`, {
-		method: 'PUT',
+		method: "PUT",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(changes)
+		body: JSON.stringify(changes),
 	});
 	const json = await res.json();
 

@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from pydantic import BaseModel
 
+
 class UserService:
     def __init__(self, db_service: DatabaseService):
         self._db = db_service
@@ -17,12 +18,10 @@ class UserService:
     def get_all_users(self) -> List[User]:
         """Gets all registered Users."""
         with self._db.session() as db:
-            res = db.scalars(
-                select(User)
-            ).all()
+            res = db.scalars(select(User)).all()
 
             return res
-    
+
     def get_user_by_running_monologue_agent_token(self, token: bytes) -> User:
         """Gets the owner of the Monologue given by the token, if it is running."""
         with self._db.session() as db:
@@ -32,7 +31,7 @@ class UserService:
                 .join(Agent.monologues)
                 .where(
                     Monologue.agent_token == token,
-                    Monologue.status == MonologueStatus.RUNNING
+                    Monologue.status == MonologueStatus.RUNNING,
                 )
             )
 
@@ -44,9 +43,7 @@ class UserService:
     def update_user(self, id: int, changes: "UserDiff"):
         """Updates the given User."""
         with self._db.session() as db:
-            user = db.scalar(
-                select(User).where(User.id == id)
-            )
+            user = db.scalar(select(User).where(User.id == id))
 
             if user is None:
                 raise NonexistentUserError(id)
@@ -60,20 +57,23 @@ class UserService:
             if changes.role is not None:
                 user.role = changes.role
 
-
             if changes.permitted_trigger_ids is not None:
                 permitted_triggers = db.scalars(
                     select(Trigger).where(Trigger.id.in_(changes.permitted_trigger_ids))
                 ).all()
 
                 if len(permitted_triggers) < len(changes.permitted_trigger_ids):
-                    raise InvalidUserSettingError("Invalid trigger ID from permitted trigger")
+                    raise InvalidUserSettingError(
+                        "Invalid trigger ID from permitted trigger"
+                    )
 
                 user.allowed_triggers = permitted_triggers
 
                 # Disallow newly forbidden triggers for all agents
                 for agent in user.agents:
-                    agent.allowed_triggers = [t for t in agent.allowed_triggers if t in user.allowed_triggers]
+                    agent.allowed_triggers = [
+                        t for t in agent.allowed_triggers if t in user.allowed_triggers
+                    ]
 
             if changes.permitted_action_ids is not None:
                 permitted_actions = db.scalars(
@@ -81,29 +81,40 @@ class UserService:
                 ).all()
 
                 if len(permitted_actions) < len(changes.permitted_action_ids):
-                    raise InvalidUserSettingError("Invalid action ID for permitted action")
+                    raise InvalidUserSettingError(
+                        "Invalid action ID for permitted action"
+                    )
 
                 user.allowed_actions = permitted_actions
 
                 # Disallow newly forbidden actions for all agents
                 for agent in user.agents:
-                    agent.allowed_actions = [t for t in agent.allowed_actions if t in user.allowed_actions]
+                    agent.allowed_actions = [
+                        t for t in agent.allowed_actions if t in user.allowed_actions
+                    ]
 
             db.commit()
-        
-    def create_user(self, username: str, password: str, role: Role, permitted_action_ids: List[int] = [], permitted_trigger_ids: List[int] = []) -> int:
+
+    def create_user(
+        self,
+        username: str,
+        password: str,
+        role: Role,
+        permitted_action_ids: List[int] = [],
+        permitted_trigger_ids: List[int] = [],
+    ) -> int:
         with self._db.session() as db:
             existing_user = db.scalars(
-                    select(User).where(User.username == username)
-                ).first()
-            
+                select(User).where(User.username == username)
+            ).first()
+
             if existing_user is not None:
                 raise UserExistsError(username)
 
             new_user = User(
                 username=username,
                 password_hash=self._hash_password(password),
-                role=role
+                role=role,
             )
 
             permitted_actions = db.scalars(
@@ -115,9 +126,11 @@ class UserService:
 
             if len(permitted_actions) < len(permitted_action_ids):
                 raise InvalidUserSettingError("Invalid action ID for permitted action")
-            
+
             if len(permitted_triggers) < len(permitted_trigger_ids):
-                raise InvalidUserSettingError("Invalid trigger ID from permitted trigger")
+                raise InvalidUserSettingError(
+                    "Invalid trigger ID from permitted trigger"
+                )
 
             new_user.allowed_actions = permitted_actions
             new_user.allowed_triggers = permitted_triggers
@@ -126,12 +139,10 @@ class UserService:
             db.commit()
 
             return new_user.id
-    
+
     def is_any_user_registered(self) -> bool:
         with self._db.session() as db:
-            first_user = db.scalars(
-                select(User)
-            ).first()
+            first_user = db.scalars(select(User)).first()
 
             return first_user is not None
 
@@ -141,8 +152,7 @@ class UserService:
                 select(User)
                 .where(User.id == id)
                 .options(
-                    joinedload(User.allowed_actions),
-                    joinedload(User.allowed_triggers)
+                    joinedload(User.allowed_actions), joinedload(User.allowed_triggers)
                 )
             )
 
@@ -150,32 +160,29 @@ class UserService:
                 raise NonexistentUserError(id)
 
             return user
-    
+
     def get_user_by_name(self, username: str) -> User:
         with self._db.session() as db:
-            user = db.scalar(
-                select(User).where(User.username == username)
-            )
+            user = db.scalar(select(User).where(User.username == username))
 
             if user is None:
                 raise NonexistentUserError(username)
-            
+
             return user
-    
+
     def delete_user_by_id(self, id: int):
         with self._db.session() as db:
-            user = db.scalar(
-                select(User).where(User.id == id)
-            )
+            user = db.scalar(select(User).where(User.id == id))
 
             if user is None:
                 raise NonexistentUserError(id)
-            
+
             db.delete(user)
             db.commit()
 
     def _hash_password(self, password: str) -> str:
-        return hashpw(password.encode('utf-8'), gensalt()).decode('utf-8')
+        return hashpw(password.encode("utf-8"), gensalt()).decode("utf-8")
+
 
 class UserDiff(BaseModel):
     username: Optional[str] = None
@@ -184,13 +191,16 @@ class UserDiff(BaseModel):
     permitted_action_ids: Optional[List[int]] = None
     permitted_trigger_ids: Optional[List[int]] = None
 
+
 class InvalidUserSettingError(Exception):
     def __init__(self, msg: str):
         super().__init__(f"tried to set an invalid value for property of user: {msg}")
 
+
 class NonexistentUserError(Exception):
     def __init__(self, id_or_name: int | str):
         super().__init__(f"nonexistent user {id_or_name}")
+
 
 class UserExistsError(Exception):
     def __init__(self, username: str):

@@ -3,7 +3,9 @@ import type { Diff } from "$lib/types/diff";
 import type { ActionRepository } from "$lib/types/action_repo";
 import { z } from "zod";
 
-export async function getActionRepositories(searchQuery: string | null = null): Promise<ActionRepository[]> {
+export async function getActionRepositories(
+	searchQuery: string | null = null,
+): Promise<ActionRepository[]> {
 	const params = new URLSearchParams();
 
 	if (searchQuery) {
@@ -11,7 +13,7 @@ export async function getActionRepositories(searchQuery: string | null = null): 
 	}
 
 	const res = await fetch(`/api/action-repos?${params.toString()}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -22,9 +24,11 @@ export async function getActionRepositories(searchQuery: string | null = null): 
 	return z.array(ActionRepositorySchema).parse(json);
 }
 
-export async function getActionRepository(id: number): Promise<ActionRepository> {
+export async function getActionRepository(
+	id: number,
+): Promise<ActionRepository> {
 	const res = await fetch(`/api/action-repos/${id}`, {
-		method: 'GET'
+		method: "GET",
 	});
 	const json = await res.json();
 
@@ -35,13 +39,16 @@ export async function getActionRepository(id: number): Promise<ActionRepository>
 	return ActionRepositorySchema.parse(json);
 }
 
-export async function updateActionRepository(id: number, changes: Diff<ActionRepository>): Promise<void> {
+export async function updateActionRepository(
+	id: number,
+	changes: Diff<ActionRepository>,
+): Promise<void> {
 	const res = await fetch(`/api/action-repos/${id}`, {
-		method: 'PUT',
+		method: "PUT",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(changes)
+		body: JSON.stringify(changes),
 	});
 	const json = await res.json();
 
@@ -52,7 +59,7 @@ export async function updateActionRepository(id: number, changes: Diff<ActionRep
 
 export async function deleteActionRepository(id: number): Promise<void> {
 	const res = await fetch(`/api/action-repos/${id}`, {
-		method: 'DELETE'
+		method: "DELETE",
 	});
 	const json = await res.json();
 
@@ -61,13 +68,15 @@ export async function deleteActionRepository(id: number): Promise<void> {
 	}
 }
 
-export async function createActionRepository(newRepo: ActionRepository): Promise<void> {
+export async function createActionRepository(
+	newRepo: ActionRepository,
+): Promise<void> {
 	const res = await fetch(`/api/action-repos`, {
-		method: 'POST',
+		method: "POST",
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(newRepo)
+		body: JSON.stringify(newRepo),
 	});
 	const json = await res.json();
 

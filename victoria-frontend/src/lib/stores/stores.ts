@@ -1,2 +1,1 @@
-export function resetStores() {
-}
+export function resetStores() { }
