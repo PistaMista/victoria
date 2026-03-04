@@ -14,7 +14,7 @@ class AgentResponse(BaseModel):
     name: str
     thumbnailDataURI: None = None
     status: Literal["BUSY"] | Literal["IDLE"]
-    baseModelId: int
+    baseModelId: Optional[int]
     systemPrompt: str
     modelParameters: Dict[str, Any]
     enabledTriggers: List[int]

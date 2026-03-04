@@ -14,7 +14,7 @@ export const Agent = z.object({
 	name: z.string(),
 	thumbnailDataURI: z.string().nullable(),
 	status: AgentStatus,
-	baseModelId: z.number(),
+	baseModelId: z.number().nullable(),
 	systemPrompt: z.string(),
 	modelParameters: ModelParameters,
 	enabledTriggers: z.array(z.number()),

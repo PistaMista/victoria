@@ -190,6 +190,53 @@ def test_get_agent_returns_200_and_agent_on_valid_request(
     }
 
 
+def test_get_agent_returns_200_and_agent_with_no_base_model_on_valid_request(
+    mock_client, auth_mock, agent_mock, user
+):
+    # Arrange
+    auth_mock.get_as_non_admin_user.return_value = user
+    agent_mock.is_agent_running_monologues.return_value = False
+    agent_mock.get_user_agent_by_id.return_value = Agent(
+        id=42,
+        name="Researcher",
+        prompt="You research things",
+        model_id=None,
+        model=None,
+        model_params={"temperature": 0.69, "top_k": 4.20, "num_gpu": 37},
+        allowed_triggers=[
+            ChatTrigger(id=1, name="Lol", template="lol"),
+            ChatTrigger(id=2, name="Chat2", template="weeeee"),
+        ],
+        allowed_actions=[
+            Action(
+                id=30,
+                function_name="tinker",
+                function_param_schema={},
+                function_source_code="",
+                function_docstring="help",
+            )
+        ],
+    )
+
+    # Act
+    res = mock_client.get("/api/agents/42", cookies={"token": "tok"})
+
+    # Assert
+    agent_mock.get_user_agent_by_id.assert_called_with(user_id=1, agent_id=42)
+    assert res.status_code == status.HTTP_200_OK
+    assert res.json() == {
+        "id": 42,
+        "name": "Researcher",
+        "thumbnailDataURI": None,
+        "status": "IDLE",
+        "baseModelId": None,
+        "systemPrompt": "You research things",
+        "modelParameters": {"temperature": 0.69, "top_k": 4.20, "num_gpu": 37},
+        "enabledTriggers": [1, 2],
+        "enabledActions": [30],
+    }
+
+
 def test_get_agent_returns_401_when_not_signed_in(mock_client, auth_mock, agent_mock):
     # Arrange
     auth_mock.get_as_non_admin_user.side_effect = NotLoggedInError()
