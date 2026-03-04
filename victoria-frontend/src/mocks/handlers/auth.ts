@@ -27,7 +27,15 @@ export const registerHandler = await spy(async () => {
 	return HttpResponse.json({});
 });
 
+export const meHandler = await spy(async () => {
+	return HttpResponse.json({
+		"username": "tester",
+		"role": "admin"
+	})
+});
+
 export const handlers = [
 	http.post("/api/auth/login", loginHandler),
 	http.post("/api/auth/register", registerHandler),
+	http.get("/api/auth/me", meHandler)
 ];
