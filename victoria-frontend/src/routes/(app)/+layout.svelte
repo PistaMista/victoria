@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Navbar from "$lib/components/navbar/Navbar.svelte";
 	import type { Route } from "$lib/types/route";
+	import { onMount, onDestroy } from "svelte";
+	import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
 	let routes: Array<Route> = [
 		{ display_name: "Dashboard", route_path: "/" },
@@ -11,6 +13,16 @@
 		//{display_name: "Knowledge", route_path: "/knowledge" },
 		{ display_name: "Admin", route_path: "/admin" },
 	];
+
+	onMount(() => {
+		// Connect the main websocket
+		connectWithRetry();
+	});
+
+	onDestroy(() => {
+		// Disconnect the main websocket
+		disconnect();
+	});
 </script>
 
 <div class="flex flex-col inset-0 absolute overflow-hidden">
