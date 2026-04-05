@@ -73,12 +73,24 @@ export const EventMessage = z.object({
 });
 export type EventMessage = z.infer<typeof EventMessage>;
 
+export const PingHeartbeatMessage = z.object({
+	type: z.literal("ping"),
+});
+export type PingHeartbeatMessage = z.infer<typeof PingHeartbeatMessage>;
+
+export const PongHeartbeatMessage = z.object({
+	type: z.literal("pong"),
+});
+export type PongHeartbeatMessage = z.infer<typeof PongHeartbeatMessage>;
+
 export const Message = z.discriminatedUnion("type", [
 	SubscribeRequestMessage,
 	SubscribeResponseMessage,
 	UnsubscribeRequestMessage,
 	UnsubscribeResponseMessage,
 	SubscriptionCancelledMessage,
+	PingHeartbeatMessage,
+	PongHeartbeatMessage,
 	EventMessage
 ]);
 export type Message = z.infer<typeof Message>;

@@ -1,23 +1,46 @@
-import { Deferred } from "$lib/types/deferred";
+import { writable, get } from 'svelte/store';
+import type { Writable } from 'svelte/store';
 import { Message as MessageSchema } from "$lib/types/websocket";
-import type { Subscription, Message, SubscribeRequestMessage, UnsubscribeRequestMessage } from "$lib/types/websocket";
+import type { Subscription, Message, PongHeartbeatMessage } from "$lib/types/websocket";
 
-type UnsubscribeHandle = () => Promise<void>;
+type UnsubscribeHandle = () => void;
 type EventHandler = (event: any) => void;
 
-type HandlerSubscription = {
-	deferred: Deferred<UnsubscribeHandle>,
-	handler: EventHandler
+export enum SubscriptionState {
+	Subscribing,
+	Subscribed,
+	Cancelling,
+	Cancelled,
 };
+
+export type HandlerSubscription = {
+	subscriptionInfo: Subscription,
+	requestSent: boolean,
+	state: SubscriptionState,
+	cancelReason: string,
+	handler: EventHandler,
+	unsubscribeHandle: UnsubscribeHandle,
+};
+
+export type SocketStatus = {
+	connected: boolean,
+	reconnectAttemptIdx: number
+};
+
+export let socketStatus: Writable<SocketStatus> = writable({
+	connected: false,
+	reconnectAttemptIdx: 0
+});
 
 let socket: WebSocket | null = null;
 let handlerIdCounter: number = 0;
 
-let pendingSubscriptions: Map<number, HandlerSubscription> = new Map();
-let subscribedHandlers: Map<number, EventHandler> = new Map();
+let subscriptions: Map<number, Writable<HandlerSubscription>> = new Map();
 
-
-export async function connectWithRetry(): Promise<void> {
+/**
+ * Connects to the websocket endpoint.
+ */
+export function connectWithRetry(): void {
 	if (socket !== null) return;
 
 	const url = new URL('/websocket', window.location.href);
@@ -26,110 +49,189 @@ export async function connectWithRetry(): Promise<void> {
 	socket = new WebSocket(url);
 
 	socket.onmessage = (ev: MessageEvent) => {
-		const json = JSON.parse(ev.data);
+		const json = JSON.parse(ev.data.toString());
 		const msg = MessageSchema.parse(json);
 		receiveMessage(msg);
 	};
 
 	socket.onclose = () => {
-		cancelAllSubscriptions();
+		socketStatus.update((val) => ({ ...val, connected: false, reconnectAttemptIdx: val.reconnectAttemptIdx + 1 }));
+
+		updateSubscriptionStateOnConnectionLoss();
 		socket = null;
 		setTimeout(connectWithRetry, 1000);
 	};
+
+	socket.onopen = () => {
+		socketStatus.update((val) => ({ ...val, connected: true, reconnectAttemptIdx: 0 }));
+		sendPendingMessages();
+	};
 }
 
-export async function disconnect(): Promise<void> {
+/**
+ * Disconnects the websocket and all event subscriptions.
+ */
+export function disconnect(): void {
 	if (socket === null) return;
 	socket.onclose = null;
-
 	socket.close();
-	cancelAllSubscriptions();
-
 	socket = null;
+
+	for (const sub of subscriptions.values()) {
+		sub.update((val) => ({ ...val, state: SubscriptionState.Cancelled, requestSent: true }));
+	}
+	subscriptions.clear();
 }
 
-export function subscribeEvent(subscription: Subscription, handler: EventHandler): Promise<UnsubscribeHandle> {
-	if (socket === null) {
-		throw Error("Websocket not connected");
-	}
-
-	const pendingSubscription: HandlerSubscription = {
-		deferred: new Deferred<UnsubscribeHandle>(),
-		handler: handler
-	};
+/**
+ * Subscribes to a particular event.
+ *
+ * @param subscription Details about the requested subscription.
+ * @param handler The function to handle incoming messages.
+ *
+ * @returns A handle that can be used to unsubscribe from the event.
+ */
+export function subscribeEvent(subscription: Subscription, handler: EventHandler): Writable<HandlerSubscription> {
 	const newHandlerId = handlerIdCounter++;
-	pendingSubscriptions.set(newHandlerId, pendingSubscription);
+	const pendingSubscription: Writable<HandlerSubscription> = writable({
+		subscriptionInfo: subscription,
+		state: SubscriptionState.Subscribing,
+		cancelReason: "",
+		requestSent: false,
+		unsubscribeHandle: () => { unsubscribeEvent(newHandlerId); },
+		handler: handler,
+	});
+	subscriptions.set(newHandlerId, pendingSubscription);
 
-	const msg: SubscribeRequestMessage = {
-		type: "subscribeRequest",
-		handlerId: newHandlerId,
-		subscription: subscription
-	};
-	const msgJson = JSON.stringify(msg);
-	socket.send(msgJson);
+	sendPendingMessages();
 
-	return pendingSubscription.deferred.promise;
+	return pendingSubscription;
 }
 
-export function unsubscribeEvent(handlerId: number): void {
-	if (socket === null) {
-		throw Error("Websocket not connected");
+/**
+ * Unsubscribes from a particular event.
+ *
+ * @param handlerId The handler ID to unsubscribe.
+ */
+function unsubscribeEvent(handlerId: number): void {
+	const sub = subscriptions.get(handlerId);
+
+	if (sub) {
+		sub.update((val) => ({ ...val, state: SubscriptionState.Cancelling, requestSent: false }));
 	}
 
-	pendingSubscriptions.delete(handlerId);
-	subscribedHandlers.delete(handlerId);
-
-	const msg: UnsubscribeRequestMessage = {
-		type: "unsubscribeRequest",
-		handlerId: handlerId,
-	};
-	const msgJson = JSON.stringify(msg);
-	socket.send(msgJson);
+	sendPendingMessages();
 }
 
+/**
+ * Receives and processes a given message.
+ *
+ * @param msg The message to process.
+ */
 function receiveMessage(msg: Message): void {
 	switch (msg.type) {
 		case "subscribeResponse":
 			let handlerId = msg.handlerId;
 
-			const subscription = pendingSubscriptions.get(handlerId);
-			pendingSubscriptions.delete(handlerId);
+			const subscription = subscriptions.get(handlerId);
 
 			if (subscription) {
-				if (!msg.success) {
-					subscription.deferred.reject(msg.reason);
-					return;
+				if (msg.success) {
+					subscription.update((val) => ({ ...val, state: SubscriptionState.Subscribed }));
+				} else {
+					subscription.update((val) => ({ ...val, state: SubscriptionState.Cancelled, cancelReason: msg.reason }));
 				}
-
-				const unsubscribeHandle = async () => {
-					unsubscribeEvent(handlerId);
-				};
-
-				subscribedHandlers.set(msg.handlerId, subscription.handler);
-				subscription.deferred.resolve(unsubscribeHandle);
 			}
 			break;
 
 		case "subscriptionCancelled":
-			pendingSubscriptions.delete(msg.handlerId);
-			subscribedHandlers.delete(msg.handlerId);
+			let sub = subscriptions.get(msg.handlerId);
+
+			if (sub !== undefined) {
+				sub.update((val) => ({ ...val, state: SubscriptionState.Cancelled }));
+				subscriptions.delete(msg.handlerId);
+			}
+
+			break;
+
+		case "ping":
+			if (socket !== null && socket.readyState == WebSocket.OPEN) {
+				const reply: PongHeartbeatMessage = {
+					type: "pong",
+				};
+				const replyJson = JSON.stringify(reply);
+				socket.send(replyJson);
+			}
 			break;
 
 		case "eventMessage":
 			for (const handlerId of msg.handlerIds) {
-				const handler = subscribedHandlers.get(handlerId);
-				if (handler) handler(msg.content);
+				const subs = subscriptions.get(handlerId);
+				if (subs) {
+					const sub = get(subs);
+					if (sub.state === SubscriptionState.Subscribed) {
+						sub.handler(msg.content);
+					}
+				}
 			}
 			break;
 	}
 }
 
-function cancelAllSubscriptions(): void {
-	for (const sub of pendingSubscriptions.values()) {
-		sub.deferred.reject("Subscription cancelled (websocket was likely closed)");
-	}
+/**
+ * Sends requests for Subscribing and Cancelling subscriptions whose requests have not been sent.
+ */
+function sendPendingMessages(): void {
+	for (const [id, store] of subscriptions) {
+		store.update((val) => {
+			if (val.requestSent || socket === null) return val;
 
-	pendingSubscriptions.clear();
-	subscribedHandlers.clear();
+			let msg: Message | null = null;
+			switch (val.state) {
+				case SubscriptionState.Subscribing:
+					msg = {
+						type: "subscribeRequest",
+						handlerId: id,
+						subscription: val.subscriptionInfo
+					};
+					break;
+				case SubscriptionState.Cancelling:
+					msg = {
+						type: "unsubscribeRequest",
+						handlerId: id
+					};
+					break;
+			}
+
+			if (msg) {
+				const msgJson = JSON.stringify(msg);
+				try {
+					socket.send(msgJson);
+					return { ...val, requestSent: true };
+				} catch (e) {
+					console.log((e as Error).message);
+				}
+			}
+
+			return val;
+		});
+	}
 }
 
+/**
+ * Puts all Subscribed subscriptions in a Subscribing state (to retry subscription later).
+ */
+function updateSubscriptionStateOnConnectionLoss(): void {
+	for (const store of subscriptions.values()) {
+		store.update((val) => {
+			switch (val.state) {
+				case SubscriptionState.Subscribing:
+				case SubscriptionState.Subscribed:
+					return { ...val, state: SubscriptionState.Subscribing, requestSent: false }
+				case SubscriptionState.Cancelling:
+				case SubscriptionState.Cancelled:
+					return { ...val, state: SubscriptionState.Cancelled, requestSent: true };
+			}
+		});
+	}
+}
