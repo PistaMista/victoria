@@ -1,7 +1,8 @@
 import { delay, http, HttpResponse } from "msw";
 import { ChatOptions, type Chat, type SentMessageInfo } from "$lib/types/chat";
 import { spy } from "../spy";
-import type { Exchange } from "$lib/types/exchange";
+import type { Exchange, InitialExchanges, NewExchange } from "$lib/types/exchange";
+import type { EventMessage } from "$lib/types/websocket";
 
 export const listChatsHandler = await spy(({ request }) => {
 	const url = new URL(request.url);
@@ -132,6 +133,74 @@ export const getExchangesHandler = await spy(async ({ request }) => {
 	} else {
 		return HttpResponse.json<Exchange[]>([]);
 	}
+});
+
+export const socketSendExchanges = await spy(async (client: any, handlerId: number) => {
+	client.send(JSON.stringify({
+		type: "eventMessage",
+		handlerIds: [handlerId],
+		content: ({
+			type: "initial",
+			exchanges: [
+				{
+					id: 2,
+					chatId: 1,
+					timestamp: 2500,
+					userMessage: {
+						id: 2,
+						senderName: "Krystof",
+						timestamp: 2405,
+						content: {
+							type: "markdown",
+							markdownText: "Hmmm, *yeees*",
+						},
+					},
+					monologueIds: [1, 2],
+				},
+				{
+					id: 3,
+					chatId: 1,
+					timestamp: 2700,
+					userMessage: {
+						id: 2,
+						senderName: "Krystof",
+						timestamp: 2405,
+						content: {
+							type: "markdown",
+							markdownText: "Hello?",
+						},
+					},
+					monologueIds: [1, 2],
+				},
+			]
+		})
+	}));
+
+	await delay(500);
+
+	client.send(JSON.stringify({
+		type: "eventMessage",
+		handlerIds: [handlerId],
+		content: ({
+			type: "new",
+			exchange:
+			{
+				id: 3,
+				chatId: 1,
+				timestamp: 3300,
+				userMessage: {
+					id: 2,
+					senderName: "Krystof",
+					timestamp: 2405,
+					content: {
+						type: "markdown",
+						markdownText: "Goodbye.",
+					},
+				},
+				monologueIds: [1, 2],
+			},
+		})
+	}));
 });
 
 export const getChatOptionsHandler = await spy(() => {

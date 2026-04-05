@@ -1,12 +1,15 @@
 import { ws } from "msw";
 import { spy } from "../spy";
+import { EventMessage, SubscribeResponseMessage } from "$lib/types/websocket";
+import { socketSendExchanges } from "./chats";
+
 
 const socket = ws.link("ws://localhost:3000/websocket")
 
 export const disconnectionHandler = await spy(() => { });
 
-export const connectionHandler = await spy(({ client }) => {
-	client.addEventListener('message', (event: any) => {
+export const connectionHandler = await spy(async ({ client }) => {
+	client.addEventListener('message', async (event: any) => {
 		const data = JSON.parse(event.data);
 
 		switch (data.type) {
@@ -19,21 +22,31 @@ export const connectionHandler = await spy(({ client }) => {
 								handlerId: data.handlerId,
 								success: false,
 								reason: "TEST REFUSE"
-							}));
+							} as SubscribeResponseMessage));
 						} else {
 							client.send(JSON.stringify({
 								type: "subscribeResponse",
 								handlerId: data.handlerId,
 								success: true,
 								reason: "succeeded"
-							}));
+							} as SubscribeResponseMessage));
 
 							client.send(JSON.stringify({
 								type: "eventMessage",
 								handlerIds: [6000, data.handlerId],
 								content: data.subscription.replyWith
-							}));
+							} as EventMessage));
 						}
+						break;
+					case 'chat_exchanges':
+						client.send(JSON.stringify({
+							type: "subscribeResponse",
+							handlerId: data.handlerId,
+							success: true,
+							reason: "succeeded"
+						} as SubscribeResponseMessage));
+
+						await socketSendExchanges(client, data.handlerId);
 						break;
 				};
 				break;
