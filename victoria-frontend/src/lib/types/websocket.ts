@@ -1,5 +1,31 @@
 import { z } from "zod";
 
+export type UnsubscribeHandle = () => void;
+export type EventHandler = (event: any) => void;
+
+export enum SubscriptionState {
+	Subscribing,
+	Subscribed,
+	Cancelling,
+	Cancelled,
+};
+
+export type HandlerSubscription = {
+	subscriptionInfo: Subscription,
+	requestSent: boolean,
+	state: SubscriptionState,
+	cancelReason: string,
+	handler: EventHandler,
+	unsubscribeHandle: UnsubscribeHandle,
+};
+
+export const TestSubscription = z.object({
+	type: z.literal("test"),
+	replyWith: z.any(),
+	declineRequest: z.boolean()
+});
+export type TestSubscription = z.infer<typeof TestSubscription>;
+
 export const ChatExchangesSubscription = z.object({
 	type: z.literal("chat_exchanges"),
 	chatId: z.number(),
@@ -24,6 +50,7 @@ export const MonologueThoughtsSubscription = z.object({
 export type MonologueThoughtsSubscription = z.infer<typeof MonologueThoughtsSubscription>;
 
 export const Subscription = z.discriminatedUnion("type", [
+	TestSubscription,
 	ChatExchangesSubscription,
 	ExchangeMessagesSubscription,
 	MonologueStatusSubscription,

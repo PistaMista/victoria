@@ -1,26 +1,7 @@
 import { writable, get } from 'svelte/store';
 import type { Writable } from 'svelte/store';
-import { Message as MessageSchema } from "$lib/types/websocket";
-import type { Subscription, Message, PongHeartbeatMessage } from "$lib/types/websocket";
-
-type UnsubscribeHandle = () => void;
-type EventHandler = (event: any) => void;
-
-export enum SubscriptionState {
-	Subscribing,
-	Subscribed,
-	Cancelling,
-	Cancelled,
-};
-
-export type HandlerSubscription = {
-	subscriptionInfo: Subscription,
-	requestSent: boolean,
-	state: SubscriptionState,
-	cancelReason: string,
-	handler: EventHandler,
-	unsubscribeHandle: UnsubscribeHandle,
-};
+import { Message as MessageSchema, SubscriptionState } from "$lib/types/websocket";
+import type { Subscription, Message, PongHeartbeatMessage, HandlerSubscription, EventHandler } from "$lib/types/websocket";
 
 export type SocketStatus = {
 	connected: boolean,
@@ -185,7 +166,7 @@ function receiveMessage(msg: Message): void {
 function sendPendingMessages(): void {
 	for (const [id, store] of subscriptions) {
 		store.update((val) => {
-			if (val.requestSent || socket === null) return val;
+			if (val.requestSent || socket === null || socket.readyState != WebSocket.OPEN) return val;
 
 			let msg: Message | null = null;
 			switch (val.state) {
