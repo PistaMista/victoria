@@ -11,6 +11,7 @@ import { handlers as actions } from "./handlers/actions";
 import { handlers as connections } from "./handlers/connections";
 import { handlers as triggers } from "./handlers/triggers";
 import { handlers as models } from "./handlers/models";
+import { handlers as websocket } from "./handlers/websocket";
 
 export const handlers = [
 	/* AUTHENTICATION */
@@ -42,4 +43,7 @@ export const handlers = [
 	...triggers,
 	/* MODELS */
 	...models,
+
+	/// WEBSOCKET ENDPOINT (JUST FOR NON-ADMIN ROLE)
+	...websocket,
 ];

@@ -73,6 +73,7 @@ export function connectWithRetry(): void {
  */
 export function disconnect(): void {
 	if (socket === null) return;
+	socketStatus.update((val) => ({ ...val, connected: false }));
 	socket.onclose = null;
 	socket.close();
 	socket = null;
