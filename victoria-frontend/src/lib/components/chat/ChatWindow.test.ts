@@ -6,8 +6,6 @@ import { getExchangesHandler } from "../../../mocks/handlers/chats";
 import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
 test("chat window gradually loads exchanges", async () => {
-	connectWithRetry();
-
 	const { container } = render(ChatWindow, {
 		id: 1,
 	});
@@ -29,6 +27,4 @@ test("chat window gradually loads exchanges", async () => {
 	});
 
 	expect(getExchangesHandler).not.toBeCalled();
-
-	disconnect();
 });

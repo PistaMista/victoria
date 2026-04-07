@@ -3,11 +3,18 @@ import { beforeAll, afterAll, beforeEach, afterEach } from "vitest";
 import { server } from "./src/mocks/node";
 import { Settings, IANAZone } from "ts-luxon";
 import { resetStores } from "$lib/stores/stores";
+import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
-beforeAll(() => server.listen());
+beforeAll(() => {
+	server.listen();
+	connectWithRetry(); // Connect main websocket
+});
 beforeEach(() => (Settings.defaultZone = IANAZone.create("UTC")));
 afterEach(() => {
-  server.resetHandlers();
-  resetStores();
+	server.resetHandlers();
+	resetStores();
 });
-afterAll(() => server.close());
+afterAll(() => {
+	disconnect(); // Disconnect main websocket
+	server.close();
+});

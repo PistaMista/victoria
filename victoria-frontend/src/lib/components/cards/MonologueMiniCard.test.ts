@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { render, screen, waitFor } from "@testing-library/svelte";
 import MonologueMiniCard from "./MonologueMiniCard.svelte";
 import { goto } from "$app/navigation";
-import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
 vi.mock("$app/navigation", () => ({
 	goto: vi.fn(),
@@ -11,8 +10,6 @@ vi.mock("$app/navigation", () => ({
 
 
 test("monologue mini card shows name of given monologue", async () => {
-	connectWithRetry();
-
 	const { container } = render(MonologueMiniCard, {
 		monologueId: 1,
 	});
@@ -20,8 +17,6 @@ test("monologue mini card shows name of given monologue", async () => {
 	await waitFor(() => {
 		expect(container).toHaveTextContent("Research thesis ideas");
 	});
-
-	disconnect();
 });
 
 // Shown using an icon, cannot test

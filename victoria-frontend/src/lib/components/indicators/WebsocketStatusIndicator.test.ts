@@ -14,8 +14,6 @@ test("websocket status indicator does not show message when socket connected", a
 		expect(get(socketStatus).connected).toBe(true);
 		expect(container).not.toHaveTextContent("Connection lost");
 	});
-
-	disconnect();
 });
 
 test("websocket status indicator shows message when socket disconnects", async () => {
@@ -33,5 +31,7 @@ test("websocket status indicator shows message when socket disconnects", async (
 		expect(get(socketStatus).connected).toBe(false);
 		expect(container).toHaveTextContent("Connection lost");
 	});
+
+	connectWithRetry(); // The default WS status in the test environment is CONNECTED
 });
 

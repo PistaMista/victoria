@@ -20,8 +20,6 @@ const testMonologue: Monologue = {
 };
 
 test("monologue list item shows title of given monologue", async () => {
-	connectWithRetry();
-
 	const { container } = render(MonologueListItem, {
 		monologue: testMonologue,
 	});
@@ -31,13 +29,9 @@ test("monologue list item shows title of given monologue", async () => {
 			"Research reading list for learning electronics",
 		);
 	});
-
-	disconnect();
 });
 
 test("monologue list item shows summary of given monologue", async () => {
-	connectWithRetry();
-
 	const { container } = render(MonologueListItem, {
 		monologue: testMonologue,
 	});
@@ -45,13 +39,9 @@ test("monologue list item shows summary of given monologue", async () => {
 	await waitFor(() => {
 		expect(container).toHaveTextContent("Thinking...");
 	});
-
-	disconnect();
 });
 
 test("monologue list item replaces summary of given monologue after change", async () => {
-	connectWithRetry();
-
 	let testMonologue2 = { ...testMonologue, id: 1 };
 
 	const { container } = render(MonologueListItem, {
@@ -61,13 +51,9 @@ test("monologue list item replaces summary of given monologue after change", asy
 	await waitFor(() => {
 		expect(container).toHaveTextContent("Searching the web for sources");
 	});
-
-	disconnect();
 });
 
 test("clicking monologue list item routes to given monologue detail view", async () => {
-	connectWithRetry();
-
 	const user = userEvent.setup();
 	const { getByRole } = render(MonologueListItem, {
 		monologue: testMonologue,
@@ -77,6 +63,4 @@ test("clicking monologue list item routes to given monologue detail view", async
 	await user.click(button);
 
 	expect(goto).toBeCalledWith("/monologues/2");
-
-	disconnect();
 });
