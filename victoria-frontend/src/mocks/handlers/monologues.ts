@@ -166,6 +166,85 @@ export const getMonologueThoughtsHandler = await spy(() => {
 	]);
 });
 
+export const socketSendMonologueThoughts = await spy(async (client: any, handlerId: number) => {
+	client.send(JSON.stringify({
+		type: "eventMessage",
+		handlerIds: [handlerId],
+		content: {
+			type: "initial",
+			thoughts: [
+				{
+					id: 1,
+					startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
+					invocation: {
+						type: "TriggerInvocation",
+						name: null,
+						parameters: {
+							eventId: 1,
+						},
+					},
+					/// This is the content of the triggering event
+					result: "An email has arrived...",
+				},
+				{
+					id: 2,
+					startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
+					invocation: {
+						type: "ThoughtInvocation",
+						name: null,
+						parameters: {
+							thought: "I should add the contained event to the calendar",
+						},
+					},
+					result: "I should add the contained event to the calendar",
+				},
+			]
+		}
+	}));
+
+	await delay(100);
+
+	client.send(JSON.stringify({
+		type: "eventMessage",
+		handlerIds: [handlerId],
+		content: {
+			type: "new",
+			thought: {
+				id: 3,
+				startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
+				invocation: {
+					type: "ActionInvocation",
+					name: "web_search",
+					parameters: {
+						query: "top 10 restaurants in Brno",
+					},
+				},
+				result: "[ { title: 'Some article title', summary: 'Some summary' } ]",
+			}
+		}
+	}));
+
+	await delay(100);
+
+	client.send(JSON.stringify({
+		type: "eventMessage",
+		handlerIds: [handlerId],
+		content: {
+			type: "new",
+			thought: {
+				id: 4,
+				startTimestamp: Date.UTC(2026, 1, 20, 20, 22),
+				invocation: {
+					type: "SuccessInvocation",
+					name: null,
+					parameters: {},
+				},
+				result: "",
+			}
+		}
+	}));
+});
+
 export const handlers = [
 	http.get("/api/monologues", listMonologuesHandler),
 	http.get("/api/monologues/:id", getMonologueHandler),

@@ -3,7 +3,7 @@ import { spy } from "../spy";
 import { EventMessage, SubscribeResponseMessage } from "$lib/types/websocket";
 import { socketSendExchanges } from "./chats";
 import { socketSendMessages } from "./exchanges";
-import { socketSendMonologueStatus } from "./monologues";
+import { socketSendMonologueStatus, socketSendMonologueThoughts } from "./monologues";
 
 
 const socket = ws.link("ws://localhost:3000/websocket")
@@ -69,6 +69,17 @@ export const connectionHandler = await spy(async ({ client }) => {
 						} as SubscribeResponseMessage));
 
 						await socketSendMonologueStatus(client, data.handlerId, data.subscription.monologueId, data.subscription.sendInitial);
+						break;
+
+					case 'monologue_thoughts':
+						client.send(JSON.stringify({
+							type: "subscribeResponse",
+							handlerId: data.handlerId,
+							success: true,
+							reason: "succeeded"
+						} as SubscribeResponseMessage));
+
+						await socketSendMonologueThoughts(client, data.handlerId);
 						break;
 				};
 				break;

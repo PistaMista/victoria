@@ -52,3 +52,19 @@ export const Thought = z.object({
 	result: z.string(),
 });
 export type Thought = z.infer<typeof Thought>;
+
+export const InitialThoughts = z.object({
+	type: z.literal("initial"),
+	thoughts: z.array(Thought),
+});
+export type InitialThoughts = z.infer<typeof InitialThoughts>;
+
+export const NewThought = z.object({
+	type: z.literal("new"),
+	thought: Thought
+});
+export type NewThought = z.infer<typeof NewThought>;
+
+export const ThoughtListingEvent = z.discriminatedUnion("type", [InitialThoughts, NewThought]);
+export type ThoughtListingEvent = z.infer<typeof ThoughtListingEvent>;
+

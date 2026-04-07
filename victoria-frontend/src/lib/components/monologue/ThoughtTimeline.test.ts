@@ -2,8 +2,11 @@ import { expect, test } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { render, screen, waitFor } from "@testing-library/svelte";
 import ThoughtTimeline from "./ThoughtTimeline.svelte";
+import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
 test("thought timeline displays all text of the thoughts in a monologue", async () => {
+	connectWithRetry();
+
 	const { container } = render(ThoughtTimeline, {
 		monologueId: 1,
 	});
@@ -25,4 +28,6 @@ test("thought timeline displays all text of the thoughts in a monologue", async 
 		// Success
 		expect(container).toHaveTextContent("SUCCESS");
 	});
+
+	disconnect();
 });
