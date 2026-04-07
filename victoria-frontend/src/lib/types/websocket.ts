@@ -39,6 +39,7 @@ export const ExchangeMessagesSubscription = z.object({
 
 export const MonologueStatusSubscription = z.object({
 	type: z.literal("monologue_status"),
+	sendInitial: z.boolean(),
 	monologueId: z.number(),
 });
 export type MonologueStatusSubscription = z.infer<typeof MonologueStatusSubscription>;

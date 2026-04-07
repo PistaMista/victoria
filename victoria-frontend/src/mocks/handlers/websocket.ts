@@ -68,7 +68,7 @@ export const connectionHandler = await spy(async ({ client }) => {
 							reason: "succeeded"
 						} as SubscribeResponseMessage));
 
-						await socketSendMonologueStatus(client, data.handlerId, data.subscription.monologueId);
+						await socketSendMonologueStatus(client, data.handlerId, data.subscription.monologueId, data.subscription.sendInitial);
 						break;
 				};
 				break;

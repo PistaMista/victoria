@@ -1,59 +1,52 @@
 <script lang="ts">
 	import MonologueStatusIndicator from "$lib/components/indicators/MonologueStatusIndicator.svelte";
-	import type { Agent } from "$lib/types/agent";
-	import type { MonologueListItem } from "$lib/types/monologue";
+	import {
+		type MonologueListItem,
+		type Monologue,
+		MonologueStatusEvent,
+	} from "$lib/types/monologue";
 	import { goto } from "$app/navigation";
-	import { onMount } from "svelte";
-	import { getAgent } from "$lib/api/agents";
-	import Loader from "$lib/components/placeholders/Loader.svelte";
+	import type { Subscription } from "$lib/types/websocket";
+	import Subscriber from "$lib/components/placeholders/Subscriber.svelte";
 
 	function openMonologueDetail() {
 		goto(`/monologues/${monologue.id}`);
 	}
 
-	export let monologue: MonologueListItem;
-	let agent: Agent | null = null;
+	export let monologue: MonologueListItem | Monologue;
+	let subscription: Subscription = {
+		type: "monologue_status",
+		monologueId: monologue.id,
+		sendInitial: false,
+	};
 
-	let agentPromise: Promise<any> = Promise.resolve();
+	function handler(msg: any) {
+		let e = MonologueStatusEvent.safeParse(msg);
 
-	async function loadAgent() {
-		agent = await getAgent(monologue.agentId);
+		if (e.success) {
+			monologue = e.data.monologue;
+		}
 	}
-
-	onMount(() => {
-		agentPromise = loadAgent();
-	});
 </script>
 
 <button
 	on:click={openMonologueDetail}
 	class="flex flex-row px-2 my-1 border-t-2 border-black hover:bg-slate-400"
 >
-	<div class="content-center">
-		<MonologueStatusIndicator
-			status={monologue.status}
-			startTimestamp={monologue.startTimestamp}
-		/>
-	</div>
-	<div class="grow mx-2 min-w-0 flex flex-col">
-		<div class="font-bold">
-			{monologue.title}
+	<Subscriber {handler} {subscription}>
+		<div class="content-center">
+			<MonologueStatusIndicator
+				status={monologue.status}
+				startTimestamp={monologue.startTimestamp}
+			/>
 		</div>
-		<div>
-			{monologue.summary}
+		<div class="grow mx-2 min-w-0 flex flex-col">
+			<div class="font-bold">
+				{monologue.title}
+			</div>
+			<div>
+				{monologue.summary}
+			</div>
 		</div>
-
-		<div>
-			<Loader
-				promise={agentPromise}
-				pendingMessage="Loading agent info..."
-				rejectMessage="Failed to load agent info"
-			>
-				Started by <span class="font-semibold text-blue-500"
-					>{agent?.name}</span
-				> 20m ago
-			</Loader>
-		</div>
-	</div>
+	</Subscriber>
 </button>
-

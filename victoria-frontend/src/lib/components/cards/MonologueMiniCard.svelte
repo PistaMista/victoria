@@ -17,6 +17,7 @@
 	let monologue: Monologue | null = null;
 	let subscription: Subscription = {
 		type: "monologue_status",
+		sendInitial: true,
 		monologueId: monologueId,
 	};
 

@@ -49,24 +49,26 @@ export const getMonologueHandler = await spy(({ params: { id } }) => {
 	}
 });
 
-export const socketSendMonologueStatus = await spy(async (client: any, handlerId: number, monologueId: number) => {
+export const socketSendMonologueStatus = await spy(async (client: any, handlerId: number, monologueId: number, send_initial: boolean) => {
 	switch (monologueId) {
 		case 1:
-			client.send(JSON.stringify({
-				type: "eventMessage",
-				handlerIds: [handlerId],
-				content: {
-					monologue: {
-						id: 1,
-						agentId: 2,
-						startTimestamp: 3000,
-						endTimestamp: 3000,
-						status: "PENDING",
-						title: "Untitled",
-						summary: "Searching the web for sources",
+			if (send_initial) {
+				client.send(JSON.stringify({
+					type: "eventMessage",
+					handlerIds: [handlerId],
+					content: {
+						monologue: {
+							id: 1,
+							agentId: 2,
+							startTimestamp: 3000,
+							endTimestamp: 3000,
+							status: "PENDING",
+							title: "Untitled",
+							summary: "Searching the web for sources",
+						}
 					}
-				}
-			}));
+				}));
+			}
 
 			await delay(100);
 
@@ -87,21 +89,23 @@ export const socketSendMonologueStatus = await spy(async (client: any, handlerId
 			}));
 			break;
 		case 2:
-			client.send(JSON.stringify({
-				type: "eventMessage",
-				handlerIds: [handlerId],
-				content: {
-					monologue: {
-						id: 2,
-						agentId: 1,
-						startTimestamp: 3000,
-						endTimestamp: 3000,
-						status: "SUCCESS",
-						title: "Generate recipes for the week",
-						summary: "Checking available ingredients",
+			if (send_initial) {
+				client.send(JSON.stringify({
+					type: "eventMessage",
+					handlerIds: [handlerId],
+					content: {
+						monologue: {
+							id: 2,
+							agentId: 1,
+							startTimestamp: 3000,
+							endTimestamp: 3000,
+							status: "SUCCESS",
+							title: "Generate recipes for the week",
+							summary: "Checking available ingredients",
+						}
 					}
-				}
-			}));
+				}));
+			}
 			break;
 	}
 });
