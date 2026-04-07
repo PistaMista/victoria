@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { Monologue, MonologueListItem } from "$lib/types/monologue";
 import { Thought } from "$lib/types/thought";
 import { spy } from "../spy";
@@ -46,6 +46,63 @@ export const getMonologueHandler = await spy(({ params: { id } }) => {
 				title: "Generate recipes for the week",
 				summary: "Checking available ingredients",
 			});
+	}
+});
+
+export const socketSendMonologueStatus = await spy(async (client: any, handlerId: number, monologueId: number) => {
+	switch (monologueId) {
+		case 1:
+			client.send(JSON.stringify({
+				type: "eventMessage",
+				handlerIds: [handlerId],
+				content: {
+					monologue: {
+						id: 1,
+						agentId: 2,
+						startTimestamp: 3000,
+						endTimestamp: 3000,
+						status: "PENDING",
+						title: "Untitled",
+						summary: "Searching the web for sources",
+					}
+				}
+			}));
+
+			await delay(100);
+
+			client.send(JSON.stringify({
+				type: "eventMessage",
+				handlerIds: [handlerId],
+				content: {
+					monologue: {
+						id: 1,
+						agentId: 2,
+						startTimestamp: 3000,
+						endTimestamp: 3000,
+						status: "RUNNING",
+						title: "Research thesis ideas",
+						summary: "Searching the web for sources",
+					}
+				}
+			}));
+			break;
+		case 2:
+			client.send(JSON.stringify({
+				type: "eventMessage",
+				handlerIds: [handlerId],
+				content: {
+					monologue: {
+						id: 2,
+						agentId: 1,
+						startTimestamp: 3000,
+						endTimestamp: 3000,
+						status: "SUCCESS",
+						title: "Generate recipes for the week",
+						summary: "Checking available ingredients",
+					}
+				}
+			}));
+			break;
 	}
 });
 

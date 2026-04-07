@@ -5,7 +5,9 @@ import type { Exchange } from "$lib/types/exchange";
 import { goto } from "$app/navigation";
 import Component from "./Exchange.svelte";
 import { duplicateChatHandler } from "../../../mocks/handlers/chats";
+import { socketSendMonologueStatus } from "../../../mocks/handlers/monologues";
 import { connectWithRetry, disconnect } from "$lib/api/websocket";
+
 
 vi.mock("$app/navigation", () => ({
 	goto: vi.fn(),
@@ -61,10 +63,16 @@ test("exchange shows all text from agent messages of given exchange", async () =
 });
 
 test("clicking name of monologue at the bottom of exchange routes to the monologue detail", async () => {
+	connectWithRetry();
+
 	const user = userEvent.setup();
 	const { findAllByLabelText } = render(Component, {
 		exchange: testExchange,
 	});
+
+	// await waitFor(() => {
+	// 	expect(socketSendMonologueStatus).toBeCalledTimes(2);
+	// });
 
 	const buttons = await findAllByLabelText("Go to monologue");
 
@@ -73,6 +81,8 @@ test("clicking name of monologue at the bottom of exchange routes to the monolog
 
 	await user.click(buttons[1]);
 	expect(goto).toBeCalledWith("/monologues/2");
+
+	disconnect();
 });
 
 test('clicking "new chat from here" button sends request to duplicate current chat', async () => {
