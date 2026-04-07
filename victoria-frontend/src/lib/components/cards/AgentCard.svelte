@@ -54,7 +54,9 @@
 			>
 				<div class="flex flex-col">
 					{#each monologues as monologue}
-						<MonologueMiniCard {monologue} />
+						<MonologueMiniCard
+							monologueId={monologue.id}
+						/>
 					{/each}
 				</div>
 			</div>
