@@ -33,7 +33,7 @@ export const ChatExchangesSubscription = z.object({
 export type ChatExchangesSubscription = z.infer<typeof ChatExchangesSubscription>;
 
 export const ExchangeMessagesSubscription = z.object({
-	type: z.literal("exchange_messages"),
+	type: z.literal("exchange_agent_messages"),
 	exchangeId: z.number(),
 });
 

@@ -5,7 +5,7 @@ import type { Exchange } from "$lib/types/exchange";
 import { goto } from "$app/navigation";
 import Component from "./Exchange.svelte";
 import { duplicateChatHandler } from "../../../mocks/handlers/chats";
-import { getMessagesHandler } from "../../../mocks/handlers/exchanges";
+import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
 vi.mock("$app/navigation", () => ({
 	goto: vi.fn(),
@@ -44,9 +44,11 @@ test("exchange shows user message of given exchange", async () => {
 });
 
 test("exchange shows all text from agent messages of given exchange", async () => {
+	connectWithRetry();
+
 	const { container } = render(Component, {
 		exchange: testExchange,
-		latest: true, // If latest = false, then the exchange will only query messages once
+		latest: true,
 	});
 
 	await waitFor(() => {
@@ -54,6 +56,8 @@ test("exchange shows all text from agent messages of given exchange", async () =
 		expect(container).toHaveTextContent("Pick a thing");
 		expect(container).toHaveTextContent("add_to_calendar");
 	});
+
+	disconnect();
 });
 
 test("clicking name of monologue at the bottom of exchange routes to the monologue detail", async () => {
@@ -97,64 +101,4 @@ test("exchange can have user message set to null (if initiated by the agent)", a
 			exchange: userMessageNullExchange,
 		}),
 	).not.toThrow();
-});
-
-test("latest exchange should send poll requests repeatedly", async () => {
-	render(Component, {
-		exchange: testExchange,
-		latest: true,
-	});
-
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(1);
-		expect((getMessagesHandler as Mock).mock.calls[0][0].request.url).toContain(
-			"?after=0",
-		);
-	});
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(2);
-		expect((getMessagesHandler as Mock).mock.calls[1][0].request.url).toContain(
-			"?after=5000",
-		);
-	});
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(3);
-		expect((getMessagesHandler as Mock).mock.calls[2][0].request.url).toContain(
-			"?after=7000",
-		);
-	});
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(4);
-		expect((getMessagesHandler as Mock).mock.calls[3][0].request.url).toContain(
-			"?after=9000",
-		);
-	});
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(5);
-		expect((getMessagesHandler as Mock).mock.calls[4][0].request.url).toContain(
-			"?after=9000",
-		);
-	});
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(6);
-		expect((getMessagesHandler as Mock).mock.calls[5][0].request.url).toContain(
-			"?after=9000",
-		);
-	});
-});
-
-test("earlier exchange should send poll request once", async () => {
-	render(Component, {
-		exchange: testExchange,
-		latest: false,
-	});
-	await waitFor(() => {
-		expect(getMessagesHandler).toBeCalledTimes(1);
-		expect((getMessagesHandler as Mock).mock.calls[0][0].request.url).toContain(
-			"?after=0",
-		);
-	});
-
-	await new Promise((resolve) => setTimeout(resolve, 500));
-	expect(getMessagesHandler).toBeCalledTimes(1);
 });

@@ -2,6 +2,7 @@ import { ws } from "msw";
 import { spy } from "../spy";
 import { EventMessage, SubscribeResponseMessage } from "$lib/types/websocket";
 import { socketSendExchanges } from "./chats";
+import { socketSendMessages } from "./exchanges";
 
 
 const socket = ws.link("ws://localhost:3000/websocket")
@@ -47,6 +48,16 @@ export const connectionHandler = await spy(async ({ client }) => {
 						} as SubscribeResponseMessage));
 
 						await socketSendExchanges(client, data.handlerId);
+						break;
+					case 'exchange_agent_messages':
+						client.send(JSON.stringify({
+							type: "subscribeResponse",
+							handlerId: data.handlerId,
+							success: true,
+							reason: "succeeded"
+						} as SubscribeResponseMessage));
+
+						await socketSendMessages(client, data.handlerId);
 						break;
 				};
 				break;
