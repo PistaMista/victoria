@@ -5,6 +5,7 @@ import ChatOptionsView from "./ChatOptionsView.svelte";
 import {
 	chatDeleteHandler,
 	getChatOptionsHandler,
+	listChatReceiversHandler,
 	setChatOptionsHandler,
 } from "../../../mocks/handlers/chats";
 
@@ -16,6 +17,7 @@ test("chat options view allows setting chat receiver of given chat", async () =>
 
 	await waitFor(() => {
 		expect(getChatOptionsHandler).toBeCalled();
+		expect(listChatReceiversHandler).toBeCalled();
 	});
 
 	{

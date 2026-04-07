@@ -22,8 +22,10 @@ test("chat list view contains all chat titles from API response", async () => {
 		"sortBy=recent",
 	);
 
-	expect(list).toHaveTextContent("System admin");
-	expect(list).toHaveTextContent("Language learning");
+	await waitFor(() => {
+		expect(list).toHaveTextContent("System admin");
+		expect(list).toHaveTextContent("Language learning");
+	});
 });
 
 test("chat list view sends request to create new chat", async () => {
