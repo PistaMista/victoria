@@ -11,6 +11,7 @@ from app.services.action import ActionService
 from app.services.trigger import TriggerService
 from app.services.agent import AgentService
 from app.services.chat import ChatService
+from app.services.event_bus import EventBusService
 from dependency_injector import containers, providers
 
 
@@ -35,6 +36,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     config = providers.Configuration(pydantic_settings=[settings])
+
+    event_bus = providers.Singleton(EventBusService)
 
     db = providers.Singleton(DatabaseService, db_url=config.DATABASE_URL)
 

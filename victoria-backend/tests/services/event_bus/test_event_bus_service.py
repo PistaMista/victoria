@@ -2,18 +2,18 @@ from app.services.event_bus import EventBusService, Event
 from unittest import mock
 
 
-class TestEvent(Event):
+class MyEvent(Event):
     def __init__(self, a: int, b: int):
         self.a: int = a
         self.b: int = b
 
 
-class TestSubEvent(TestEvent):
+class MySubEvent(MyEvent):
     def __init__(self, a: int):
         self.a = a
 
 
-class TestMEGAEvent(Event):
+class MyMegaEvent(Event):
     def __init__(self, msg: str):
         self.msg: str = msg
 
@@ -21,43 +21,66 @@ class TestMEGAEvent(Event):
 def test_event_bus_dispatches_to_one_subscriber():
     # Arrange
     serv = EventBusService()
-    event = TestEvent(42, 67)
+    event = MyEvent(42, 67)
     test_method = mock.MagicMock()
 
-    def handler(event: TestEvent):
+    def handler(event: MyEvent):
         test_method(event.a, event.b)
 
     # Act
-    serv.subscribe(TestEvent, handler)
+    serv.subscribe(MyEvent, handler)
     serv.publish(event)
 
     # Assert
     test_method.assert_called_once_with(42, 67)
 
 
+def test_event_bus_dispatches_to_two_subscribers_of_same_event():
+    # Arrange
+    serv = EventBusService()
+    event = MyEvent(42, 67)
+    test_method1 = mock.MagicMock()
+    test_method2 = mock.MagicMock()
+
+    def handler1(event: MyEvent):
+        test_method1(event.a, event.b)
+
+    def handler2(event: MyEvent):
+        test_method2(event.a, event.b)
+
+    # Act
+    serv.subscribe(MyEvent, handler1)
+    serv.subscribe(MyEvent, handler2)
+    serv.publish(event)
+
+    # Assert
+    test_method1.assert_called_once_with(42, 67)
+    test_method2.assert_called_once_with(42, 67)
+
+
 def test_event_bus_routes_to_multiple_subscribers_properly():
     # Arrange
     serv = EventBusService()
-    event = TestEvent(42, 67)
-    mega_event = TestMEGAEvent("lol")
+    event = MyEvent(42, 67)
+    mega_event = MyMegaEvent("lol")
 
     test_method1 = mock.MagicMock()
     test_method2 = mock.MagicMock()
     test_method3 = mock.MagicMock()
 
-    def handler1(event: TestEvent):
+    def handler1(event: MyEvent):
         test_method1(event.a, event.b)
 
-    def handler2(event: TestEvent):
+    def handler2(event: MyEvent):
         test_method2(event.b, event.a)
 
-    def handler3(event: TestMEGAEvent):
+    def handler3(event: MyMegaEvent):
         test_method3(event.msg)
 
     # Act
-    serv.subscribe(TestEvent, handler1)
-    serv.subscribe(TestEvent, handler2)
-    serv.subscribe(TestMEGAEvent, handler3)
+    serv.subscribe(MyEvent, handler1)
+    serv.subscribe(MyEvent, handler2)
+    serv.subscribe(MyMegaEvent, handler3)
 
     serv.publish(event)
 
@@ -78,19 +101,19 @@ def test_event_bus_routes_to_multiple_subscribers_properly():
 def test_event_bus_not_dispatches_to_not_yet_subscribed_handler():
     # Arrange
     serv = EventBusService()
-    event = TestEvent(42, 67)
-    mega_event = TestMEGAEvent("lol")
+    event = MyEvent(42, 67)
+    mega_event = MyMegaEvent("lol")
     test_method1 = mock.MagicMock()
     test_method2 = mock.MagicMock()
 
-    def handler1(event: TestEvent):
+    def handler1(event: MyEvent):
         test_method1(event.a, event.b)
 
-    def _(event: TestMEGAEvent):
+    def _(event: MyMegaEvent):
         test_method2(event.msg)
 
     # Act
-    serv.subscribe(TestEvent, handler1)
+    serv.subscribe(MyEvent, handler1)
 
     serv.publish(event)
     serv.publish(mega_event)
@@ -103,20 +126,20 @@ def test_event_bus_not_dispatches_to_not_yet_subscribed_handler():
 def test_event_bus_not_dispatches_to_supertype_event():
     # Arrange
     serv = EventBusService()
-    sub_event = TestSubEvent(20)
+    sub_event = MySubEvent(20)
 
     super_method = mock.MagicMock()
     sub_method = mock.MagicMock()
 
-    def super_handler(event: TestEvent):
+    def super_handler(event: MyEvent):
         super_method(event.a, event.b)
 
-    def sub_handler(event: TestSubEvent):
+    def sub_handler(event: MySubEvent):
         sub_method(event.a)
 
     # Act
-    serv.subscribe(TestEvent, super_handler)
-    serv.subscribe(TestSubEvent, sub_handler)
+    serv.subscribe(MyEvent, super_handler)
+    serv.subscribe(MySubEvent, sub_handler)
 
     serv.publish(sub_event)
 
@@ -128,20 +151,20 @@ def test_event_bus_not_dispatches_to_supertype_event():
 def test_event_bus_not_dispatches_to_already_unsubscribed_handler():
     # Arrange
     serv = EventBusService()
-    event = TestEvent(42, 67)
+    event = MyEvent(42, 67)
 
     test_method1 = mock.MagicMock()
     test_method2 = mock.MagicMock()
 
-    def handler1(event: TestEvent):
+    def handler1(event: MyEvent):
         test_method1(event.a, event.b)
 
-    def handler2(event: TestEvent):
+    def handler2(event: MyEvent):
         test_method2(event.b, event.a)
 
     # Act
-    serv.subscribe(TestEvent, handler1)
-    unsub_handle = serv.subscribe(TestEvent, handler2)
+    serv.subscribe(MyEvent, handler1)
+    unsub_handle = serv.subscribe(MyEvent, handler2)
 
     serv.publish(event)
 
