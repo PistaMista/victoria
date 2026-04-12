@@ -51,35 +51,36 @@
           };
         };
         dev-pkgs-old = import inputs.dev-pkgs-old { inherit system; };
+        workspace = uv2nix.lib.workspace.loadWorkspace {
+          workspaceRoot = ./victoria-backend;
+        };
+        overlay = workspace.mkPyprojectOverlay {
+          sourcePreference = "wheel";
+        };
+        pyprojectOverrides = (
+          final: prev: {
+          }
+        );
+        python = prod-pkgs.python313;
+        pkgSet =
+          (prod-pkgs.callPackage pyproject-nix.build.packages {
+            inherit python;
+          }).overrideScope
+            (
+              prod-pkgs.lib.composeManyExtensions [
+                pyproject-build-systems.overlays.default
+                overlay
+                pyprojectOverrides
+              ]
+            );
+        venv = pkgSet.mkVirtualEnv "application-env" workspace.deps.default;
 
         backend =
           let
-            workspace = uv2nix.lib.workspace.loadWorkspace {
-              workspaceRoot = ./victoria-backend;
-            };
-            overlay = workspace.mkPyprojectOverlay {
-              sourcePreference = "wheel";
-            };
-            pyprojectOverrides = (
-              final: prev: {
-              }
-            );
-            python = prod-pkgs.python312;
-            pkgSet =
-              (prod-pkgs.callPackage pyproject-nix.build.packages {
-                inherit python;
-              }).overrideScope
-                (
-                  prod-pkgs.lib.composeManyExtensions [
-                    pyproject-build-systems.overlays.default
-                    overlay
-                    pyprojectOverrides
-                  ]
-                );
             inherit (prod-pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
           in
           mkApplication {
-            venv = pkgSet.mkVirtualEnv "application-env" workspace.deps.default;
+            venv = venv;
             package = pkgSet.victoria-backend;
           };
 
@@ -149,11 +150,14 @@
           in
           dev-pkgs.mkShell {
             buildInputs = [
+              venv
               dev-pkgs.uv
               dev-pkgs.nodejs_22
             ];
 
             shellHook = ''
+              export PATH="${venv}/bin:$PATH"
+              export VIRTUAL_ENV="${venv}"
               export DB_USER="user"
               export DB_PASS="pass"
               # FOR USE IN TESTING, NOT PRODUCTION!
