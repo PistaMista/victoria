@@ -957,7 +957,7 @@ def test_monologue_service_emits_event_when_appending_thought_to_monologue(
     service.append_thought_to_monologue(sample_monologue.id, thought)
 
     # Assert
-    event = event_bus_mock.publish.call_args
+    event = event_bus_mock.publish.call_args[0][0]
 
     assert isinstance(event, MonologueThoughtAppendedEvent)
     assert event.user_id == sample_monologue.agent.owner.id
