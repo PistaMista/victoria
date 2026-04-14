@@ -2,6 +2,7 @@ import pytest
 from unittest import mock
 import threading
 from typing import Callable
+from app.services.monologues import MonologueStatusChangedEvent
 from app.services.monologues.runner import RunnerService, AlreadyRunningError
 from app.services.monologues.runner.monologue_thread import MonologueThread
 from app.services.db import DatabaseService
@@ -17,7 +18,7 @@ from datetime import datetime
 
 @pytest.fixture(scope="function")
 def owner():
-    return User(username="John", password_hash="", role=Role.USER)
+    return User(id=42, username="John", password_hash="", role=Role.USER)
 
 
 @pytest.fixture(scope="function")
@@ -28,13 +29,18 @@ def db_serv(db_factory, db_container):
         yield db
 
 
-def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session, owner):
+def test_runner_starts_new_thread_for_running_monologues(
+    db_serv, db_session, owner, event_bus_mock
+):
     # Arrange
     mock_thread = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
 
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=1
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=1,
     )
     trigger = PollTrigger(
         name="Trigger",
@@ -81,13 +87,18 @@ def test_runner_starts_new_thread_for_running_monologues(db_serv, db_session, ow
     mock_thread.start.assert_called_once()
 
 
-def test_runner_marks_running_monologues_as_running(db_serv, db_session, owner):
+def test_runner_marks_running_monologues_as_running(
+    db_serv, db_session, owner, event_bus_mock
+):
     # Arrange
     mock_thread = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
 
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=1
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=1,
     )
     trigger = PollTrigger(
         name="Trigger",
@@ -131,15 +142,25 @@ def test_runner_marks_running_monologues_as_running(db_serv, db_session, owner):
 
     # Assert
     assert monologue.status == MonologueStatus.RUNNING
+    event_bus_mock.publish.assert_called_with(
+        MonologueStatusChangedEvent(
+            user_id=42, monologue_id=7, status=MonologueStatus.RUNNING
+        )
+    )
 
 
-def test_runner_marks_queued_monologues_as_pending(db_serv, db_session, owner):
+def test_runner_marks_queued_monologues_as_pending(
+    db_serv, db_session, owner, event_bus_mock
+):
     # Arrange
     mock_thread = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
 
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=0
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=0,
     )
     trigger = PollTrigger(
         name="Trigger",
@@ -184,16 +205,24 @@ def test_runner_marks_queued_monologues_as_pending(db_serv, db_session, owner):
 
     # Assert
     assert monologue.status == MonologueStatus.PENDING
+    event_bus_mock.publish.assert_called_with(
+        MonologueStatusChangedEvent(
+            user_id=42, monologue_id=7, status=MonologueStatus.PENDING
+        )
+    )
 
 
-def test_runner_ignores_finished_monologues(db_serv, db_session, owner):
+def test_runner_ignores_finished_monologues(db_serv, db_session, owner, event_bus_mock):
     # Arrange
     mock_thread1 = mock.MagicMock()
     mock_thread2 = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread1, mock_thread2])
 
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=10000
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=10000,
     )
     trigger = PollTrigger(
         name="Trigger",
@@ -249,15 +278,22 @@ def test_runner_ignores_finished_monologues(db_serv, db_session, owner):
     mock_thread1.start.assert_not_called()
     mock_thread2.start.assert_not_called()
 
+    event_bus_mock.publish.assert_not_called()
 
-def test_runner_cannot_start_running_monologue(db_serv, db_session, owner):
+
+def test_runner_cannot_start_running_monologue(
+    db_serv, db_session, owner, event_bus_mock
+):
     # Arrange
     mock_thread = mock.MagicMock()
     mock_thread._id = 7
     thread_factory = mock.MagicMock(side_effect=[mock_thread])
 
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=1
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=1,
     )
     trigger = PollTrigger(
         name="Trigger",
@@ -307,14 +343,17 @@ def test_runner_cannot_start_running_monologue(db_serv, db_session, owner):
     assert monologue.status == MonologueStatus.RUNNING
 
 
-def test_runner_queues_excess_monologues(db_serv, db_session, owner):
+def test_runner_queues_excess_monologues(db_serv, db_session, owner, event_bus_mock):
     # Arrange
     mock_thread1 = mock.MagicMock()
     mock_thread2 = mock.MagicMock()
     thread_factory = mock.MagicMock(side_effect=[mock_thread1, mock_thread2])
 
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=1
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=1,
     )
     trigger = PollTrigger(
         name="Trigger",
@@ -369,14 +408,28 @@ def test_runner_queues_excess_monologues(db_serv, db_session, owner):
     assert mon1.status == MonologueStatus.RUNNING
     assert mon2.status == MonologueStatus.PENDING
 
+    event_bus_mock.publish.assert_any_call(
+        MonologueStatusChangedEvent(
+            user_id=42, monologue_id=7, status=MonologueStatus.RUNNING
+        )
+    )
+    event_bus_mock.publish.assert_any_call(
+        MonologueStatusChangedEvent(
+            user_id=42, monologue_id=8, status=MonologueStatus.PENDING
+        )
+    )
+
 
 def test_runner_starts_first_queued_thread_after_a_thread_finishes(
-    db_serv, db_session, owner
+    db_serv, db_session, owner, event_bus_mock
 ):
     # Arrange
     thread_factory = mock.MagicMock()
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=1
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=1,
     )
 
     class MockThread(MonologueThread):
@@ -456,6 +509,19 @@ def test_runner_starts_first_queued_thread_after_a_thread_finishes(
         mock_thread1._mock.start.assert_called_once()
         mock_thread2._mock.start.assert_not_called()
 
+        assert event_bus_mock.publish.call_count == 2
+        event_bus_mock.publish.assert_any_call(
+            MonologueStatusChangedEvent(
+                user_id=42, monologue_id=7, status=MonologueStatus.RUNNING
+            )
+        )
+        event_bus_mock.publish.assert_any_call(
+            MonologueStatusChangedEvent(
+                user_id=42, monologue_id=8, status=MonologueStatus.PENDING
+            )
+        )
+        event_bus_mock.reset_mock()
+
         event1.set()
         mock_thread1.join()
 
@@ -463,6 +529,18 @@ def test_runner_starts_first_queued_thread_after_a_thread_finishes(
 
         mock_thread1._mock.start.assert_called_once()
         mock_thread2._mock.start.assert_called_once()
+
+        assert event_bus_mock.publish.call_count == 2
+        event_bus_mock.publish.assert_any_call(
+            MonologueStatusChangedEvent(
+                user_id=42, monologue_id=7, status=MonologueStatus.FAILURE
+            )
+        )
+        event_bus_mock.publish.assert_any_call(
+            MonologueStatusChangedEvent(
+                user_id=42, monologue_id=8, status=MonologueStatus.RUNNING
+            )
+        )
 
         assert mon2.status == MonologueStatus.RUNNING
 
@@ -477,12 +555,15 @@ def test_runner_starts_first_queued_thread_after_a_thread_finishes(
 
 
 def test_runner_marks_prematurely_exited_threads_as_failed_monologues(
-    db_serv, db_session, owner
+    db_serv, db_session, owner, event_bus_mock
 ):
     # Arrange
     thread_factory = mock.MagicMock()
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=1
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=1,
     )
 
     class MockThread(MonologueThread):
@@ -548,15 +629,24 @@ def test_runner_marks_prematurely_exited_threads_as_failed_monologues(
 
     # ...threads that end without being marked as success are considered failed
     assert mon1.status == MonologueStatus.FAILURE
+    assert event_bus_mock.publish.call_count == 2
+    event_bus_mock.publish.assert_called_with(
+        MonologueStatusChangedEvent(
+            user_id=42, monologue_id=7, status=MonologueStatus.FAILURE
+        )
+    )
 
 
 def test_runner_does_not_mark_exited_threads_as_failed_monologues_if_already_marked(
-    db_serv, db_session, owner
+    db_serv, db_session, owner, event_bus_mock
 ):
     # Arrange
     thread_factory = mock.MagicMock()
     runner = RunnerService(
-        db_service=db_serv, thread_factory=thread_factory, thread_limit=100000
+        db_service=db_serv,
+        event_bus_service=event_bus_mock,
+        thread_factory=thread_factory,
+        thread_limit=100000,
     )
 
     class MockThread(MonologueThread):

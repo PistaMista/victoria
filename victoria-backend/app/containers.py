@@ -61,6 +61,7 @@ class Container(containers.DeclarativeContainer):
     runner = providers.Singleton(
         RunnerService,
         db_service=db,
+        event_bus_service=event_bus,
         thread_factory=agentic_thread_factory.provider,
         thread_limit=4,
     )
