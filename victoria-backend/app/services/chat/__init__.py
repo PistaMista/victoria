@@ -5,7 +5,7 @@ from sqlalchemy import select, func, distinct, or_
 from sqlalchemy.orm import Session, joinedload, undefer, with_polymorphic
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
-from app.services.event_bus import EventBusService
+from app.services import event_bus
 from app.model.trigger import ChatTrigger
 from app.model.action import Action
 from app.model.user import User
@@ -33,11 +33,11 @@ class ChatService:
         self,
         database_service: DatabaseService,
         trigger_service: TriggerService,
-        event_bus_service: EventBusService,
+        event_bus_service: event_bus.EventBusService,
     ):
         self._db: DatabaseService = database_service
         self._trigger: TriggerService = trigger_service
-        self._event_bus: EventBusService = event_bus_service
+        self._event_bus: event_bus.EventBusService = event_bus_service
 
     def get_user_chats(
         self,
@@ -515,6 +515,30 @@ class ChatService:
 class ChatOptionsDiff(BaseModel):
     receiver: Optional[str] = None
     enabled_action_ids: Optional[List[int]] = None
+
+
+class ChatCreatedEvent(event_bus.Event):
+    pass
+
+
+class ChatDeletedEvent(event_bus.Event):
+    pass
+
+
+class ChatMessageSentEvent(event_bus.Event):
+    pass
+
+
+class ChatSummarySetEvent(event_bus.Event):
+    pass
+
+
+class ChatOptionsSetEvent(event_bus.Event):
+    pass
+
+
+class QueryAnsweredEvent(event_bus.Event):
+    pass
 
 
 class CannotCreateChatForNonexistentUserError(Exception):

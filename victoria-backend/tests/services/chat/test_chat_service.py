@@ -12,6 +12,12 @@ from app.services.chat import (
     QueryAlreadyAnsweredError,
     CannotCreateChatForNonexistentUserError,
     ChatOptionsDiff,
+    ChatCreatedEvent,
+    ChatDeletedEvent,
+    ChatMessageSentEvent,
+    ChatSummarySetEvent,
+    ChatOptionsSetEvent,
+    QueryAnsweredEvent,
 )
 from app.model.user import User, Role
 from app.model.chat import Chat
@@ -21,11 +27,6 @@ from app.model.chat_message import (
     ChatMessageChoicePrompt,
     ChatMessage,
     ChoiceMessageOption,
-    # ChatCreatedEvent,
-    # ChatDeletedEvent,
-    # ChatMessageSentEvent,
-    # ChatSummarySetEvent,
-    # ChatOptionsSetEvent,
 )
 from app.model.event import Event
 from app.model.action import Action
@@ -264,8 +265,12 @@ def test_chat_service_emits_event_when_creating_new_chat(
     db_session.commit()
 
     # Act
+    created_id = serv.create_user_chat(user_id=99)
 
-    assert False
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatCreatedEvent(user_id=99, chat_id=created_id)
+    )
 
 
 def test_chat_service_throws_when_creating_new_chat_for_nonexistent_user(
@@ -500,6 +505,51 @@ def test_chat_service_can_remove_user_chat_including_exchanges_and_messages(
     assert user_victor.chats[0].title == "Cars"
 
 
+def test_chat_service_emits_event_when_removing_chat(
+    db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    db_session.add(user_john)
+    db_session.commit()
+
+    # Act
+    serv.remove_user_chat(user_id=5, chat_id=1)
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(ChatDeletedEvent(user_id=5, chat_id=1))
+
+
 def test_chat_service_can_duplicate_entire_user_chat(
     db_serv, db_session, trigger_mock, event_bus_mock
 ):
@@ -619,6 +669,53 @@ def test_chat_service_can_duplicate_entire_user_chat(
     assert new_chat.exchanges[1].user_message.markdown == "Find a book."
     assert new_chat.exchanges[1].agent_replies[0].id not in [10, 20, 30, 40]
     assert new_chat.exchanges[1].agent_replies[0].markdown == "Book found."
+
+
+def test_chat_service_emits_event_when_duplicating_chat(
+    db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=10,
+                title="Carrots",
+                summary="Sommery",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[],
+            ),
+            Chat(
+                id=20,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    db_session.add(user_john)
+    db_session.commit()
+
+    # Act
+    duplicate_id = serv.duplicate_user_chat(user_id=5, chat_id=10)
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatCreatedEvent(chat_id=duplicate_id, user_id=5)
+    )
 
 
 def test_chat_service_can_duplicate_user_chat_up_to_certain_exchange(
@@ -944,6 +1041,60 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_user(
 
 
 @mock.patch("app.services.chat.datetime")
+def test_chat_service_emits_event_when_sending_markdown_message_to_user_chat_from_user(
+    mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
+    trigger_mock.receive_chat_message.return_value = [1, 2]
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    db_session.add(user_john)
+    db_session.commit()
+
+    # Act
+    exchange_id = serv.send_markdown_message_to_user_chat(
+        user_id=5, chat_id=1, from_agent_id=None, markdown="That's not it"
+    )
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatMessageSentEvent(
+            user_id=5, chat_id=1, exchange_id=exchange_id, reply_id=None
+        )
+    )
+
+
+@mock.patch("app.services.chat.datetime")
 def test_chat_service_can_send_markdown_message_to_user_chat_from_agent(
     mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
 ):
@@ -1044,6 +1195,63 @@ def test_chat_service_can_send_markdown_message_to_user_chat_from_agent(
     assert exchange.agent_replies[0].markdown == "Oops"
     assert exchange.agent_replies[0].sending_agent.id == 12
     assert exchange.agent_replies[0].sending_agent.name == "Librarian"
+
+
+@mock.patch("app.services.chat.datetime")
+def test_chat_service_emits_event_when_sending_markdown_message_to_user_chat_from_agent(
+    mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    agent = Agent(
+        id=12, name="Librarian", prompt="You are a librarian", owner=user_john
+    )
+    db_session.add(user_john)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    exchange_id = serv.send_markdown_message_to_user_chat(
+        user_id=5, chat_id=1, from_agent_id=12, markdown="Oops"
+    )
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatMessageSentEvent(
+            user_id=5, chat_id=1, exchange_id=exchange_id, reply_id=None
+        )
+    )
 
 
 @mock.patch("app.services.chat.datetime")
@@ -1160,6 +1368,67 @@ def test_chat_service_can_send_choice_message_to_user_chat_from_agent(
 
 
 @mock.patch("app.services.chat.datetime")
+def test_chat_service_emits_event_when_sending_choice_message_to_user_chat_from_agent(
+    mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    agent = Agent(
+        id=12, name="Librarian", prompt="You are a librarian", owner=user_john
+    )
+    db_session.add(user_john)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    exchange_id, _ = serv.send_choice_message_to_user_chat(
+        user_id=5,
+        chat_id=1,
+        from_agent_id=12,
+        prompt="What should I do?",
+        choices=[20, "no"],
+    )
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatMessageSentEvent(
+            user_id=5, chat_id=1, exchange_id=exchange_id, reply_id=None
+        )
+    )
+
+
+@mock.patch("app.services.chat.datetime")
 def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(
     mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
 ):
@@ -1234,6 +1503,75 @@ def test_chat_service_can_send_markdown_reply_to_user_exchange_from_agent(
     assert exchange.agent_replies[0].markdown == "What can I do for you?"
     assert exchange.agent_replies[0].sending_agent.id == 12
     assert exchange.agent_replies[0].sending_agent.name == "Librarian"
+
+
+@mock.patch("app.services.chat.datetime")
+def test_chat_service_emits_event_when_sending_markdown_reply_to_user_exchange_from_agent(
+    mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[
+                    ChatExchange(
+                        id=1,
+                        timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                        user_message=ChatMessageMarkdown(
+                            id=20,
+                            timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                            markdown="Hello!",
+                        ),
+                        agent_replies=[],
+                    )
+                ],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    agent = Agent(
+        id=12, name="Librarian", prompt="You are a librarian", owner=user_john
+    )
+    db_session.add(user_john)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    serv.send_markdown_reply_to_user_exchange(
+        user_id=5, exchange_id=1, from_agent_id=12, markdown="What can I do for you?"
+    )
+
+    # Assert
+    db_session.refresh(user_john)
+    exchange = user_john.chats[0].exchanges[0]
+    reply_id = exchange.agent_replies[0].id
+    event_bus_mock.publish.assert_called_with(
+        ChatMessageSentEvent(user_id=5, chat_id=None, exchange_id=1, reply_id=reply_id)
+    )
 
 
 @mock.patch("app.services.chat.datetime")
@@ -1319,6 +1657,76 @@ def test_chat_service_can_send_choice_reply_to_user_exchange_from_agent(
     assert len(message.choices) == 2
     assert message.choices[0].value == 20
     assert message.choices[1].value == "no"
+
+
+@mock.patch("app.services.chat.datetime")
+def test_chat_service_emits_event_when_sending_choice_reply_to_user_exchange_from_agent(
+    mock_datetime, db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(15000, tz=UTC)
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[
+                    ChatExchange(
+                        id=1,
+                        timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                        user_message=ChatMessageMarkdown(
+                            id=10,
+                            timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                            markdown="Hello!",
+                        ),
+                        agent_replies=[],
+                    )
+                ],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    agent = Agent(
+        id=12, name="Librarian", prompt="You are a librarian", owner=user_john
+    )
+    db_session.add(user_john)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    query_id = serv.send_choice_reply_to_user_exchange(
+        user_id=5,
+        exchange_id=1,
+        from_agent_id=12,
+        prompt="What should I do?",
+        choices=[20, "no"],
+    )
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatMessageSentEvent(user_id=5, chat_id=None, exchange_id=1, reply_id=query_id)
+    )
 
 
 @mock.patch("app.services.chat.datetime")
@@ -1741,6 +2149,77 @@ def test_chat_service_can_set_chat_options(
     assert user.chats[0].allowed_actions[0].function_name == "think"
 
 
+def test_chat_service_emits_event_when_setting_chat_options(
+    db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    think_action = Action(
+        id=1,
+        function_name="think",
+        function_param_schema={},
+        function_docstring="Some docs idk",
+        function_source_code="",
+    )
+    end_action = Action(
+        id=2,
+        function_name="end_workflow",
+        function_param_schema={"successful": "bool"},
+        function_docstring="Some docs idk",
+        function_source_code="",
+    )
+    repo = ActionRepository(
+        name="Gitea", url="gitea", actions=[end_action, think_action]
+    )
+    user = User(
+        id=42,
+        username="Victor",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=3,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4200, tz=UTC),
+                allowed_actions=[end_action, think_action],
+            )
+        ],
+        allowed_actions=[end_action, think_action],
+    )
+    db_session.add(repo)
+    db_session.add(user)
+    db_session.commit()
+
+    # Act
+    serv.update_user_chat_options(
+        user_id=42, chat_id=3, options=ChatOptionsDiff(receiver="technical")
+    )
+
+    # Assert
+    db_session.refresh(user)
+    assert user.chats[0].receiver == "technical"
+    assert len(user.chats[0].allowed_actions) == 2
+
+    # Act
+    serv.update_user_chat_options(
+        user_id=42,
+        chat_id=3,
+        options=ChatOptionsDiff(receiver="new", enabled_action_ids=[1]),
+    )
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatOptionsSetEvent(user_id=42, chat_id=3)
+    )
+
+
 def test_chat_service_ignores_nonexistent_or_disallowed_action_ids_when_setting_chat_options(
     db_serv, db_session, trigger_mock, event_bus_mock
 ):
@@ -1868,6 +2347,70 @@ def test_chat_service_can_set_user_chat_summary(
     # Assert
     db_session.refresh(user)
     assert user.chats[0].summary == "new"
+
+
+def test_chat_service_emits_event_when_setting_chat_summary(
+    db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    think_action = Action(
+        id=1,
+        function_name="think",
+        function_param_schema={},
+        function_docstring="Some docs idk",
+        function_source_code="",
+    )
+    end_action = Action(
+        id=2,
+        function_name="end_workflow",
+        function_param_schema={"successful": "bool"},
+        function_docstring="Some docs idk",
+        function_source_code="",
+    )
+    search_action = Action(
+        id=3,
+        function_name="search_web",
+        function_param_schema={"successful": "bool"},
+        function_docstring="Some docs idk",
+        function_source_code="",
+    )
+    repo = ActionRepository(
+        name="Gitea", url="gitea", actions=[end_action, think_action, search_action]
+    )
+    user = User(
+        id=42,
+        username="Victor",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=3,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4200, tz=UTC),
+                allowed_actions=[end_action, think_action],
+            )
+        ],
+        allowed_actions=[end_action, think_action],
+    )
+    db_session.add(repo)
+    db_session.add(user)
+    db_session.commit()
+
+    # Act
+    serv.set_user_chat_summary(user_id=42, chat_id=3, summary="new")
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        ChatSummarySetEvent(user_id=42, chat_id=3, summary="new")
+    )
 
 
 def test_chat_service_can_get_all_messages_from_user_chat_flattened(
@@ -2193,6 +2736,75 @@ def test_chat_service_can_set_unanswered_query_answer(
         select(ChatMessageChoicePrompt).where(ChatMessageChoicePrompt.id == 10)
     )
     assert choice.answer == [200, "wee"]
+
+
+def test_chat_service_emits_event_when_setting_query_answer(
+    db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[
+                    ChatExchange(
+                        id=1,
+                        timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                        user_message=ChatMessageMarkdown(
+                            id=1,
+                            timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                            markdown="Hello!",
+                        ),
+                        agent_replies=[
+                            ChatMessageMarkdown(
+                                id=2,
+                                timestamp=datetime.fromtimestamp(5000, tz=UTC),
+                                markdown="First reply",
+                            ),
+                            ChatMessageChoicePrompt(
+                                id=10,
+                                prompt="Answer?",
+                                timestamp=datetime.fromtimestamp(10000, tz=UTC),
+                            ),
+                        ],
+                    )
+                ],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    db_session.add(user_john)
+    db_session.commit()
+
+    # Act
+    serv.set_user_query_answer(user_id=5, message_id=10, answer=[200, "wee"])
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        QueryAnsweredEvent(user_id=5, query_id=10, answer=[200, "wee"])
+    )
 
 
 def test_chat_service_throws_when_setting_answer_for_answered_query(
