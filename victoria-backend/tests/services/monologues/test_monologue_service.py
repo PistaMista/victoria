@@ -1,6 +1,13 @@
 import pytest
 from unittest import mock
-from app.services.monologues import MonologueService, NonexistentMonologueError
+from app.services.monologues import (
+    MonologueService,
+    MonologueStatusChangedEvent,
+    MonologueTitleSetEvent,
+    MonologueSummarySetEvent,
+    MonologueThoughtAppendedEvent,
+    NonexistentMonologueError,
+)
 from app.services.db import DatabaseService
 from app.services.llm import UserMessage, AssistantMessage
 from app.model.user import User, Role
@@ -11,7 +18,6 @@ from app.model.trigger import PollTrigger, TimerTrigger
 from app.model.event import Event
 from app.model.thought import Thought
 from app.model.invocation import Invocation
-from app.model.action import Action
 from app.model.action_repository import ActionRepository
 from datetime import datetime, UTC
 
@@ -115,11 +121,15 @@ def db_serv(db_factory, db_container):
         yield db
 
 
-def test_monologue_service_can_list_user_monologues(db_serv, db_session):
+def test_monologue_service_can_list_user_monologues(
+    db_serv, db_session, event_bus_mock
+):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
     trigger = TimerTrigger(name="Daily tasks", template="Do your task", interval=600)
     event = Event(id=42, content="Do your task", trigger=trigger, dispatched=True)
@@ -230,12 +240,14 @@ def test_monologue_service_can_list_user_monologues(db_serv, db_session):
 
 
 def test_monologue_service_returns_empty_list_when_listing_monologues_of_nonexistent_user(
-    db_serv, db_session
+    db_serv, db_session, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
     trigger = TimerTrigger(name="Daily tasks", template="Do your task", interval=600)
     event = Event(id=42, content="Do your task", trigger=trigger, dispatched=True)
@@ -332,11 +344,15 @@ def test_monologue_service_returns_empty_list_when_listing_monologues_of_nonexis
     assert res_search == []
 
 
-def test_monologue_service_can_get_user_monologue_by_id(db_serv, db_session):
+def test_monologue_service_can_get_user_monologue_by_id(
+    db_serv, db_session, event_bus_mock
+):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
     trigger = TimerTrigger(name="Daily tasks", template="Do your task", interval=600)
     event = Event(id=42, content="Do your task", trigger=trigger, dispatched=True)
@@ -423,12 +439,14 @@ def test_monologue_service_can_get_user_monologue_by_id(db_serv, db_session):
 
 @mock.patch("app.services.monologues.MonologueService.set_monologue_status")
 def test_monologue_service_can_end_user_monologue_with_success(
-    mock_set_status, sample_monologue, db_serv
+    mock_set_status, sample_monologue, db_serv, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -444,12 +462,14 @@ def test_monologue_service_can_end_user_monologue_with_success(
 
 @mock.patch("app.services.monologues.MonologueService.set_monologue_status")
 def test_monologue_service_can_end_user_monologue_with_failure(
-    mock_set_status, sample_monologue, db_serv
+    mock_set_status, sample_monologue, db_serv, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -464,12 +484,14 @@ def test_monologue_service_can_end_user_monologue_with_failure(
 
 
 def test_monologue_service_can_get_user_monologue_thoughts_including_invocations_and_monologues(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -496,12 +518,14 @@ def test_monologue_service_can_get_user_monologue_thoughts_including_invocations
 
 
 def test_monologue_service_can_change_monologue_status(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -513,12 +537,14 @@ def test_monologue_service_can_change_monologue_status(
 
 
 def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_to_success(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -530,12 +556,14 @@ def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_
 
 
 def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_to_failure(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -547,12 +575,14 @@ def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_
 
 
 def test_monologue_service_unsets_context_FINISHED_when_changing_monologue_status_to_pending(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -564,12 +594,14 @@ def test_monologue_service_unsets_context_FINISHED_when_changing_monologue_statu
 
 
 def test_monologue_service_unsets_context_FINISHED_when_changing_monologue_status_to_running(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -581,12 +613,14 @@ def test_monologue_service_unsets_context_FINISHED_when_changing_monologue_statu
 
 
 def test_monologue_service_can_change_monologue_title(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -598,12 +632,14 @@ def test_monologue_service_can_change_monologue_title(
 
 
 def test_monologue_service_can_change_monologue_summary(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -615,12 +651,14 @@ def test_monologue_service_can_change_monologue_summary(
 
 
 def test_monologue_service_can_set_monologue_context(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -632,12 +670,14 @@ def test_monologue_service_can_set_monologue_context(
 
 
 def test_monologue_service_can_get_monologue_thoughts(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -662,12 +702,14 @@ def test_monologue_service_can_get_monologue_thoughts(
 
 
 def test_monologue_service_can_get_monologue_thoughts_as_llm_chat_history(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -692,7 +734,7 @@ def test_monologue_service_can_get_monologue_thoughts_as_llm_chat_history(
 # NOTE: Shouldn't this be done by an agent service? No, since there are monologue specific things which affect which
 # actions can be taken.
 def test_monologue_service_can_get_monologue_system_prompt(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_action_serv = mock.MagicMock()
@@ -705,7 +747,9 @@ ANOTHER INFORMATIVE TOOL DESCRIPTION"""
         391: think_desc,
     }.get(id)
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -717,11 +761,15 @@ ANOTHER INFORMATIVE TOOL DESCRIPTION"""
     assert think_desc in res
 
 
-def test_monologue_service_can_get_monologue_details(db_serv, sample_monologue):
+def test_monologue_service_can_get_monologue_details(
+    db_serv, sample_monologue, event_bus_mock
+):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -733,11 +781,15 @@ def test_monologue_service_can_get_monologue_details(db_serv, sample_monologue):
     assert res.status == sample_monologue.status
 
 
-def test_monologue_service_can_get_monologue_agent_id(db_serv, sample_monologue):
+def test_monologue_service_can_get_monologue_agent_id(
+    db_serv, sample_monologue, event_bus_mock
+):
     # Arrange
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act
@@ -749,13 +801,15 @@ def test_monologue_service_can_get_monologue_agent_id(db_serv, sample_monologue)
 
 @mock.patch("app.services.monologues.datetime")
 def test_monologue_service_can_append_thought_to_monologue(
-    mock_datetime, db_serv, db_session, sample_monologue
+    mock_datetime, db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     mock_datetime.now.return_value = datetime.fromtimestamp(120, tz=UTC)
     mock_action_serv = mock.MagicMock()
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
     action = Action(
         function_name="mega_func",
@@ -793,7 +847,7 @@ def test_monologue_service_can_append_thought_to_monologue(
 
 
 def test_monologue_service_throws_when_manipulating_nonexistent_monologue(
-    db_serv, db_session, sample_monologue
+    db_serv, db_session, sample_monologue, event_bus_mock
 ):
     # Arrange
     non_owner = User(username="Victor", password_hash="", role=Role.USER)
@@ -814,7 +868,9 @@ def test_monologue_service_throws_when_manipulating_nonexistent_monologue(
     A VERY INFORMATIVE TOOL DESCRIPTION
     """
     service = MonologueService(
-        database_service=db_serv, action_service=mock_action_serv
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
     )
 
     # Act / Assert

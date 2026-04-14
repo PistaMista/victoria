@@ -46,7 +46,10 @@ class Container(containers.DeclarativeContainer):
     action = providers.Singleton(ActionService, database_service=db)
 
     monologue = providers.Singleton(
-        MonologueService, database_service=db, action_service=action
+        MonologueService,
+        database_service=db,
+        action_service=action,
+        event_bus_service=event_bus,
     )
 
     agentic_thread_factory = providers.Factory(

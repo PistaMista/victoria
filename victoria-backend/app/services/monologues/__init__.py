@@ -1,6 +1,7 @@
 from app.services.db import DatabaseService
 from app.services.action import ActionService
 from app.services.llm import UserMessage, AssistantMessage
+from app.services.event_bus import EventBusService, Event
 from app.model.agent import Agent
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
@@ -11,14 +12,19 @@ from sqlalchemy.orm import joinedload, Session
 from datetime import datetime, UTC
 from copy import copy
 import json
+from dataclasses import dataclass
 
 
 class MonologueService:
     def __init__(
-        self, database_service: DatabaseService, action_service: ActionService
+        self,
+        database_service: DatabaseService,
+        action_service: ActionService,
+        event_bus_service: EventBusService,
     ):
         self._db: DatabaseService = database_service
         self._action: ActionService = action_service
+        self._event_bus: EventBusService = event_bus_service
 
     def get_user_monologues(
         self,
@@ -225,6 +231,22 @@ class MonologueService:
             raise NonexistentMonologueError(monologue_id)
 
         return res
+
+
+class MonologueStatusChangedEvent(Event):
+    pass
+
+
+class MonologueTitleSetEvent(Event):
+    pass
+
+
+class MonologueSummarySetEvent(Event):
+    pass
+
+
+class MonologueThoughtAppendedEvent(Event):
+    pass
 
 
 class NonexistentMonologueError(Exception):
