@@ -3,8 +3,7 @@ from unittest import mock
 from app.services.monologues import (
     MonologueService,
     MonologueStatusChangedEvent,
-    MonologueTitleSetEvent,
-    MonologueSummarySetEvent,
+    MonologueMetadataSetEvent,
     MonologueThoughtAppendedEvent,
     NonexistentMonologueError,
 )
@@ -24,7 +23,7 @@ from datetime import datetime, UTC
 
 @pytest.fixture(scope="function")
 def owner():
-    return User(username="John", password_hash="", role=Role.USER)
+    return User(id=42, username="John", password_hash="", role=Role.USER)
 
 
 @pytest.fixture(scope="function")
@@ -536,6 +535,30 @@ def test_monologue_service_can_change_monologue_status(
     assert sample_monologue.status == MonologueStatus.FAILURE
 
 
+def test_monologue_service_emits_event_when_changing_monologue_status(
+    db_serv, db_session, sample_monologue, event_bus_mock
+):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
+    )
+
+    # Act
+    service.set_monologue_status(sample_monologue.id, MonologueStatus.FAILURE)
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        MonologueStatusChangedEvent(
+            user_id=sample_monologue.agent.owner.id,
+            monologue_id=sample_monologue.id,
+            status=MonologueStatus.FAILURE,
+        )
+    )
+
+
 def test_monologue_service_sets_context_FINISHED_when_changing_monologue_status_to_success(
     db_serv, db_session, sample_monologue, event_bus_mock
 ):
@@ -631,6 +654,31 @@ def test_monologue_service_can_change_monologue_title(
     assert sample_monologue.title == "FOR THOSE WHO COME AFTER!"
 
 
+def test_monologue_service_emits_event_when_changing_monologue_title(
+    db_serv, db_session, sample_monologue, event_bus_mock
+):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
+    )
+
+    # Act
+    service.set_monologue_title(sample_monologue.id, "FOR THOSE WHO COME AFTER!")
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        MonologueMetadataSetEvent(
+            user_id=sample_monologue.agent.owner.id,
+            monologue_id=sample_monologue.id,
+            title="FOR THOSE WHO COME AFTER!",
+            summary="Thinking",
+        )
+    )
+
+
 def test_monologue_service_can_change_monologue_summary(
     db_serv, db_session, sample_monologue, event_bus_mock
 ):
@@ -648,6 +696,31 @@ def test_monologue_service_can_change_monologue_summary(
     # Assert
     db_session.refresh(sample_monologue)
     assert sample_monologue.summary == "summarized something"
+
+
+def test_monologue_service_emits_event_when_changing_monologue_summary(
+    db_serv, db_session, sample_monologue, event_bus_mock
+):
+    # Arrange
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
+    )
+
+    # Act
+    service.set_monologue_summary(sample_monologue.id, "summarized something")
+
+    # Assert
+    event_bus_mock.publish.assert_called_with(
+        MonologueMetadataSetEvent(
+            user_id=sample_monologue.agent.owner.id,
+            monologue_id=sample_monologue.id,
+            title="Handle incoming email",
+            summary="summarized something",
+        )
+    )
 
 
 def test_monologue_service_can_set_monologue_context(
@@ -844,6 +917,55 @@ def test_monologue_service_can_append_thought_to_monologue(
     assert sample_monologue.thoughts[3].timestamp == datetime.fromtimestamp(50, tz=UTC)
     # The current time is taken to be the modified_at time, not the timestamp of the added thought
     assert sample_monologue.modified_at == datetime.fromtimestamp(120, tz=UTC)
+
+
+@mock.patch("app.services.monologues.datetime")
+def test_monologue_service_emits_event_when_appending_thought_to_monologue(
+    mock_datetime, db_serv, db_session, sample_monologue, event_bus_mock
+):
+    # Arrange
+    mock_datetime.now.return_value = datetime.fromtimestamp(120, tz=UTC)
+    mock_action_serv = mock.MagicMock()
+    service = MonologueService(
+        database_service=db_serv,
+        action_service=mock_action_serv,
+        event_bus_service=event_bus_mock,
+    )
+    action = Action(
+        function_name="mega_func",
+        function_param_schema={},
+        function_source_code="",
+        function_docstring="",
+        repository=sample_monologue.thoughts[2].invocation.action.repository,
+    )
+    invocation = Invocation(
+        action=action, function_name="mega_func", params={"the_mega_param": "foobar"}
+    )
+    thought = Thought(
+        timestamp=datetime.fromtimestamp(50, tz=UTC),
+        invocation=invocation,
+        result="Suboptimal",
+    )
+
+    db_session.add(action)
+    db_session.commit()
+
+    # NOTE: The objects associated to the Thought must not be attached to any other session
+    db_session.expunge(action)
+
+    # Act
+    service.append_thought_to_monologue(sample_monologue.id, thought)
+
+    # Assert
+    event = event_bus_mock.publish.call_args
+
+    assert isinstance(event, MonologueThoughtAppendedEvent)
+    assert event.user_id == sample_monologue.agent.owner.id
+    assert event.monologue_id == sample_monologue.id
+    assert event.thought.invocation.action.function_name == "mega_func"
+    assert event.thought.invocation.params["the_mega_param"] == "foobar"
+    assert event.thought.result == "Suboptimal"
+    assert event.thought.timestamp == datetime.fromtimestamp(50, tz=UTC)
 
 
 def test_monologue_service_throws_when_manipulating_nonexistent_monologue(

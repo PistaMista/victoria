@@ -237,11 +237,7 @@ class MonologueStatusChangedEvent(Event):
     pass
 
 
-class MonologueTitleSetEvent(Event):
-    pass
-
-
-class MonologueSummarySetEvent(Event):
+class MonologueMetadataSetEvent(Event):
     pass
 
 
