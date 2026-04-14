@@ -5,17 +5,24 @@ from app.model.event import Event
 from app.model.thought import Thought
 from app.model.monologue import Monologue, MonologueStatus
 from app.services.db import DatabaseService
+from app.services import event_bus
 from app.services.monologues.runner import RunnerService
 from datetime import datetime, timezone
 import os
+from dataclasses import dataclass
 
 
 class DispatcherService:
     def __init__(
-        self, db_service: DatabaseService, runner_service: RunnerService, base_url: str
+        self,
+        db_service: DatabaseService,
+        runner_service: RunnerService,
+        event_bus_service: event_bus.EventBusService,
+        base_url: str,
     ):
         self._db = db_service
         self._runner = runner_service
+        self._event_bus: event_bus.EventBusService = event_bus_service
         self._base_url = base_url
 
     def stop(self):
@@ -43,13 +50,11 @@ class DispatcherService:
                 if isinstance(e, Event) and e not in session._new_events
             ]
         )
-        session._new_monologues.extend(
-            [
-                m
-                for m in session.new
-                if isinstance(m, Monologue) and m not in session._new_monologues
-            ]
-        )
+
+        for m in session.new:
+            if isinstance(m, Monologue) and m not in session._new_monologues:
+                m.agent.owner
+                session._new_monologues.append(m)
 
     def after_commit(self, session: Session):
         if hasattr(session, "_new_events"):
@@ -59,6 +64,12 @@ class DispatcherService:
         if hasattr(session, "_new_monologues"):
             for monologue in session._new_monologues:
                 self.start_monologue_thread(monologue)
+
+                self._event_bus.publish(
+                    MonologueDispatchedEvent(
+                        user_id=monologue.agent.owner.id, monologue_id=monologue.id
+                    )
+                )
 
     def dispatch_undispatched_events(self):
         with self._db.session() as db:
@@ -135,3 +146,9 @@ class DispatcherService:
     def start_monologue_thread(self, monologue: Monologue):
         print(f"Starting monologue #{monologue.id}")
         self._runner.start_monologue_process(monologue.id)
+
+
+@dataclass
+class MonologueDispatchedEvent(event_bus.Event):
+    user_id: int
+    monologue_id: int

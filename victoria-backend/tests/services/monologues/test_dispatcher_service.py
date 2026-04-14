@@ -12,7 +12,10 @@ from app.model.action_repository import ActionRepository
 from app.model.invocation import Invocation
 from app.model.trigger import PollTrigger
 from app.services.db import DatabaseService
-from app.services.monologues.dispatcher import DispatcherService
+from app.services.monologues.dispatcher import (
+    DispatcherService,
+    MonologueDispatchedEvent,
+)
 from datetime import datetime, UTC
 
 
@@ -22,23 +25,26 @@ def runner():
 
 
 @pytest.fixture(scope="function")
-def dispatcher(db_container, runner, db_factory):
+def dispatcher(db_container, runner, db_factory, event_bus_mock):
     db = DatabaseService(db_url=db_container)
 
     with mock.patch.object(db, "get_session_factory", return_value=db_factory):
         yield DispatcherService(
-            db_service=db, runner_service=runner, base_url="golem:11435"
+            db_service=db,
+            runner_service=runner,
+            event_bus_service=event_bus_mock,
+            base_url="golem:11435",
         )
 
 
 @pytest.fixture(scope="function")
 def owner():
-    return User(username="John", password_hash="", role=Role.USER)
+    return User(id=67, username="John", password_hash="", role=Role.USER)
 
 
 @mock.patch("app.services.monologues.dispatcher.datetime")
 def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(
-    mock_datetime, db_session, dispatcher, owner
+    mock_datetime, db_session, dispatcher, owner, event_bus_mock
 ):
     # Arrange
     mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
@@ -95,10 +101,14 @@ def test_dispatcher_creates_new_monologue_when_an_event_is_added_to_db(
         == "An email has arrived: Hello, this is..."
     )
 
+    event_bus_mock.publish.assert_called_once_with(
+        MonologueDispatchedEvent(user_id=67, monologue_id=event.monologues[0].id)
+    )
+
 
 @mock.patch("app.services.monologues.dispatcher.datetime")
 def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(
-    mock_datetime, db_session, dispatcher, owner
+    mock_datetime, db_session, dispatcher, owner, event_bus_mock
 ):
     # Arrange
     mock_datetime.now.return_value = datetime.fromtimestamp(5000, tz=UTC)
@@ -143,6 +153,10 @@ def test_dispatcher_creates_new_monologue_for_existing_undispatched_events(
     assert len(event.monologues[0].thoughts) == 1
     assert event.monologues[0].thoughts[0].invocation is None
     assert event.monologues[0].thoughts[0].result == "An email has arrived..."
+
+    event_bus_mock.publish.assert_called_once_with(
+        MonologueDispatchedEvent(user_id=67, monologue_id=event.monologues[0].id)
+    )
 
 
 def test_dispatcher_sets_basic_monologue_context_when_dispatching_monologue(
@@ -277,7 +291,9 @@ def test_dispatcher_generates_monologue_context_token_again_after_token_collisio
     assert event.monologues[0].context["TOKEN"] == b64encode(b"bbbb").decode("utf-8")
 
 
-def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, owner):
+def test_dispatcher_does_nothing_for_dispatched_events(
+    db_session, dispatcher, owner, event_bus_mock
+):
     # Arrange
     trigger = PollTrigger(
         name="Emails",
@@ -313,10 +329,11 @@ def test_dispatcher_does_nothing_for_dispatched_events(db_session, dispatcher, o
     # ...in this case the event has already been processed, so no new monologues should have been created
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
+    event_bus_mock.publish.assert_not_called()
 
 
 def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_agent(
-    dispatcher, db_session, owner
+    dispatcher, db_session, owner, event_bus_mock
 ):
     # Arrange
     trigger = (
@@ -358,10 +375,11 @@ def test_dispatcher_does_not_create_monologues_for_new_events_with_no_matching_a
     assert event.dispatched
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
+    event_bus_mock.publish.assert_not_called()
 
 
 def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_with_no_matching_agent(
-    dispatcher, db_session, owner
+    dispatcher, db_session, owner, event_bus_mock
 ):
     # Arrange
     trigger = PollTrigger(
@@ -399,6 +417,7 @@ def test_dispatcher_does_not_create_monologues_for_existing_undispatched_events_
     assert event.dispatched
     assert len(event.monologues) == 0
     assert db_session.scalars(select(Monologue)).first() is None
+    event_bus_mock.publish.assert_not_called()
 
 
 def test_dispatcher_instructs_runner_to_start_processing_when_monologue_is_added_to_db(
@@ -573,7 +592,7 @@ def test_dispatcher_instructs_runner_to_process_monologue_just_added_by_new_even
 
 
 def test_dispatcher_does_nothing_for_finished_monologues(
-    db_session, runner, dispatcher, owner
+    db_session, runner, dispatcher, owner, event_bus_mock
 ):
     # Arrange
     trigger = PollTrigger(
@@ -643,3 +662,4 @@ def test_dispatcher_does_nothing_for_finished_monologues(
 
     # Assert
     runner.start_monologue_process.assert_not_called()
+    event_bus_mock.publish.assert_not_called()

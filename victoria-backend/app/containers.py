@@ -69,6 +69,7 @@ class Container(containers.DeclarativeContainer):
         DispatcherService,
         db_service=db,
         runner_service=runner,
+        event_bus_service=event_bus,
         base_url=providers.Callable(lambda c: f"{c['ADDRESS']}:{c['PORT']}", config),
     )
 
