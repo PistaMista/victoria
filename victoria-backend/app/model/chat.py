@@ -14,7 +14,7 @@ class Chat(Base):
     summary: Mapped[str] = mapped_column(String(180), nullable=False)
     receiver: Mapped[str] = mapped_column(String(30), nullable=False)
 
-    owner_id: Mapped[str] = mapped_column(
+    owner_id: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), nullable=False
     )
     owner: Mapped["User"] = relationship("User", back_populates="chats")

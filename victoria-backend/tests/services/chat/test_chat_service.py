@@ -1570,7 +1570,7 @@ def test_chat_service_emits_event_when_sending_markdown_reply_to_user_exchange_f
     exchange = user_john.chats[0].exchanges[0]
     reply_id = exchange.agent_replies[0].id
     event_bus_mock.publish.assert_called_with(
-        ChatMessageSentEvent(user_id=5, chat_id=None, exchange_id=1, reply_id=reply_id)
+        ChatMessageSentEvent(user_id=5, chat_id=1, exchange_id=1, reply_id=reply_id)
     )
 
 
@@ -1725,7 +1725,7 @@ def test_chat_service_emits_event_when_sending_choice_reply_to_user_exchange_fro
 
     # Assert
     event_bus_mock.publish.assert_called_with(
-        ChatMessageSentEvent(user_id=5, chat_id=None, exchange_id=1, reply_id=query_id)
+        ChatMessageSentEvent(user_id=5, chat_id=1, exchange_id=1, reply_id=query_id)
     )
 
 
