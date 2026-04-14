@@ -71,7 +71,10 @@ class Container(containers.DeclarativeContainer):
     trigger = providers.Singleton(TriggerService, database_service=db)
 
     chat = providers.Singleton(
-        ChatService, database_service=db, trigger_service=trigger
+        ChatService,
+        database_service=db,
+        trigger_service=trigger,
+        event_bus_service=event_bus,
     )
 
     agent = providers.Singleton(AgentService, database_service=db)

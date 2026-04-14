@@ -97,6 +97,11 @@ def db_mock():
 
 
 @pytest.fixture(scope="function")
+def event_bus_mock():
+    return mock.MagicMock()
+
+
+@pytest.fixture(scope="function")
 def user_mock():
     return mock.MagicMock()
 
@@ -154,6 +159,7 @@ def llm_mock():
 @pytest.fixture(scope="function")
 def mock_app(
     db_mock,
+    event_bus_mock,
     dispatcher_mock,
     user_mock,
     auth_mock,
@@ -169,6 +175,7 @@ def mock_app(
     app = create_app()
 
     app.container.db.override(db_mock)
+    app.container.event_bus.override(event_bus_mock)
     app.container.dispatcher.override(dispatcher_mock)
     app.container.user.override(user_mock)
     app.container.auth.override(auth_mock)

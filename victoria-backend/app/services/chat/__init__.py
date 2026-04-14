@@ -5,6 +5,7 @@ from sqlalchemy import select, func, distinct, or_
 from sqlalchemy.orm import Session, joinedload, undefer, with_polymorphic
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
+from app.services.event_bus import EventBusService
 from app.model.trigger import ChatTrigger
 from app.model.action import Action
 from app.model.user import User
@@ -29,10 +30,14 @@ class ChatSortMode(Enum):
 
 class ChatService:
     def __init__(
-        self, database_service: DatabaseService, trigger_service: TriggerService
+        self,
+        database_service: DatabaseService,
+        trigger_service: TriggerService,
+        event_bus_service: EventBusService,
     ):
         self._db: DatabaseService = database_service
         self._trigger: TriggerService = trigger_service
+        self._event_bus: EventBusService = event_bus_service
 
     def get_user_chats(
         self,
