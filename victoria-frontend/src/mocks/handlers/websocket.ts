@@ -6,7 +6,7 @@ import { socketSendMessages } from "./exchanges";
 import { socketSendMonologueStatus, socketSendMonologueThoughts } from "./monologues";
 
 
-const socket = ws.link("ws://localhost:3000/websocket")
+const socket = ws.link("ws://localhost:3000/ws")
 
 export const disconnectionHandler = await spy(() => { });
 

@@ -24,7 +24,7 @@ let subscriptions: Map<number, Writable<HandlerSubscription>> = new Map();
 export function connectWithRetry(): void {
 	if (socket !== null) return;
 
-	const url = new URL('/websocket', window.location.href);
+	const url = new URL('/ws', window.location.href);
 	url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
 
 	socket = new WebSocket(url);
