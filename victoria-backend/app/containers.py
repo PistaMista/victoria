@@ -32,6 +32,7 @@ class Container(containers.DeclarativeContainer):
             ".interfaces.rest_api.triggers",
             ".interfaces.rest_api.users",
             ".interfaces.rest_api.webhooks",
+            ".interfaces.websocket",
         ]
     )
 
