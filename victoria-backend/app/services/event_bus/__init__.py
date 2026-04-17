@@ -1,5 +1,7 @@
 from typing import Callable, Dict, List, Any
 
+UnsubscribeHandle = Callable[[], None]
+
 
 class EventBusService:
     def __init__(self):
@@ -14,7 +16,7 @@ class EventBusService:
 
     def subscribe[T: Event](
         self, event: type[T], handler: Callable[[T], None]
-    ) -> Callable[[], None]:
+    ) -> UnsubscribeHandle:
         """Subscribes to an event on the bus.
 
         Returns:

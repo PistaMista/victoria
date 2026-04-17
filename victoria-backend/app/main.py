@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from app.lib.spa_static_files import SPAStaticFiles
 from app.interfaces.rest_api import api_router
-from app.interfaces.websocket import websocket_router
+from app.interfaces.websocket.endpoint import websocket_router
 from app.config import settings
 from fastapi import FastAPI
 from app.containers import Container

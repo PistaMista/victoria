@@ -12,6 +12,7 @@ from app.services.trigger import TriggerService
 from app.services.agent import AgentService
 from app.services.chat import ChatService
 from app.services.event_bus import EventBusService
+from app.interfaces.websocket.connection import WebsocketConnection
 from dependency_injector import containers, providers
 
 
@@ -32,7 +33,7 @@ class Container(containers.DeclarativeContainer):
             ".interfaces.rest_api.triggers",
             ".interfaces.rest_api.users",
             ".interfaces.rest_api.webhooks",
-            ".interfaces.websocket",
+            ".interfaces.websocket.endpoint",
         ]
     )
 
@@ -92,4 +93,11 @@ class Container(containers.DeclarativeContainer):
         user_service=user,
         jwt_secret=config.JWT_SECRET,
         login_lifetime=2592000,
+    )
+
+    websocket_connection_factory = providers.Factory(
+        WebsocketConnection,
+        event_bus_service=event_bus,
+        heartbeat_interval=config.WS_HEARTBEAT_INTERVAL,
+        heartbeat_timeout=config.WS_HEARTBEAT_TIMEOUT,
     )
