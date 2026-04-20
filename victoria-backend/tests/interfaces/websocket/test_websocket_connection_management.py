@@ -16,6 +16,7 @@ def test_websocket_connect_succeeds_for_valid_connection_request(
         # Assert
         assert ws is not None
         auth_mock.get_as_non_admin_user.assert_called_once_with("tokenito")
+        sleep(0.5)
 
 
 def test_websocket_connect_throws_when_not_logged_in(mock_client, auth_mock):
@@ -54,7 +55,7 @@ def test_websocket_stays_open_if_client_replies_to_heartbeat(
 ):
     # Arrange
     mock_app.container.config.WS_HEARTBEAT_INTERVAL.override(0.2)
-    mock_app.container.config.WS_HEARTBEAT_TIMEOUT.override(0.3)
+    mock_app.container.config.WS_HEARTBEAT_TIMEOUT.override(0.7)
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 

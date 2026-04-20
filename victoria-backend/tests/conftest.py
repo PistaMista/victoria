@@ -10,7 +10,7 @@ from dependency_injector import providers
 from app.config import settings
 from app.model.user import User, Role
 from app.services.db import DatabaseService
-from app.services.auth import AuthService
+from app.services.auth import AuthService, AdminRequiredError
 from app.services.user import UserService
 from app.services.action import ActionService
 from app.services.trigger import TriggerService
@@ -199,6 +199,15 @@ def client(app):
 @pytest.fixture(scope="function")
 def mock_client(mock_app):
     return TestClient(mock_app)
+
+
+@pytest.fixture(scope="function")
+def mock_ws(mock_client, auth_mock, user):
+    auth_mock.get_as_non_admin_user.return_value = user
+    auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
+
+    with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
+        yield ws
 
 
 @pytest.fixture(scope="function")
