@@ -205,6 +205,11 @@ class ChatService:
             db.commit()
 
             self._event_bus.publish(
+                ChatExchangeCreatedEvent(
+                    user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
+                )
+            )
+            self._event_bus.publish(
                 ChatMessageSentEvent(
                     user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
                 )
@@ -247,6 +252,11 @@ class ChatService:
             chat.exchanges.append(new_exchange)
             db.commit()
 
+            self._event_bus.publish(
+                ChatExchangeCreatedEvent(
+                    user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
+                )
+            )
             self._event_bus.publish(
                 ChatMessageSentEvent(
                     user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
@@ -577,6 +587,13 @@ class ChatCreatedEvent(event_bus.Event):
 class ChatDeletedEvent(event_bus.Event):
     user_id: int
     chat_id: int
+
+
+@dataclass
+class ChatExchangeCreatedEvent(event_bus.Event):
+    user_id: int
+    chat_id: int
+    exchange_id: int
 
 
 @dataclass

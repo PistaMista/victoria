@@ -14,6 +14,7 @@ from app.services.chat import (
     ChatOptionsDiff,
     ChatCreatedEvent,
     ChatDeletedEvent,
+    ChatExchangeCreatedEvent,
     ChatMessageSentEvent,
     ChatSummarySetEvent,
     ChatOptionsSetEvent,
@@ -1087,7 +1088,10 @@ def test_chat_service_emits_event_when_sending_markdown_message_to_user_chat_fro
     )
 
     # Assert
-    event_bus_mock.publish.assert_called_with(
+    event_bus_mock.publish.assert_any_call(
+        ChatExchangeCreatedEvent(user_id=5, chat_id=1, exchange_id=exchange_id)
+    )
+    event_bus_mock.publish.assert_any_call(
         ChatMessageSentEvent(
             user_id=5, chat_id=1, exchange_id=exchange_id, reply_id=None
         )
@@ -1247,7 +1251,10 @@ def test_chat_service_emits_event_when_sending_markdown_message_to_user_chat_fro
     )
 
     # Assert
-    event_bus_mock.publish.assert_called_with(
+    event_bus_mock.publish.assert_any_call(
+        ChatExchangeCreatedEvent(user_id=5, chat_id=1, exchange_id=exchange_id)
+    )
+    event_bus_mock.publish.assert_any_call(
         ChatMessageSentEvent(
             user_id=5, chat_id=1, exchange_id=exchange_id, reply_id=None
         )
@@ -1421,7 +1428,10 @@ def test_chat_service_emits_event_when_sending_choice_message_to_user_chat_from_
     )
 
     # Assert
-    event_bus_mock.publish.assert_called_with(
+    event_bus_mock.publish.assert_any_call(
+        ChatExchangeCreatedEvent(user_id=5, chat_id=1, exchange_id=exchange_id)
+    )
+    event_bus_mock.publish.assert_any_call(
         ChatMessageSentEvent(
             user_id=5, chat_id=1, exchange_id=exchange_id, reply_id=None
         )
