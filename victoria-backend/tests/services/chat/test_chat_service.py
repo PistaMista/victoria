@@ -1839,6 +1839,106 @@ def test_chat_service_leaves_agent_field_blank_for_sent_messages_for_nonexistent
     assert reply_exchange.agent_replies[1].sending_agent is None
 
 
+def test_chat_service_can_get_exchange_by_id_including_user_message(
+    db_serv, db_session, trigger_mock, event_bus_mock
+):
+    # Arrange
+    serv = ChatService(
+        database_service=db_serv,
+        trigger_service=trigger_mock,
+        event_bus_service=event_bus_mock,
+    )
+    user_john = User(
+        id=5,
+        username="John",
+        password_hash="",
+        role=Role.USER,
+        chats=[
+            Chat(
+                id=1,
+                title="Carrots",
+                summary="",
+                receiver="general",
+                created_at=datetime.fromtimestamp(4000, tz=UTC),
+                modified_at=datetime.fromtimestamp(4350, tz=UTC),
+                exchanges=[
+                    ChatExchange(
+                        id=1,
+                        timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                        user_message=ChatMessageMarkdown(
+                            id=1,
+                            timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                            markdown="Hello!",
+                        ),
+                        agent_replies=[
+                            ChatMessageMarkdown(
+                                id=2,
+                                timestamp=datetime.fromtimestamp(4200, tz=UTC),
+                                markdown="What needs to be done?",
+                            )
+                        ],
+                    ),
+                    ChatExchange(
+                        id=2,
+                        timestamp=datetime.fromtimestamp(4300, tz=UTC),
+                        user_message=ChatMessageMarkdown(
+                            id=3,
+                            timestamp=datetime.fromtimestamp(4300, tz=UTC),
+                            markdown="Find a book.",
+                        ),
+                        agent_replies=[
+                            ChatMessageMarkdown(
+                                id=4,
+                                timestamp=datetime.fromtimestamp(4350, tz=UTC),
+                                markdown="Book found.",
+                            )
+                        ],
+                    ),
+                    ChatExchange(
+                        id=3,
+                        timestamp=datetime.fromtimestamp(5000, tz=UTC),
+                        user_message=ChatMessageMarkdown(
+                            id=5,
+                            timestamp=datetime.fromtimestamp(4300, tz=UTC),
+                            markdown="Really?",
+                        ),
+                        agent_replies=[
+                            ChatMessageMarkdown(
+                                id=6,
+                                timestamp=datetime.fromtimestamp(4350, tz=UTC),
+                                markdown="Really.",
+                            )
+                        ],
+                    ),
+                ],
+            ),
+            Chat(
+                id=2,
+                title="Potatoes",
+                summary="KARTOFFELSALAD",
+                receiver="general",
+                created_at=datetime.fromtimestamp(7000, tz=UTC),
+                modified_at=datetime.fromtimestamp(12000, tz=UTC),
+                exchanges=[],
+            ),
+        ],
+    )
+    agent = Agent(
+        id=12, name="Librarian", prompt="You are a librarian", owner=user_john
+    )
+    db_session.add(user_john)
+    db_session.add(agent)
+    db_session.commit()
+
+    # Act
+    res = serv.get_user_chat_exchange(user_id=5, exchange_id=2)
+
+    # Assert
+    assert res.id == 2
+    assert isinstance(res.user_message, ChatMessageMarkdown)
+    assert res.user_message.markdown == "Find a book."
+
+
 def test_chat_service_can_get_exchanges_after_timestamp_including_user_message(
     db_serv, db_session, trigger_mock, event_bus_mock
 ):

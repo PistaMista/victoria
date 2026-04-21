@@ -328,6 +328,24 @@ class ChatService:
 
             return msg.id
 
+    def get_user_chat_exchange(self, user_id: int, exchange_id: int) -> ChatExchange:
+        """Gets the given user chat exchange."""
+        with self._db.session() as db:
+            res = self._load_user_exchange(db, user_id, exchange_id)
+
+            [x.monologues for x in res.triggered_chat_events]
+            res.user_message.sending_user
+            res.user_message.sending_agent
+
+            match res.user_message:
+                case ChatMessageMarkdown():
+                    res.user_message.markdown
+                case ChatMessageChoicePrompt():
+                    res.user_message.prompt
+                    [x.value for x in res.user_message.choices]
+
+            return res
+
     def get_user_chat_exchanges_after(
         self, user_id: int, chat_id: int, after: int
     ) -> List[ChatExchange]:
