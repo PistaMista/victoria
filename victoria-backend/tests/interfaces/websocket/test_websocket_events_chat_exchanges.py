@@ -11,7 +11,7 @@ from datetime import datetime, UTC
 @pytest.mark.timeout(2)
 def test_websocket_chat_exchanges_initial_listing(mock_ws, chat_mock, event_bus_mock):
     # Arrange
-    event_bus_mock.subscribe.return_value = lambda _: ()
+    event_bus_mock.subscribe.return_value = lambda: ()
     chat_mock.get_user_chat_exchanges_after.return_value = [
         ChatExchange(
             id=2,
@@ -91,7 +91,7 @@ def test_websocket_chat_exchanges_new_event(mock_ws, event_bus_mock, chat_mock, 
         nonlocal handler
         assert t is ChatExchangeCreatedEvent
         handler = h
-        return lambda _: ()
+        return lambda: ()
 
     event_bus_mock.subscribe.side_effect = subscribe
     chat_mock.get_user_chat_exchanges_after.return_value = [
@@ -119,14 +119,12 @@ def test_websocket_chat_exchanges_new_event(mock_ws, event_bus_mock, chat_mock, 
             triggered_chat_events=[Event(monologues=[Monologue(id=3)])],
         ),
     ]
-    chat_mock.get_user_chat_exchange.return_value = (
-        ChatExchange(
-            id=3,
-            chat_id=4,
-            timestamp=datetime.fromtimestamp(1200),
-            user_message=None,
-            triggered_chat_events=[Event(monologues=[Monologue(id=3)])],
-        ),
+    chat_mock.get_user_chat_exchange.return_value = ChatExchange(
+        id=3,
+        chat_id=4,
+        timestamp=datetime.fromtimestamp(1200),
+        user_message=None,
+        triggered_chat_events=[Event(monologues=[Monologue(id=3)])],
     )
 
     sub_req = {
@@ -139,7 +137,7 @@ def test_websocket_chat_exchanges_new_event(mock_ws, event_bus_mock, chat_mock, 
     mock_ws.send_json(sub_req)
     mock_ws.receive_json()  # Sub response
 
-    event = ChatExchangeCreatedEvent(user_id=3, chat_id=4, exchange_id=3)
+    event = ChatExchangeCreatedEvent(user_id=user.id, chat_id=3, exchange_id=3)
     handler(event)
 
     res = mock_ws.receive_json()
@@ -171,7 +169,7 @@ def test_websocket_chat_exchanges_complex(mock_ws, event_bus_mock, chat_mock, us
         nonlocal handler
         assert t is ChatExchangeCreatedEvent
         handler = h
-        return lambda _: ()
+        return lambda: ()
 
     event_bus_mock.subscribe.side_effect = subscribe
     chat_mock.get_user_chat_exchanges_after.return_value = [
@@ -205,20 +203,18 @@ def test_websocket_chat_exchanges_complex(mock_ws, event_bus_mock, chat_mock, us
             triggered_chat_events=[Event(monologues=[Monologue(id=3)])],
         ),
     ]
-    chat_mock.get_user_chat_exchange.return_value = (
-        ChatExchange(
-            id=5,
-            chat_id=4,
-            timestamp=datetime.fromtimestamp(1200),
-            user_message=None,
-            triggered_chat_events=[Event(monologues=[Monologue(id=3)])],
-        ),
+    chat_mock.get_user_chat_exchange.return_value = ChatExchange(
+        id=5,
+        chat_id=4,
+        timestamp=datetime.fromtimestamp(1200),
+        user_message=None,
+        triggered_chat_events=[Event(monologues=[Monologue(id=3)])],
     )
 
     sub_req = {
         "type": "subscribeRequest",
         "handlerId": 1,
-        "subscription": {"type": "chat_exchanges", "chatId": 3, "sendInitial": False},
+        "subscription": {"type": "chat_exchanges", "chatId": 3, "sendInitial": True},
     }
 
     # Act
@@ -227,7 +223,7 @@ def test_websocket_chat_exchanges_complex(mock_ws, event_bus_mock, chat_mock, us
 
     res_initial = mock_ws.receive_json()
 
-    event = ChatExchangeCreatedEvent(user_id=3, chat_id=4, exchange_id=3)
+    event = ChatExchangeCreatedEvent(user_id=user.id, chat_id=3, exchange_id=3)
     handler(event)
 
     res_new = mock_ws.receive_json()
