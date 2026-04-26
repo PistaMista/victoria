@@ -64,7 +64,9 @@ class MonologueThoughtsSubscriptionHandler(SubscriptionHandler):
 
     def _send_initial_thoughts(self, handler_id: int):
         try:
-            thoughts = self._monologue.get_monologue_thoughts(self._monologue_id)
+            thoughts = self._monologue.get_user_monologue_thoughts(
+                user_id=self._user_id, monologue_id=self._monologue_id
+            )
             thought_msgs = [to_thought_response(x) for x in thoughts]
             msg = InitialThoughtEvent(thoughts=thought_msgs)
             self._send_event(msg, [handler_id])
