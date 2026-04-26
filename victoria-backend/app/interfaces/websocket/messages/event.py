@@ -1,11 +1,16 @@
 from pydantic import BaseModel
 from typing import Union, List, Literal
 from .events.monologue_thoughts import InitialThoughtEvent, NewThoughtEvent
+from .events.monologue_status import MonologueStatusEvent
 from .events.chat_exchange import InitialExchangesEvent, NewExchangeEvent
 
 
 EventContent = Union[
-    InitialThoughtEvent, NewThoughtEvent, InitialExchangesEvent, NewExchangeEvent
+    InitialThoughtEvent,
+    NewThoughtEvent,
+    InitialExchangesEvent,
+    NewExchangeEvent,
+    MonologueStatusEvent,
 ]
 
 

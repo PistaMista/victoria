@@ -36,6 +36,7 @@ class Container(containers.DeclarativeContainer):
             ".interfaces.websocket.handlers",
             ".interfaces.websocket.handlers.chat_exchange",
             ".interfaces.websocket.handlers.monologue_thoughts",
+            ".interfaces.websocket.handlers.monologue_status",
         ]
     )
 

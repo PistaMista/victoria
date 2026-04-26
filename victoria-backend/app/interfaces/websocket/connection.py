@@ -2,6 +2,7 @@ from fastapi import WebSocket, WebSocketDisconnect, status
 from .handlers import SubscriptionHandler
 from .handlers.chat_exchange import ChatExchangeSubscriptionHandler
 from .handlers.monologue_thoughts import MonologueThoughtsSubscriptionHandler
+from .handlers.monologue_status import MonologueStatusSubscriptionHandler
 from .messages import Message
 from .messages.heartbeat import PingMessage, PongMessage
 from .messages.subscription import (
@@ -12,6 +13,7 @@ from .messages.subscription import (
     Subscription,
     ChatExchangesSubscription,
     MonologueThoughtsSubscription,
+    MonologueStatusSubscription,
 )
 from app.services.event_bus import EventBusService
 from app.model.user import User
@@ -83,6 +85,13 @@ class WebsocketConnection:
                 )
             case MonologueThoughtsSubscription():
                 return MonologueThoughtsSubscriptionHandler(
+                    send_queue=self._send_queue,
+                    event_loop=loop,
+                    user_id=self._user.id,
+                    monologue_id=subscription.monologueId,
+                )
+            case MonologueStatusSubscription():
+                return MonologueStatusSubscriptionHandler(
                     send_queue=self._send_queue,
                     event_loop=loop,
                     user_id=self._user.id,
