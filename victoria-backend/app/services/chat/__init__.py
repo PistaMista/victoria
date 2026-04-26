@@ -508,6 +508,23 @@ class ChatService:
 
             return res
 
+    def get_user_chat_message(self, user_id: int, message_id: int) -> ChatMessage:
+        """Gets the given user chat message."""
+        with self._db.session() as db:
+            res = self._load_user_message(db, user_id, message_id)
+
+            res.sending_user
+            res.sending_agent
+
+            match res:
+                case ChatMessageMarkdown():
+                    res.markdown
+                case ChatMessageChoicePrompt():
+                    res.prompt
+                    [x.value for x in res.choices]
+
+            return res
+
     def get_user_query_answer(self, user_id: int, message_id: int) -> Any:
         """Returns the user's answer to the given query."""
         with self._db.session() as db:
