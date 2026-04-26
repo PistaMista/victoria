@@ -3,6 +3,7 @@ from .handlers import SubscriptionHandler
 from .handlers.chat_exchange import ChatExchangeSubscriptionHandler
 from .handlers.monologue_thoughts import MonologueThoughtsSubscriptionHandler
 from .handlers.monologue_status import MonologueStatusSubscriptionHandler
+from .handlers.exchange_agent_messages import ExchangeAgentMessagesSubscriptionHandler
 from .messages import Message
 from .messages.heartbeat import PingMessage, PongMessage
 from .messages.subscription import (
@@ -12,6 +13,7 @@ from .messages.subscription import (
     UnsubscribeResponseMessage,
     Subscription,
     ChatExchangesSubscription,
+    ExchangeMessagesSubscription,
     MonologueThoughtsSubscription,
     MonologueStatusSubscription,
 )
@@ -97,6 +99,13 @@ class WebsocketConnection:
                     user_id=self._user.id,
                     monologue_id=subscription.monologueId,
                 )
+            case ExchangeMessagesSubscription():
+                return ExchangeAgentMessagesSubscriptionHandler(
+                    send_queue=self._send_queue,
+                    event_loop=loop,
+                    user_id=self._user.id,
+                    exchange_id=subscription.exchangeId,
+                )
 
         return None
 
@@ -119,6 +128,9 @@ class WebsocketConnection:
             handler = self._construct_subscription_handler(msg.subscription)
 
             if handler is None or not handler.can_handle_subscription(msg.subscription):
+                if handler:
+                    handler.disconnect_from_event_bus()
+
                 reply = SubscribeResponseMessage(
                     handlerId=msg.handlerId,
                     success=False,
