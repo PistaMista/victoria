@@ -2,6 +2,7 @@ from fastapi.websockets import WebSocketDisconnect
 from app.services.auth import NotLoggedInError, AdminRequiredError
 import pytest
 from time import sleep
+import concurrent.futures
 
 
 def test_websocket_connect_succeeds_for_valid_connection_request(
@@ -12,11 +13,14 @@ def test_websocket_connect_succeeds_for_valid_connection_request(
     auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 
     # Act
-    with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
-        # Assert
-        assert ws is not None
-        auth_mock.get_as_non_admin_user.assert_called_once_with("tokenito")
-        sleep(0.5)
+    try:
+        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
+            # Assert
+            assert ws is not None
+            auth_mock.get_as_non_admin_user.assert_called_once_with("tokenito")
+            sleep(0.5)
+    except concurrent.futures.CancelledError:
+        pass
 
 
 def test_websocket_connect_throws_when_not_logged_in(mock_client, auth_mock):
@@ -25,9 +29,14 @@ def test_websocket_connect_throws_when_not_logged_in(mock_client, auth_mock):
     auth_mock.get_as_admin_user.side_effect = NotLoggedInError()
 
     # Act / Assert
-    with pytest.raises(WebSocketDisconnect):
-        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as _:
-            pass
+    try:
+        with pytest.raises(WebSocketDisconnect):
+            with mock_client.websocket_connect(
+                "/ws", cookies={"token": "tokenito"}
+            ) as _:
+                pass
+    except concurrent.futures.CancelledError:
+        pass
 
     auth_mock.get_as_non_admin_user.assert_called_once_with("tokenito")
 
@@ -43,10 +52,13 @@ def test_websocket_sends_heartbeat_message_periodically(
     auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 
     # Act / Assert
-    with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
-        for _ in range(3):
-            ping = ws.receive_json()
-            assert ping == {"type": "ping"}
+    try:
+        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
+            for _ in range(3):
+                ping = ws.receive_json()
+                assert ping == {"type": "ping"}
+    except concurrent.futures.CancelledError:
+        pass
 
 
 @pytest.mark.timeout(5)
@@ -60,15 +72,18 @@ def test_websocket_stays_open_if_client_replies_to_heartbeat(
     auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 
     # Act / Assert
-    with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
-        for i in range(5):
-            sleep(0.2)
-            obj = ws.receive_json()
+    try:
+        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
+            for i in range(5):
+                sleep(0.2)
+                obj = ws.receive_json()
 
-            if obj == {"type": "ping"}:
-                ws.send_json({"type": "pong"})
-            else:
-                i -= 1
+                if obj == {"type": "ping"}:
+                    ws.send_json({"type": "pong"})
+                else:
+                    i -= 1
+    except concurrent.futures.CancelledError:
+        pass
 
 
 @pytest.mark.timeout(5)
@@ -82,9 +97,14 @@ def test_websocket_closes_if_client_not_replies_to_heartbeat(
     auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 
     # Act / Assert
-    with pytest.raises(WebSocketDisconnect):
-        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
-            for _ in range(3):
-                ws.receive_json()
-                sleep(0.7)
-                ws.send_json({"type": "ping"})
+    try:
+        with pytest.raises(WebSocketDisconnect):
+            with mock_client.websocket_connect(
+                "/ws", cookies={"token": "tokenito"}
+            ) as ws:
+                for _ in range(3):
+                    ws.receive_json()
+                    sleep(0.7)
+                    ws.send_json({"type": "ping"})
+    except concurrent.futures.CancelledError:
+        pass

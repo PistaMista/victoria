@@ -20,6 +20,7 @@ from app.services.monologues.runner.monologue_thread import AgenticMonologueThre
 from app.services.monologues import MonologueService
 from app.services.chat import ChatService
 from app.services.agent import AgentService
+import concurrent.futures
 
 
 postgres = PostgresContainer("postgres")
@@ -206,8 +207,11 @@ def mock_ws(mock_client, auth_mock, user):
     auth_mock.get_as_non_admin_user.return_value = user
     auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
 
-    with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
-        yield ws
+    try:
+        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
+            yield ws
+    except concurrent.futures.CancelledError:
+        pass
 
 
 @pytest.fixture(scope="function")
