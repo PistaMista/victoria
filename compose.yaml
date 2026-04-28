@@ -12,6 +12,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      ollama:
+        condition: service_started
 
   database:
     image: postgres:18
@@ -27,5 +29,12 @@ services:
     volumes:
       - data:/var/lib/postgresql/18/data
 
+  ollama:
+    image: ollama/ollama:0.21.2
+    tty: true
+    volumes:
+      - ollama:/root/.ollama
+
 volumes:
   data: {}
+  ollama: {}
