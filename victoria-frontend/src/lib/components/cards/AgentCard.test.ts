@@ -38,7 +38,7 @@ test("agent card shows monologue names of given agent", async () => {
 
 	await waitFor(() => {
 		expect(container).toHaveTextContent("Research thesis ideas");
-		expect(container).toHaveTextContent("Respond to user message");
+		expect(container).toHaveTextContent("Generate recipes for the week");
 	});
 });
 

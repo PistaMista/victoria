@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from app.lib.spa_static_files import SPAStaticFiles
 from app.interfaces.rest_api import api_router
+from app.interfaces.websocket.endpoint import websocket_router
 from app.config import settings
 from fastapi import FastAPI
 from app.containers import Container
@@ -23,6 +24,7 @@ def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan)
     app.container = container
     app.mount("/api", api_router)
+    app.include_router(websocket_router)
 
     if settings.FRONTEND_PATH:
         app.mount("/", SPAStaticFiles(directory=settings.FRONTEND_PATH))

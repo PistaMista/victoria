@@ -5,6 +5,7 @@ from sqlalchemy import select, func, distinct, or_
 from sqlalchemy.orm import Session, joinedload, undefer, with_polymorphic
 from app.services.db import DatabaseService
 from app.services.trigger import TriggerService
+from app.services import event_bus
 from app.model.trigger import ChatTrigger
 from app.model.action import Action
 from app.model.user import User
@@ -19,7 +20,7 @@ from app.model.chat_message import (
     ChoiceMessageOption,
 )
 from datetime import datetime, UTC
-import copy
+from dataclasses import dataclass
 
 
 class ChatSortMode(Enum):
@@ -29,10 +30,14 @@ class ChatSortMode(Enum):
 
 class ChatService:
     def __init__(
-        self, database_service: DatabaseService, trigger_service: TriggerService
+        self,
+        database_service: DatabaseService,
+        trigger_service: TriggerService,
+        event_bus_service: event_bus.EventBusService,
     ):
         self._db: DatabaseService = database_service
         self._trigger: TriggerService = trigger_service
+        self._event_bus: event_bus.EventBusService = event_bus_service
 
     def get_user_chats(
         self,
@@ -85,6 +90,9 @@ class ChatService:
             db.add(new_chat)
             db.commit()
 
+            self._event_bus.publish(
+                ChatCreatedEvent(user_id=new_chat.owner_id, chat_id=new_chat.id)
+            )
             return new_chat.id
 
     def get_user_chat(self, user_id: int, chat_id: int) -> Chat:
@@ -113,6 +121,8 @@ class ChatService:
             chat = self._load_user_chat(db, user_id, chat_id)
             db.delete(chat)
             db.commit()
+
+            self._event_bus.publish(ChatDeletedEvent(user_id=user_id, chat_id=chat_id))
 
     def duplicate_user_chat(
         self, user_id: int, chat_id: int, last_exchange_id: Optional[int] = None
@@ -148,6 +158,9 @@ class ChatService:
             db.add(new_chat)
             db.commit()
 
+            self._event_bus.publish(
+                ChatCreatedEvent(user_id=new_chat.owner_id, chat_id=new_chat.id)
+            )
             return new_chat.id
 
     def send_markdown_message_to_user_chat(
@@ -191,6 +204,16 @@ class ChatService:
             chat.modified_at = datetime.now(tz=UTC)
             db.commit()
 
+            self._event_bus.publish(
+                ChatExchangeCreatedEvent(
+                    user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
+                )
+            )
+            self._event_bus.publish(
+                ChatMessageSentEvent(
+                    user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
+                )
+            )
             return new_exchange.id
 
     def send_choice_message_to_user_chat(
@@ -229,6 +252,16 @@ class ChatService:
             chat.exchanges.append(new_exchange)
             db.commit()
 
+            self._event_bus.publish(
+                ChatExchangeCreatedEvent(
+                    user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
+                )
+            )
+            self._event_bus.publish(
+                ChatMessageSentEvent(
+                    user_id=user_id, chat_id=chat_id, exchange_id=new_exchange.id
+                )
+            )
             return new_exchange.id, msg.id
 
     def send_markdown_reply_to_user_exchange(
@@ -250,6 +283,15 @@ class ChatService:
             exchange.agent_replies.append(msg)
             exchange.chat.modified_at = datetime.now(tz=UTC)
             db.commit()
+
+            self._event_bus.publish(
+                ChatMessageSentEvent(
+                    user_id=user_id,
+                    chat_id=exchange.chat.id,
+                    exchange_id=exchange.id,
+                    reply_id=msg.id,
+                )
+            )
 
     def send_choice_reply_to_user_exchange(
         self,
@@ -275,7 +317,34 @@ class ChatService:
             exchange.chat.modified_at = datetime.now(tz=UTC)
             db.commit()
 
+            self._event_bus.publish(
+                ChatMessageSentEvent(
+                    user_id=user_id,
+                    chat_id=exchange.chat.id,
+                    exchange_id=exchange.id,
+                    reply_id=msg.id,
+                )
+            )
+
             return msg.id
+
+    def get_user_chat_exchange(self, user_id: int, exchange_id: int) -> ChatExchange:
+        """Gets the given user chat exchange."""
+        with self._db.session() as db:
+            res = self._load_user_exchange(db, user_id, exchange_id)
+
+            [x.monologues for x in res.triggered_chat_events]
+            res.user_message.sending_user
+            res.user_message.sending_agent
+
+            match res.user_message:
+                case ChatMessageMarkdown():
+                    res.user_message.markdown
+                case ChatMessageChoicePrompt():
+                    res.user_message.prompt
+                    [x.value for x in res.user_message.choices]
+
+            return res
 
     def get_user_chat_exchanges_after(
         self, user_id: int, chat_id: int, after: int
@@ -383,12 +452,22 @@ class ChatService:
 
             db.commit()
 
+            self._event_bus.publish(
+                ChatOptionsSetEvent(user_id=chat.owner_id, chat_id=chat.id)
+            )
+
     def set_user_chat_summary(self, user_id: int, chat_id: int, summary: str):
         """Sets the summary of the given Chat."""
         with self._db.session() as db:
             chat = self._load_user_chat(db, user_id, chat_id)
             chat.summary = summary
             db.commit()
+
+            self._event_bus.publish(
+                ChatSummarySetEvent(
+                    user_id=chat.owner_id, chat_id=chat.id, summary=chat.summary
+                )
+            )
 
     def get_user_chat_messages(self, user_id: int, chat_id: int) -> List[ChatMessage]:
         """Returns all the messages sent in the current chat (flattened from all exchanges)."""
@@ -429,6 +508,23 @@ class ChatService:
 
             return res
 
+    def get_user_chat_message(self, user_id: int, message_id: int) -> ChatMessage:
+        """Gets the given user chat message."""
+        with self._db.session() as db:
+            res = self._load_user_message(db, user_id, message_id)
+
+            res.sending_user
+            res.sending_agent
+
+            match res:
+                case ChatMessageMarkdown():
+                    res.markdown
+                case ChatMessageChoicePrompt():
+                    res.prompt
+                    [x.value for x in res.choices]
+
+            return res
+
     def get_user_query_answer(self, user_id: int, message_id: int) -> Any:
         """Returns the user's answer to the given query."""
         with self._db.session() as db:
@@ -452,6 +548,10 @@ class ChatService:
 
             msg.answer = answer
             db.commit()
+
+            self._event_bus.publish(
+                QueryAnsweredEvent(user_id=user_id, query_id=msg.id, answer=msg.answer)
+            )
 
     # TODO: Factor this out into a utility module and unit test it
     def _clone_scalar_fields(self, orm_obj):
@@ -510,6 +610,53 @@ class ChatService:
 class ChatOptionsDiff(BaseModel):
     receiver: Optional[str] = None
     enabled_action_ids: Optional[List[int]] = None
+
+
+@dataclass
+class ChatCreatedEvent(event_bus.Event):
+    user_id: int
+    chat_id: int
+
+
+@dataclass
+class ChatDeletedEvent(event_bus.Event):
+    user_id: int
+    chat_id: int
+
+
+@dataclass
+class ChatExchangeCreatedEvent(event_bus.Event):
+    user_id: int
+    chat_id: int
+    exchange_id: int
+
+
+@dataclass
+class ChatMessageSentEvent(event_bus.Event):
+    user_id: int
+    chat_id: Optional[int] = None
+    exchange_id: Optional[int] = None
+    reply_id: Optional[int] = None
+
+
+@dataclass
+class ChatSummarySetEvent(event_bus.Event):
+    user_id: int
+    chat_id: int
+    summary: str
+
+
+@dataclass
+class ChatOptionsSetEvent(event_bus.Event):
+    user_id: int
+    chat_id: int
+
+
+@dataclass
+class QueryAnsweredEvent(event_bus.Event):
+    user_id: int
+    query_id: int
+    answer: Any
 
 
 class CannotCreateChatForNonexistentUserError(Exception):

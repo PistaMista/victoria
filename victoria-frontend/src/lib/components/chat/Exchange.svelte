@@ -1,38 +1,44 @@
 <script lang="ts">
 	import ItemComponent from "./Message.svelte";
-	import MonologueStatusIndicator from "../indicators/MonologueStatusIndicator.svelte";
-	import { writable, type Writable } from "svelte/store";
+	import ExchangeMonologue from "./ExchangeMonologue.svelte";
 	import { ShareAllOutline } from "flowbite-svelte-icons";
 	import type { Exchange } from "$lib/types/exchange";
+	import { MessageListingEvent } from "$lib/types/message";
 	import type { Message } from "$lib/types/message";
-	import { onDestroy, onMount } from "svelte";
-	import {
-		duplicateChatToExchange,
-		startReceivingMessages,
-	} from "$lib/api/chatting";
+	import { duplicateChatToExchange } from "$lib/api/chatting";
 	import ExchangeContextButton from "../buttons/ExchangeContextButton.svelte";
-	import type { Monologue } from "$lib/types/monologue";
-	import { getMonologue } from "$lib/api/monologues";
-	import { goto } from "$app/navigation";
+	import type { Subscription } from "$lib/types/websocket";
+	import Subscriber from "$lib/components/placeholders/Subscriber.svelte";
 	import Loader from "../placeholders/Loader.svelte";
 
 	export let exchange: Exchange;
 	export let latest = false;
 
-	let agentMessages: Writable<Message[]> = writable([]);
-	let monologues: Monologue[] = [];
+	let agentMessages: Message[] = [];
 
-	let fetchAbortController: AbortController = new AbortController();
-	let loopAbortController: AbortController = new AbortController();
-
-	let receivePromise: Promise<any> = Promise.resolve();
-	let getMonologuesPromise: Promise<any> = Promise.resolve();
 	let createNewChatPromise: Promise<any> = Promise.resolve();
 
-	async function loadMonologues() {
-		monologues = await Promise.all(
-			exchange.monologueIds.map((id) => getMonologue(id)),
-		);
+	let subscription: Subscription = {
+		type: "exchange_agent_messages",
+		exchangeId: exchange.id,
+	};
+
+	function handler(content: any) {
+		let e = MessageListingEvent.safeParse(content);
+
+		if (e.success) {
+			switch (e.data.type) {
+				case "initial":
+					agentMessages = e.data.messages;
+					break;
+				case "new":
+					agentMessages = [
+						...agentMessages,
+						e.data.message,
+					];
+					break;
+			}
+		}
 	}
 
 	function createNewChatFromHere() {
@@ -40,25 +46,6 @@
 			exchange.chatId,
 			exchange.id,
 		);
-	}
-
-	onMount(() => {
-		getMonologuesPromise = loadMonologues();
-		receivePromise = startReceivingMessages(
-			exchange.id,
-			agentMessages,
-			fetchAbortController.signal,
-			loopAbortController.signal,
-		);
-	});
-
-	onDestroy(() => {
-		fetchAbortController.abort("Exchange component destroyed");
-		loopAbortController.abort("Exchange component destroyed");
-	});
-
-	$: if (!latest) {
-		loopAbortController.abort("Exchange no longer latest");
 	}
 </script>
 
@@ -77,42 +64,19 @@
 			? ''
 			: 'rounded-t-md'} flex flex-col space-y-2 border-b-2 border-slate-500 border-dashed bg-slate-100 p-1"
 	>
-		{#each $agentMessages as message}
-			<ItemComponent {message} />
-		{/each}
+		<Subscriber {subscription} {handler}>
+			{#each agentMessages as message}
+				<ItemComponent {message} />
+			{/each}
+		</Subscriber>
 	</div>
 	<!-- Running monologue info -->
-	<Loader
-		promise={getMonologuesPromise}
-		pendingMessage="Fetching monologues..."
-		rejectMessage="Failed to get monologues"
-	>
-		<div class="flex flex-col space-y-2">
-			{#each monologues as monologue}
-				<div class="flex flex-row mt-1">
-					<a
-						aria-label="Go to monologue"
-						class="font-semibold hover:text-blue-500"
-						on:click={() =>
-							goto(`/monologues/${monologue.id}`)}
-						href={`/monologues/${monologue.id}`}
-						>{monologue.title}</a
-					>
-					<div class="ml-auto">
-						<MonologueStatusIndicator
-							horizontal
-							status={monologue.status}
-							startTimestamp={monologue.startTimestamp}
-							endTimestamp={monologue.endTimestamp}
-							displayRuntime
-						/>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</Loader>
+	<div class="flex flex-col space-y-2">
+		{#each exchange.monologueIds as monologueId}
+			<ExchangeMonologue {monologueId} />
+		{/each}
+	</div>
 	<!-- These buttons are only shown if there is no Exchange at this level with a non-completed Monologue -->
-	<!-- Use ExchangeContextButton here -->
 	<Loader
 		promise={createNewChatPromise}
 		pendingMessage="Creating new chat from here"
@@ -128,10 +92,3 @@
 		</div>
 	</Loader>
 </div>
-{#await receivePromise catch}
-	<Loader
-		promise={receivePromise}
-		pendingMessage="Receiving messages..."
-		rejectMessage="Failure while receiving messages"
-	/>
-{/await}

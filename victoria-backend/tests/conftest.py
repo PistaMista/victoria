@@ -10,7 +10,7 @@ from dependency_injector import providers
 from app.config import settings
 from app.model.user import User, Role
 from app.services.db import DatabaseService
-from app.services.auth import AuthService
+from app.services.auth import AuthService, AdminRequiredError
 from app.services.user import UserService
 from app.services.action import ActionService
 from app.services.trigger import TriggerService
@@ -20,6 +20,7 @@ from app.services.monologues.runner.monologue_thread import AgenticMonologueThre
 from app.services.monologues import MonologueService
 from app.services.chat import ChatService
 from app.services.agent import AgentService
+import concurrent.futures
 
 
 postgres = PostgresContainer("postgres")
@@ -97,6 +98,11 @@ def db_mock():
 
 
 @pytest.fixture(scope="function")
+def event_bus_mock():
+    return mock.MagicMock()
+
+
+@pytest.fixture(scope="function")
 def user_mock():
     return mock.MagicMock()
 
@@ -154,6 +160,7 @@ def llm_mock():
 @pytest.fixture(scope="function")
 def mock_app(
     db_mock,
+    event_bus_mock,
     dispatcher_mock,
     user_mock,
     auth_mock,
@@ -169,6 +176,7 @@ def mock_app(
     app = create_app()
 
     app.container.db.override(db_mock)
+    app.container.event_bus.override(event_bus_mock)
     app.container.dispatcher.override(dispatcher_mock)
     app.container.user.override(user_mock)
     app.container.auth.override(auth_mock)
@@ -192,6 +200,18 @@ def client(app):
 @pytest.fixture(scope="function")
 def mock_client(mock_app):
     return TestClient(mock_app)
+
+
+@pytest.fixture(scope="function")
+def mock_ws(mock_client, auth_mock, user):
+    auth_mock.get_as_non_admin_user.return_value = user
+    auth_mock.get_as_admin_user.side_effect = AdminRequiredError()
+
+    try:
+        with mock_client.websocket_connect("/ws", cookies={"token": "tokenito"}) as ws:
+            yield ws
+    except concurrent.futures.CancelledError:
+        pass
 
 
 @pytest.fixture(scope="function")

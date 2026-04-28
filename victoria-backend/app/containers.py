@@ -11,6 +11,7 @@ from app.services.action import ActionService
 from app.services.trigger import TriggerService
 from app.services.agent import AgentService
 from app.services.chat import ChatService
+from app.services.event_bus import EventBusService
 from dependency_injector import containers, providers
 
 
@@ -31,10 +32,18 @@ class Container(containers.DeclarativeContainer):
             ".interfaces.rest_api.triggers",
             ".interfaces.rest_api.users",
             ".interfaces.rest_api.webhooks",
+            ".interfaces.websocket.endpoint",
+            ".interfaces.websocket.handlers",
+            ".interfaces.websocket.handlers.chat_exchange",
+            ".interfaces.websocket.handlers.exchange_agent_messages",
+            ".interfaces.websocket.handlers.monologue_thoughts",
+            ".interfaces.websocket.handlers.monologue_status",
         ]
     )
 
     config = providers.Configuration(pydantic_settings=[settings])
+
+    event_bus = providers.Singleton(EventBusService)
 
     db = providers.Singleton(DatabaseService, db_url=config.DATABASE_URL)
 
@@ -43,7 +52,10 @@ class Container(containers.DeclarativeContainer):
     action = providers.Singleton(ActionService, database_service=db)
 
     monologue = providers.Singleton(
-        MonologueService, database_service=db, action_service=action
+        MonologueService,
+        database_service=db,
+        action_service=action,
+        event_bus_service=event_bus,
     )
 
     agentic_thread_factory = providers.Factory(
@@ -55,6 +67,7 @@ class Container(containers.DeclarativeContainer):
     runner = providers.Singleton(
         RunnerService,
         db_service=db,
+        event_bus_service=event_bus,
         thread_factory=agentic_thread_factory.provider,
         thread_limit=4,
     )
@@ -62,13 +75,17 @@ class Container(containers.DeclarativeContainer):
         DispatcherService,
         db_service=db,
         runner_service=runner,
+        event_bus_service=event_bus,
         base_url=providers.Callable(lambda c: f"{c['ADDRESS']}:{c['PORT']}", config),
     )
 
     trigger = providers.Singleton(TriggerService, database_service=db)
 
     chat = providers.Singleton(
-        ChatService, database_service=db, trigger_service=trigger
+        ChatService,
+        database_service=db,
+        trigger_service=trigger,
+        event_bus_service=event_bus,
     )
 
     agent = providers.Singleton(AgentService, database_service=db)

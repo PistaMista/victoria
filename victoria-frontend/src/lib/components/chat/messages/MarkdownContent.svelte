@@ -5,7 +5,6 @@
 	export let content: MarkdownContent;
 </script>
 
-<div class="prose">
+<div class="prose max-w-full">
 	{@html parse(content.markdownText)}
 </div>
-

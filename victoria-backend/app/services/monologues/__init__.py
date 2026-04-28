@@ -1,6 +1,7 @@
 from app.services.db import DatabaseService
 from app.services.action import ActionService
 from app.services.llm import UserMessage, AssistantMessage
+from app.services.event_bus import EventBusService, Event
 from app.model.agent import Agent
 from app.model.monologue import Monologue, MonologueStatus
 from app.model.thought import Thought
@@ -11,14 +12,19 @@ from sqlalchemy.orm import joinedload, Session
 from datetime import datetime, UTC
 from copy import copy
 import json
+from dataclasses import dataclass
 
 
 class MonologueService:
     def __init__(
-        self, database_service: DatabaseService, action_service: ActionService
+        self,
+        database_service: DatabaseService,
+        action_service: ActionService,
+        event_bus_service: EventBusService,
     ):
         self._db: DatabaseService = database_service
         self._action: ActionService = action_service
+        self._event_bus: EventBusService = event_bus_service
 
     def get_user_monologues(
         self,
@@ -111,6 +117,14 @@ class MonologueService:
 
             db.commit()
 
+            self._event_bus.publish(
+                MonologueStatusChangedEvent(
+                    user_id=monologue.agent.owner.id,
+                    monologue_id=monologue.id,
+                    status=monologue.status,
+                )
+            )
+
     def set_monologue_title(self, id: int, title: str):
         with self._db.session() as db:
             monologue = db.scalar(select(Monologue).where(Monologue.id == id))
@@ -121,6 +135,15 @@ class MonologueService:
             monologue.title = title
             db.commit()
 
+            self._event_bus.publish(
+                MonologueMetadataSetEvent(
+                    user_id=monologue.agent.owner.id,
+                    monologue_id=monologue.id,
+                    title=monologue.title,
+                    summary=monologue.summary,
+                )
+            )
+
     def set_monologue_summary(self, id: int, summary: str):
         with self._db.session() as db:
             monologue = db.scalar(select(Monologue).where(Monologue.id == id))
@@ -130,6 +153,15 @@ class MonologueService:
 
             monologue.summary = summary
             db.commit()
+
+            self._event_bus.publish(
+                MonologueMetadataSetEvent(
+                    user_id=monologue.agent.owner.id,
+                    monologue_id=monologue.id,
+                    title=monologue.title,
+                    summary=monologue.summary,
+                )
+            )
 
     def get_monologue_thoughts(self, id: int):
         with self._db.session() as db:
@@ -214,6 +246,19 @@ class MonologueService:
             monologue.modified_at = datetime.now(tz=UTC)
             db.commit()
 
+            # Trigger load of associated fields
+            # so they are available in the detached instance
+            thought.invocation
+            thought.invocation.action
+
+            self._event_bus.publish(
+                MonologueThoughtAppendedEvent(
+                    user_id=monologue.agent.owner.id,
+                    monologue_id=monologue.id,
+                    thought=thought,
+                )
+            )
+
     def _load_user_monologue(self, db: Session, user_id: int, monologue_id: int):
         res = db.scalar(
             select(Monologue)
@@ -225,6 +270,28 @@ class MonologueService:
             raise NonexistentMonologueError(monologue_id)
 
         return res
+
+
+@dataclass
+class MonologueStatusChangedEvent(Event):
+    user_id: int
+    monologue_id: int
+    status: MonologueStatus
+
+
+@dataclass
+class MonologueMetadataSetEvent(Event):
+    user_id: int
+    monologue_id: int
+    title: str
+    summary: str
+
+
+@dataclass
+class MonologueThoughtAppendedEvent(Event):
+    user_id: int
+    monologue_id: int
+    thought: Thought
 
 
 class NonexistentMonologueError(Exception):

@@ -1,46 +1,40 @@
 <script lang="ts">
-	import { onDestroy, onMount } from "svelte";
-	import { writable, type Writable } from "svelte/store";
 	import ItemComponent from "./Exchange.svelte";
-	import { startReceivingExchanges } from "$lib/api/chatting";
+	import Subscriber from "$lib/components/placeholders/Subscriber.svelte";
+	import { ExchangeListingEvent } from "$lib/types/exchange";
 	import type { Exchange } from "$lib/types/exchange";
-	import Loader from "../placeholders/Loader.svelte";
+	import type { Subscription } from "$lib/types/websocket";
 
 	export let id: number;
 
-	let exchanges: Writable<Exchange[]> = writable<Exchange[]>([]);
+	let exchanges: Exchange[] = [];
+	let subscription: Subscription = { type: "chat_exchanges", chatId: id };
 
-	let abortController: AbortController = new AbortController();
-	let receivePromise: Promise<any> = Promise.resolve();
+	function handler(content: any) {
+		let e = ExchangeListingEvent.safeParse(content);
 
-	onMount(() => {
-		receivePromise = startReceivingExchanges(
-			id,
-			exchanges,
-			abortController.signal,
-		);
-	});
-
-	onDestroy(() => {
-		abortController.abort("ChatWindow component destroyed");
-	});
+		if (e.success) {
+			switch (e.data.type) {
+				case "initial":
+					exchanges = e.data.exchanges;
+					break;
+				case "new":
+					exchanges = [...exchanges, e.data.exchange];
+					break;
+			}
+		}
+	}
 </script>
 
-{#await receivePromise}
+<Subscriber {subscription} {handler}>
 	<div class="grow min-h-0 mb-2 overflow-y-scroll">
 		<div class="flex flex-col md:w-2/3 mx-2 md:m-auto">
-			{#each $exchanges as exchange, i}
+			{#each exchanges as exchange, i}
 				<ItemComponent
 					{exchange}
-					latest={i === $exchanges.length - 1}
+					latest={i === exchanges.length - 1}
 				/>
 			{/each}
 		</div>
 	</div>
-{:catch}
-	<Loader
-		promise={receivePromise}
-		pendingMessage="Receiving exchanges..."
-		rejectMessage="Failed to receive exchanges"
-	/>
-{/await}
+</Subscriber>

@@ -4,6 +4,7 @@ import { render, screen, waitFor } from "@testing-library/svelte";
 import type { MonologueListItem as Monologue } from "$lib/types/monologue";
 import MonologueListItem from "./MonologueListItem.svelte";
 import { goto } from "$app/navigation";
+import { connectWithRetry, disconnect } from "$lib/api/websocket";
 
 vi.mock("$app/navigation", () => ({
 	goto: vi.fn(),
@@ -23,9 +24,11 @@ test("monologue list item shows title of given monologue", async () => {
 		monologue: testMonologue,
 	});
 
-	expect(container).toHaveTextContent(
-		"Research reading list for learning electronics",
-	);
+	await waitFor(() => {
+		expect(container).toHaveTextContent(
+			"Research reading list for learning electronics",
+		);
+	});
 });
 
 test("monologue list item shows summary of given monologue", async () => {
@@ -33,16 +36,20 @@ test("monologue list item shows summary of given monologue", async () => {
 		monologue: testMonologue,
 	});
 
-	expect(container).toHaveTextContent("Thinking...");
+	await waitFor(() => {
+		expect(container).toHaveTextContent("Thinking...");
+	});
 });
 
-test("monologue list item shows name of assigned agent of given monologue", async () => {
+test("monologue list item replaces summary of given monologue after change", async () => {
+	let testMonologue2 = { ...testMonologue, id: 1 };
+
 	const { container } = render(MonologueListItem, {
-		monologue: testMonologue,
+		monologue: testMonologue2,
 	});
 
 	await waitFor(() => {
-		expect(container).toHaveTextContent("Started by Cook");
+		expect(container).toHaveTextContent("Searching the web for sources");
 	});
 });
 

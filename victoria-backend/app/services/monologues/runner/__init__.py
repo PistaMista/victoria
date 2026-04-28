@@ -1,3 +1,5 @@
+from app.services.monologues import MonologueStatusChangedEvent
+from app.services.event_bus import EventBusService
 from app.services.db import DatabaseService
 import threading
 from app.model.monologue import Monologue, MonologueStatus
@@ -10,12 +12,14 @@ class RunnerService:
     def __init__(
         self,
         db_service: DatabaseService,
+        event_bus_service: EventBusService,
         thread_factory: Callable[
             [int, Callable[[MonologueThread], None]], MonologueThread
         ],
         thread_limit: int,
     ):
         self._db: DatabaseService = db_service
+        self._event_bus: EventBusService = event_bus_service
         self._limit: int = thread_limit
         self._thread_factory: Callable[
             [int, Callable[[MonologueThread], None]], MonologueThread
@@ -46,12 +50,28 @@ class RunnerService:
 
             db.commit()
 
+            self._event_bus.publish(
+                MonologueStatusChangedEvent(
+                    user_id=monologue.agent.owner.id,
+                    monologue_id=monologue.id,
+                    status=monologue.status,
+                )
+            )
+
     def on_thread_exited(self, t: MonologueThread):
         with self._db.session() as db:
             monologue = db.scalar(select(Monologue).where(Monologue.id == t._id))
-            if not monologue is None and not monologue.is_finished():
+            if monologue is not None and not monologue.is_finished():
                 monologue.status = MonologueStatus.FAILURE
                 db.commit()
+
+                self._event_bus.publish(
+                    MonologueStatusChangedEvent(
+                        user_id=monologue.agent.owner.id,
+                        monologue_id=monologue.id,
+                        status=monologue.status,
+                    )
+                )
 
         self._running_threads.remove(t)
         if self._queued_threads:
@@ -61,9 +81,17 @@ class RunnerService:
                 monologue = db.scalar(
                     select(Monologue).where(Monologue.id == new_t._id)
                 )
-                if not monologue is None:
+                if monologue is not None:
                     monologue.status = MonologueStatus.RUNNING
                     db.commit()
+
+                    self._event_bus.publish(
+                        MonologueStatusChangedEvent(
+                            user_id=monologue.agent.owner.id,
+                            monologue_id=monologue.id,
+                            status=monologue.status,
+                        )
+                    )
 
             new_t.start()
             self._running_threads.append(new_t)

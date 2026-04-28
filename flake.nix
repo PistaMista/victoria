@@ -51,42 +51,46 @@
           };
         };
         dev-pkgs-old = import inputs.dev-pkgs-old { inherit system; };
+        workspace = uv2nix.lib.workspace.loadWorkspace {
+          workspaceRoot = ./victoria-backend;
+        };
+        overlay = workspace.mkPyprojectOverlay {
+          sourcePreference = "wheel";
+        };
+        pyprojectOverrides = (
+          final: prev: {
+          }
+        );
+        python = prod-pkgs.python313;
+        pkgSet =
+          (prod-pkgs.callPackage pyproject-nix.build.packages {
+            inherit python;
+          }).overrideScope
+            (
+              prod-pkgs.lib.composeManyExtensions [
+                pyproject-build-systems.overlays.default
+                overlay
+                pyprojectOverrides
+              ]
+            );
+        prod-venv = pkgSet.mkVirtualEnv "application-env" workspace.deps.default;
+        dev-venv = pkgSet.mkVirtualEnv "dev-env" {
+          victoria-backend = [ "dev" ];
+        };
 
         backend =
           let
-            workspace = uv2nix.lib.workspace.loadWorkspace {
-              workspaceRoot = ./victoria-backend;
-            };
-            overlay = workspace.mkPyprojectOverlay {
-              sourcePreference = "wheel";
-            };
-            pyprojectOverrides = (
-              final: prev: {
-              }
-            );
-            python = prod-pkgs.python312;
-            pkgSet =
-              (prod-pkgs.callPackage pyproject-nix.build.packages {
-                inherit python;
-              }).overrideScope
-                (
-                  prod-pkgs.lib.composeManyExtensions [
-                    pyproject-build-systems.overlays.default
-                    overlay
-                    pyprojectOverrides
-                  ]
-                );
             inherit (prod-pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
           in
           mkApplication {
-            venv = pkgSet.mkVirtualEnv "application-env" workspace.deps.default;
+            venv = prod-venv;
             package = pkgSet.victoria-backend;
           };
 
         frontend = prod-pkgs.buildNpmPackage {
           name = "victoria-frontend";
           src = ./victoria-frontend;
-          npmDepsHash = "sha256-3+hHRpk7isnvp2730/SXkjZaXWW5meNWHMR/1aK7bis=";
+          npmDepsHash = "sha256-9vBmco/7bk88jQFqRgDpLvpAI1hi4sHgXBirRbVrgG4=";
 
           buildInputs = with prod-pkgs; [
             nodejs_22
@@ -114,52 +118,23 @@
       {
         packages."victoria-backend" = wrapper;
         defaultPackage = self.packages.${system}."victoria-backend";
-        devShell =
-          let
-            nvim = dev-pkgs.writers.writeBashBin "nvim" ''
-              ${dev-pkgs.neovim}/bin/nvim -u NONE "$@"
-            '';
-            vscode = dev-pkgs.vscode-with-extensions.override {
-              vscodeExtensions =
-                with dev-pkgs.vscode-extensions;
-                [
-                  eamodio.gitlens
-                  nonylene.dark-molokai-theme
-                  asvetliakov.vscode-neovim
-                  usernamehw.errorlens
-                  svelte.svelte-vscode
-                  dev-pkgs-old.vscode-extensions.ms-python.python
-                  dev-pkgs-old.vscode-extensions.ms-python.debugpy
-                ]
-                ++ dev-pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-                  {
-                    name = "git-graph";
-                    publisher = "mhutchie";
-                    version = "1.30.0";
-                    sha256 = "sHeaMMr5hmQ0kAFZxxMiRk6f0mfjkg2XMnA4Gf+DHwA=";
-                  }
-                  {
-                    name = "explorer";
-                    publisher = "vitest";
-                    version = "1.20.2";
-                    sha256 = "sGzmmziX30JS4NDDo+6Si9sTN8F/Sxqmh+WZ/C8x3ls=";
-                  }
-                ];
-            };
-          in
-          dev-pkgs.mkShell {
-            buildInputs = [
-              dev-pkgs.uv
-              dev-pkgs.nodejs_22
-            ];
+        devShell = dev-pkgs.mkShell {
+          buildInputs = [
+            dev-venv
+            dev-pkgs.uv
+            dev-pkgs.nodejs_22
+          ];
 
-            shellHook = ''
-              export DB_USER="user"
-              export DB_PASS="pass"
-              # FOR USE IN TESTING, NOT PRODUCTION!
-              export VICTORIA_JWT_SECRET="d2e74cd1a54c4b8b90f215f5bcd057fbb10b2c23a1615ca49edeee0415f5b055"
-            '';
-          };
+          shellHook = ''
+                                                export PATH="${dev-venv}/bin:$PATH"
+            export PYTHONPATH="$(${dev-pkgs.git}/bin/git rev-parse --show-toplevel)/victoria-backend"
+            export VIRTUAL_ENV="${dev-venv}"
+            export DB_USER="user"
+            export DB_PASS="pass"
+            # FOR USE IN TESTING, NOT PRODUCTION!
+            export VICTORIA_JWT_SECRET="d2e74cd1a54c4b8b90f215f5bcd057fbb10b2c23a1615ca49edeee0415f5b055"
+          '';
+        };
       }
     )
     // {

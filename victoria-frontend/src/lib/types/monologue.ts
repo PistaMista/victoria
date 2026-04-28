@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Diff } from "$lib/types/diff";
 
 export const MonologueStatus = z.enum([
 	"RUNNING",
@@ -28,3 +29,8 @@ export const Monologue = z.object({
 	status: MonologueStatus,
 });
 export type Monologue = z.infer<typeof Monologue>;
+
+export const MonologueStatusEvent = z.object({
+	monologue: Monologue
+});
+export type MonologueStatusEvent = z.infer<typeof MonologueStatusEvent>;

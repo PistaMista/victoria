@@ -46,3 +46,17 @@ export const Message = z.object({
 	]),
 });
 export type Message = z.infer<typeof Message>;
+
+export const InitialMessages = z.object({
+	type: z.literal("initial"),
+	messages: z.array(Message)
+});
+export type InitialMessages = z.infer<typeof InitialMessages>;
+
+export const NewMessage = z.object({
+	type: z.literal("new"),
+	message: Message
+});
+
+export const MessageListingEvent = z.discriminatedUnion("type", [InitialMessages, NewMessage]);
+export type MessageListingEvent = z.infer<typeof MessageListingEvent>;
