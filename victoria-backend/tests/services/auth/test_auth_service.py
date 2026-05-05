@@ -95,6 +95,8 @@ def test_auth_service_returns_jwt_token_with_valid_login(time, auth_serv):
     [
         ("John", "wrong"),  # wrong password
         ("sdasd", "actual"),  # wrong username
+        ("JohN", "actual"),  # wrong case in username
+        ("John", "actUal"),  # wrong case in password
         ("sdasd", "wrong"),  # both wrong
     ],
 )
