@@ -56,7 +56,7 @@ test("connection detail can edit URL of Ollama connection", async () => {
 
 test("connection detail can delete given Ollama connection", async () => {
 	const user = userEvent.setup();
-	const { findByLabelText } = render(ConnectionDetailView, {
+	const { findByLabelText, getByLabelText } = render(ConnectionDetailView, {
 		id: 1,
 	});
 
@@ -68,6 +68,8 @@ test("connection detail can delete given Ollama connection", async () => {
 	});
 
 	await user.click(deleteButton);
+	const confirmButton = getByLabelText("Delete");
+	await user.click(confirmButton);
 
 	expect(deleteConnectionHandler).toBeCalled();
 	expect(

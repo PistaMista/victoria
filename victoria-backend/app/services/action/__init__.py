@@ -57,7 +57,11 @@ class ActionService:
     def update_action_repository(self, id: int, changes: "ActionRepositoryDiff"):
         """Updates the action repository with the given id."""
         with self._db.session() as db:
-            repo = db.scalar(select(ActionRepository).where(ActionRepository.id == id))
+            repo = db.scalar(
+                select(ActionRepository)
+                .where(ActionRepository.id == id)
+                .with_for_update()
+            )
 
             if repo is None:
                 raise NonexistentActionRepositoryError(id)
@@ -119,7 +123,11 @@ class ActionService:
 
     def remove_action_repository(self, id: int):
         with self._db.session() as db:
-            repo = db.scalar(select(ActionRepository).where(ActionRepository.id == id))
+            repo = db.scalar(
+                select(ActionRepository)
+                .where(ActionRepository.id == id)
+                .with_for_update()
+            )
 
             if repo is None:
                 raise NonexistentActionRepositoryError(id)
@@ -138,13 +146,19 @@ class ActionService:
         # it should be the full module path to avoid name collisions.
         with self._db.session() as db:
             repo = db.scalar(
-                select(ActionRepository).where(ActionRepository.id == repo_id)
+                select(ActionRepository)
+                .where(ActionRepository.id == repo_id)
+                .with_for_update()
             )
 
             if repo is None:
                 raise NonexistentActionRepositoryError(repo_id)
 
-            for existing in repo.actions:
+            repo_actions = db.scalars(
+                select(Action).where(Action.repository_id == repo.id).with_for_update()
+            )
+
+            for existing in repo_actions:
                 for i, new in enumerate(actions):
                     if new.function_name == existing.function_name:
                         actions.pop(i)
@@ -177,7 +191,7 @@ class ActionService:
 
             result.function_name = parsed.get("action_name", None)
             result.params = parsed.get("arguments", None)
-        except:
+        except Exception:
             pass
 
         # Retrieve action with same name
@@ -288,7 +302,7 @@ class ActionService:
             try:
                 actions = self.import_actions_from_git_url(repo.url)
                 self.set_action_repository_actions(repo.id, actions)
-            except:
+            except Exception:
                 # TODO: Store an error somewhere indicating that the import failed
                 pass
 

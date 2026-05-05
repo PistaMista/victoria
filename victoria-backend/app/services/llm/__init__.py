@@ -39,7 +39,11 @@ class LLMService:
     def set_model_enabled_by_id(self, model_id: int, enabled: bool):
         """Enables or disables the given LanguageModel."""
         with self._db.session() as db:
-            model = db.scalar(select(LanguageModel).where(LanguageModel.id == model_id))
+            model = db.scalar(
+                select(LanguageModel)
+                .where(LanguageModel.id == model_id)
+                .with_for_update()
+            )
 
             if model is None:
                 raise NonexistentModelError(model_id)
@@ -81,7 +85,11 @@ class LLMService:
         """Updates the given Connection's settings."""
         with self._db.session() as db:
             with db.no_autoflush:
-                con = db.scalar(select(LLMConnection).where(LLMConnection.id == id))
+                con = db.scalar(
+                    select(LLMConnection)
+                    .where(LLMConnection.id == id)
+                    .with_for_update()
+                )
 
                 if not isinstance(con, OllamaConnection):
                     raise NonexistentConnectionError(id)
@@ -108,7 +116,9 @@ class LLMService:
 
     def remove_connection(self, id: int):
         with self._db.session() as db:
-            connection = db.scalar(select(LLMConnection).where(LLMConnection.id == id))
+            connection = db.scalar(
+                select(LLMConnection).where(LLMConnection.id == id).with_for_update()
+            )
 
             if connection is None:
                 raise NonexistentConnectionError(id)
@@ -157,7 +167,7 @@ class LLMService:
 
     def _refresh_ollama_connection_models(self, db: Session, id: int):
         connection = db.scalar(
-            select(OllamaConnection).where(OllamaConnection.id == id)
+            select(OllamaConnection).where(OllamaConnection.id == id).with_for_update()
         )
 
         if connection is None:

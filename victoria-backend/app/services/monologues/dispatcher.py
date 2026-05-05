@@ -94,7 +94,9 @@ class DispatcherService:
 
     def on_event_added(self, event: Event):
         with self._db.session() as db:
-            event = db.scalars(select(Event).where(Event.id == event.id)).first()
+            event = db.scalars(
+                select(Event).where(Event.id == event.id).with_for_update()
+            ).first()
 
             if event is None:
                 return

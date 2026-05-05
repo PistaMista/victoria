@@ -139,13 +139,14 @@ test("agent detail can edit given agent params", async () => {
 
 test("agent detail can delete given agent", async () => {
 	const user = userEvent.setup();
-	const { findByLabelText } = render(AgentDetailView, {
+	const { findByLabelText, getByLabelText } = render(AgentDetailView, {
 		id: 1,
 	});
 
 	const button = await findByLabelText("Delete agent");
-
 	await user.click(button);
+	const confirmButton = getByLabelText("Delete");
+	await user.click(confirmButton);
 
 	expect(deleteAgentHandler).toBeCalled();
 	expect((deleteAgentHandler as Mock).mock.calls[0][0].request.url).contain(

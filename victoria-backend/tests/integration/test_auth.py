@@ -93,6 +93,16 @@ def test_protected_endpoint_responds_with_401_when_token_expired(
     assert res.status_code == 401
 
 
+def test_protected_endpoint_responds_with_401_when_token_invalid(admin_client):
+    # Arrange
+
+    # Act
+    res = admin_client.get("/api/auth/me", cookies={"token": "tokenito"})
+
+    # Assert
+    assert res.status_code == 401
+
+
 def test_me_endpoint_responds_with_200_and_user_info_when_logged_in(user_client):
     # Arrange
 

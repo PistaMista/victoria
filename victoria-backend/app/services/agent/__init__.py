@@ -229,7 +229,9 @@ class AgentService:
 
     def _load_user_agent(self, db: Session, user_id: int, agent_id: int) -> Agent:
         agent = db.scalar(
-            select(Agent).where(Agent.id == agent_id, Agent.owner_id == user_id)
+            select(Agent)
+            .where(Agent.id == agent_id, Agent.owner_id == user_id)
+            .with_for_update()
         )
 
         if agent is None:
