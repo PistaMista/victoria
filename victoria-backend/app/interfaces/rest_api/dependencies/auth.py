@@ -1,5 +1,6 @@
 from app.services.auth import (
     AuthService,
+    InvalidLoginError,
     ExpiredLoginError,
     NotLoggedInError,
     AdminRequiredError,
@@ -17,6 +18,10 @@ async def get_non_admin_user(
 ):
     try:
         return auth_service.get_as_non_admin_user(token)
+    except InvalidLoginError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Login is invalid"
+        )
     except ExpiredLoginError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Login has expired"
@@ -34,6 +39,10 @@ async def get_admin_user(
 ):
     try:
         return auth_service.get_as_admin_user(token)
+    except InvalidLoginError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Login is invalid"
+        )
     except ExpiredLoginError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Login has expired"
