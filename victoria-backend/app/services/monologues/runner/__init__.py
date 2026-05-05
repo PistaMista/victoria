@@ -35,7 +35,9 @@ class RunnerService:
             raise AlreadyRunningError(monologue_id)
 
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == monologue_id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == monologue_id).with_for_update()
+            )
             if monologue is None or monologue.is_finished():
                 return
 
@@ -60,7 +62,9 @@ class RunnerService:
 
     def on_thread_exited(self, t: MonologueThread):
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == t._id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == t._id).with_for_update()
+            )
             if monologue is not None and not monologue.is_finished():
                 monologue.status = MonologueStatus.FAILURE
                 db.commit()
@@ -79,7 +83,7 @@ class RunnerService:
 
             with self._db.session() as db:
                 monologue = db.scalar(
-                    select(Monologue).where(Monologue.id == new_t._id)
+                    select(Monologue).where(Monologue.id == new_t._id).with_for_update()
                 )
                 if monologue is not None:
                     monologue.status = MonologueStatus.RUNNING

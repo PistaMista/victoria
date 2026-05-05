@@ -129,7 +129,9 @@ class TriggerService:
 
         with self._db.session() as db:
             with db.no_autoflush:
-                old = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
+                old = db.scalar(
+                    select(Trigger).where(Trigger.id == trigger_id).with_for_update()
+                )
                 new = old
 
                 if old is None:
@@ -226,7 +228,9 @@ class TriggerService:
     def remove_trigger(self, id: int):
         """Deletes the given Trigger."""
         with self._db.session() as db:
-            trigger = db.scalar(select(Trigger).where(Trigger.id == id))
+            trigger = db.scalar(
+                select(Trigger).where(Trigger.id == id).with_for_update()
+            )
 
             if trigger is None:
                 raise NonexistentTriggerError(id)
@@ -257,7 +261,9 @@ class TriggerService:
     def restart_trigger_timer(self, trigger_id: int):
         """Restarts the specified trigger's timer if running or starts it if stopped."""
         with self._db.session() as db:
-            trigger = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
+            trigger = db.scalar(
+                select(Trigger).where(Trigger.id == trigger_id).with_for_update()
+            )
 
             if not isinstance(trigger, TimerTrigger) and not isinstance(
                 trigger, PollTrigger
@@ -278,7 +284,9 @@ class TriggerService:
     def stop_trigger_timer(self, trigger_id: int):
         """Stops the specified trigger's timer if running."""
         with self._db.session() as db:
-            trigger = db.scalar(select(Trigger).where(Trigger.id == trigger_id))
+            trigger = db.scalar(
+                select(Trigger).where(Trigger.id == trigger_id).with_for_update()
+            )
 
             if not isinstance(trigger, TimerTrigger) and not isinstance(
                 trigger, PollTrigger

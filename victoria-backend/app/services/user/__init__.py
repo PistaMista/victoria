@@ -43,7 +43,7 @@ class UserService:
     def update_user(self, id: int, changes: "UserDiff"):
         """Updates the given User."""
         with self._db.session() as db:
-            user = db.scalar(select(User).where(User.id == id))
+            user = db.scalar(select(User).where(User.id == id).with_for_update())
 
             if user is None:
                 raise NonexistentUserError(id)
@@ -172,7 +172,7 @@ class UserService:
 
     def delete_user_by_id(self, id: int):
         with self._db.session() as db:
-            user = db.scalar(select(User).where(User.id == id))
+            user = db.scalar(select(User).where(User.id == id).with_for_update())
 
             if user is None:
                 raise NonexistentUserError(id)

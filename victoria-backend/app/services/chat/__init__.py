@@ -567,7 +567,9 @@ class ChatService:
 
     def _load_user_chat(self, db: Session, user_id: int, chat_id: int):
         res = db.scalar(
-            select(Chat).where(Chat.id == chat_id, Chat.owner_id == user_id)
+            select(Chat)
+            .where(Chat.id == chat_id, Chat.owner_id == user_id)
+            .with_for_update()
         )
 
         if res is None:
@@ -580,6 +582,7 @@ class ChatService:
             select(ChatExchange)
             .join(ChatExchange.chat)
             .where(ChatExchange.id == exchange_id, Chat.owner_id == user_id)
+            .with_for_update()
         )
 
         if res is None:
@@ -599,6 +602,7 @@ class ChatService:
             )
             .join(ChatExchange.chat)
             .where(Chat.owner_id == user_id, ChatMessage.id == message_id)
+            .with_for_update()
         )
 
         if res is None:

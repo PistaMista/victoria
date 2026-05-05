@@ -94,7 +94,9 @@ class MonologueService:
     def set_monologue_context(self, id: int, context: Dict[str, Any]):
         """Sets the context of the given Monologue."""
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == id).with_for_update()
+            )
 
             if monologue is None:
                 raise NonexistentMonologueError(id)
@@ -104,7 +106,9 @@ class MonologueService:
 
     def set_monologue_status(self, id: int, status: MonologueStatus):
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == id).with_for_update()
+            )
 
             if monologue is None:
                 raise NonexistentMonologueError(id)
@@ -127,7 +131,9 @@ class MonologueService:
 
     def set_monologue_title(self, id: int, title: str):
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == id).with_for_update()
+            )
 
             if monologue is None:
                 raise NonexistentMonologueError(id)
@@ -146,7 +152,9 @@ class MonologueService:
 
     def set_monologue_summary(self, id: int, summary: str):
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == id).with_for_update()
+            )
 
             if monologue is None:
                 raise NonexistentMonologueError(id)
@@ -237,7 +245,9 @@ class MonologueService:
 
     def append_thought_to_monologue(self, id: int, thought: Thought):
         with self._db.session() as db:
-            monologue = db.scalar(select(Monologue).where(Monologue.id == id))
+            monologue = db.scalar(
+                select(Monologue).where(Monologue.id == id).with_for_update()
+            )
 
             if monologue is None:
                 raise NonexistentMonologueError(id)
@@ -264,6 +274,7 @@ class MonologueService:
             select(Monologue)
             .join(Monologue.agent)
             .where(Agent.owner_id == user_id, Monologue.id == monologue_id)
+            .with_for_update()
         )
 
         if res is None:
