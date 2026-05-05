@@ -43,6 +43,24 @@ test("chat prompt can send text message to the conversation with given id", asyn
 	});
 });
 
+test("chat prompt clears after sending text message", async () => {
+	const user = userEvent.setup();
+	const { findByLabelText } = render(ChatPrompt, {
+		id: 1,
+	});
+
+	let messageBox = await findByLabelText("Message box");
+	const sendButton = await findByLabelText("Send message");
+
+	await user.type(messageBox, "Hello there!");
+	await user.click(sendButton);
+
+	messageBox = await findByLabelText("Message box");
+
+	expect(messageBox).toBeInTheDocument();
+	expect(messageBox).toHaveValue("");
+});
+
 test("chat prompt options button routes to options of conversation with given id", async () => {
 	const user = userEvent.setup();
 	const { findByLabelText } = render(ChatPrompt, {

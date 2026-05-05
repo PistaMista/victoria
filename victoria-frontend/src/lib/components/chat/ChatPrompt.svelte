@@ -15,10 +15,16 @@
 		goto(`/chats/${id}/options`);
 	}
 
-	function sendMessage() {
+	async function sendMessage() {
 		if (message.length > 0) {
-			messagePromise = sendMessageToChat(id, message);
+			await sendMessageToChat(id, message);
 		}
+
+		message = "";
+	}
+
+	function onClickSend() {
+		messagePromise = sendMessage();
 	}
 </script>
 
@@ -43,8 +49,7 @@
 		<Button
 			aria-label="Send message"
 			class="w-12 min-h-0"
-			on:click={sendMessage}><PaperPlaneSolid /></Button
+			on:click={onClickSend}><PaperPlaneSolid /></Button
 		>
 	</ButtonGroup>
 </Loader>
-
