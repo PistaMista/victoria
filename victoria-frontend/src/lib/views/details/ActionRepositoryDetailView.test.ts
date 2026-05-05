@@ -98,13 +98,14 @@ test("action repository detail can edit name of given repository", async () => {
 
 test("action repository detail can delete a given repository", async () => {
 	const user = userEvent.setup();
-	const { findByLabelText } = render(ActionRepositoryDetailView, {
+	const { findByLabelText, getByLabelText } = render(ActionRepositoryDetailView, {
 		id: 1,
 	});
 
 	const deleteButton = await findByLabelText("Delete action repository");
-
 	await user.click(deleteButton);
+	const confirmButton = getByLabelText("Delete");
+	await user.click(confirmButton);
 
 	expect(deleteActionRepoHandler).toBeCalled();
 	expect(

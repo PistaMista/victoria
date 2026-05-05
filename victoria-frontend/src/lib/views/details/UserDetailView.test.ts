@@ -121,6 +121,8 @@ test("user detail can delete given user", async () => {
 
 	const deleteButton = getByLabelText("Delete user");
 	await user.click(deleteButton);
+	const confirmButton = getByLabelText("Delete");
+	await user.click(confirmButton);
 
 	expect(deleteUserHandler).toBeCalled();
 	expect((deleteUserHandler as Mock).mock.calls[0][0].request.url).toContain(

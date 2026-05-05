@@ -81,13 +81,14 @@ test("trigger detail can edit template of trigger", async () => {
 
 test("trigger detail can delete given trigger", async () => {
 	const user = userEvent.setup();
-	const { findByLabelText } = render(TriggerDetailView, {
+	const { findByLabelText, getByLabelText } = render(TriggerDetailView, {
 		id: 3,
 	});
 
 	const deleteButton = await findByLabelText("Delete trigger");
-
 	await user.click(deleteButton);
+	const confirmButton = getByLabelText("Delete");
+	await user.click(confirmButton);
 
 	expect(deleteTriggerHandler).toBeCalled();
 	expect((deleteTriggerHandler as Mock).mock.calls[0][0].request.url).toContain(

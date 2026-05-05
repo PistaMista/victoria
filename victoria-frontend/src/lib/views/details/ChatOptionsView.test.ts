@@ -89,6 +89,8 @@ test("chat options view allows deleting given chat", async () => {
 
 	const button = getByLabelText("Delete chat");
 	await user.click(button);
+	const confirmButton = getByLabelText("Delete");
+	await user.click(confirmButton);
 
 	expect(chatDeleteHandler).toBeCalled();
 	expect((chatDeleteHandler as Mock).mock.calls[0][0].request.url).toContain(
